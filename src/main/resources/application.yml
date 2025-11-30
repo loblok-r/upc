@@ -1,0 +1,25 @@
+server:
+  port: 8070
+spring:
+  application:
+    name: upc
+  datasource:
+    url: jdbc:mysql://localhost:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 16   # 👈 必须 ≥ 你的 exportExecutor 线程数
+      minimum-idle: 4         # 可选：保持少量空闲连接
+      connection-timeout: 30000
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
