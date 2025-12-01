@@ -2,6 +2,7 @@ package cn.loblok.upc.controller;
 
 import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
+import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.service.CheckinRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +29,8 @@ public class CheckinRecordController {
      * @return 签到响应
      */
     @PostMapping("/checkin")
-    public CheckinResponseDTO checkin(@RequestHeader("X-Tenant-ID") String tenantId,
-                                      @RequestBody CheckinRequestDTO request) {
+    public Result<CheckinResponseDTO> checkin(@RequestHeader("X-Tenant-ID") String tenantId,
+                          @RequestBody CheckinRequestDTO request) {
         return checkinRecordService.checkin(tenantId, request);
     }
 }

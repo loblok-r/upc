@@ -2,9 +2,15 @@ package cn.loblok.upc.dto;
 
 import lombok.Data;
 
+//签到响应体
 @Data
 public class CheckinResponseDTO {
-    private Long checkinRecordId;
-    private Boolean success;
-    private String message;
+
+    private Integer points;
+    private Integer streakDays;
+
+    public CheckinResponseDTO(Integer points, Integer streakDays){
+        this.points = points;
+        this.streakDays =streakDays;
+    }
 }

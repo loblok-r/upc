@@ -16,7 +16,7 @@ public class CodeGenerator {
     public static void main(String[] args) {
         FastAutoGenerator.create(new DataSourceConfig.Builder(URL, USERNAME, PASSWORD))
                 .globalConfig(builder -> builder
-                        .author("your_name") // 设置作者
+                        .author("loblok") // 设置作者
                         .outputDir(System.getProperty("user.dir") + "/src/main/java") // 输出目录
                         .disableOpenDir() // 禁止打开输出目录
                 )
@@ -30,7 +30,7 @@ public class CodeGenerator {
                 )
                 .strategyConfig(builder -> builder
                         // 指定表名（只生成你需要的）
-                        .addInclude("user", "checkin_record")
+                        .addInclude("point_transaction")
                         
                         // 实体策略配置
                         .entityBuilder()
