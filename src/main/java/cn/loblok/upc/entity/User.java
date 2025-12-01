@@ -30,6 +30,9 @@ public class User implements Serializable {
     @TableField("username")
     private String username;
 
+    @TableField("password")
+    private String password;
+
     @TableField("tenant_id")
     private String tenantId;
 

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 2025-11-30
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/checkin")
 public class CheckinRecordController {
     
     @Autowired
@@ -32,5 +32,18 @@ public class CheckinRecordController {
     public Result<CheckinResponseDTO> checkin(@RequestHeader("X-Tenant-ID") String tenantId,
                           @RequestBody CheckinRequestDTO request) {
         return checkinRecordService.checkin(tenantId, request);
+    }
+
+
+    /**
+     * 查询今日是否已签到（用于前端展示按钮状态）
+     */
+    @GetMapping("/status")
+    public Result<Boolean> getCheckinStatus(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @RequestParam("userId") Long userId) {
+
+        boolean checked = checkinRecordService.hasCheckedInToday(tenantId, userId);
+        return Result.success(checked);
     }
 }

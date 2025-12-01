@@ -23,4 +23,6 @@ public interface CheckinRecordService extends IService<CheckinRecord> {
      * @return 签到响应
      */
     Result<CheckinResponseDTO> checkin(String tenantId, CheckinRequestDTO request);
+
+    boolean hasCheckedInToday(String tenantId, Long userId);
 }

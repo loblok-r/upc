@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/leaderboard")
 public class LeaderboardController {
     
     @Autowired
@@ -19,7 +19,7 @@ public class LeaderboardController {
      * @param userId 用户ID
      * @return 排行榜信息
      */
-    @GetMapping("/leaderboard")
+    @GetMapping
     public Result<LeaderboardResponseDTO> getLeaderboard(@RequestHeader("X-Tenant-ID") String tenantId,
                                                          @RequestParam("userId") Long userId) {
         return leaderboardService.getLeaderboard(tenantId, userId);
