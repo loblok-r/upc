@@ -1,7 +1,11 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.PageResult;
+import cn.loblok.upc.dto.PointTransactionDTO;
+import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.PointTransaction;
 import cn.loblok.upc.enums.BizType;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -21,5 +25,8 @@ public interface PointTransactionService extends IService<PointTransaction> {
             int deltaPoints,
             Long balanceAfter
     );
+
+    IPage<PointTransactionDTO> getUserTransactions(
+            String tenantId, Long userId, String bizType, int pageNum, int pageSize);
 
 }
