@@ -2,12 +2,14 @@ package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.AuthResponseDTO;
 import cn.loblok.upc.entity.User;
+import cn.loblok.upc.event.UserRegisteredEvent;
 import cn.loblok.upc.mapper.UserMapper;
 import cn.loblok.upc.service.UserService;
 import cn.loblok.upc.util.JwtUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+    
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -54,6 +59,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setTenantId(tenantId);
         user.setCreatedAt(LocalDateTime.now());
         userMapper.insert(user);
+
+        // 发布用户注册事件
+        UserRegisteredEvent event = new UserRegisteredEvent(this, user.getId(), username, tenantId);
+        eventPublisher.publishEvent(event);
 
         // 生成token
         String token = jwtUtil.generateToken(user.getId(), username);
@@ -124,4 +133,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    @Override
+    public void updateUserExpAndLevel(Long userId, int newPointValue, String newLevel) {
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setPoints(newPointValue);
+            user.setUserLevel(newLevel);
+            userMapper.updateById(user);
+        } else {
+            throw new RuntimeException("用户不存在");
+        }
+    }
 }

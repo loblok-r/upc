@@ -20,6 +20,7 @@ public class RedisUtils {
 
     private static final String Coupon_STOCK_PREFIX ="coupon:stock:";
 
+
     public static String buildPointsKey(Long userId) {
         return USER_SCORE_KEY_PREFIX + userId;
     }
@@ -35,6 +36,8 @@ public class RedisUtils {
     public static String buildExpKey(Long userId) {
         return USER_EXP_KEY_PREFIX + userId;
     }
+
+
 
     public static String buildCouponStockKey(Long templateId) {
         return Coupon_STOCK_PREFIX + templateId;

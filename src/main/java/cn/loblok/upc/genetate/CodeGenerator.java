@@ -30,7 +30,7 @@ public class CodeGenerator {
                 )
                 .strategyConfig(builder -> builder
                         // 指定表名（只生成你需要的）
-                        .addInclude("user_coupon","coupon_template")
+                        .addInclude("coupon_issue_log")
                         
                         // 实体策略配置
                         .entityBuilder()
