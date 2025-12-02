@@ -25,4 +25,21 @@ public enum UserLevel {
         }
         return result.name();
     }
+    
+    /**
+     * 将等级名称映射为数字
+     * @param levelName 等级名称，如"LEVEL1"
+     * @return 等级数字，如1；如果无法解析则返回0
+     */
+    public static int getLevelNumber(String levelName) {
+        if (levelName != null && levelName.startsWith("LEVEL")) {
+            try {
+                return Integer.parseInt(levelName.substring(5));
+            } catch (NumberFormatException e) {
+                // 如果解析失败，返回默认值0
+                return 0;
+            }
+        }
+        return 0;
+    }
 }

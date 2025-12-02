@@ -69,4 +69,13 @@ public class CaculateUtils {
     public static String calculateLevel(int exps){
         return UserLevel.getDesc(exps);
     }
+    
+    /**
+     * 将等级名称映射为数字
+     * @param levelName 等级名称，如"LEVEL1"
+     * @return 等级数字，如1；如果无法解析则返回0
+     */
+    public static int getLevelNumber(String levelName) {
+        return UserLevel.getLevelNumber(levelName);
+    }
 }

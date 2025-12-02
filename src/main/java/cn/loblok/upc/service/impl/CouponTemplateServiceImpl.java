@@ -44,4 +44,12 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .eq(CouponTemplate::getStatus, 1)
                 .one();
     }
+
+@Override
+public CouponTemplate getByActivityCode(String activityCode) {
+    return this.lambdaQuery()
+            .eq(CouponTemplate::getActivityCode, activityCode)
+            .eq(CouponTemplate::getStatus, 1)
+            .one();
+}
 }

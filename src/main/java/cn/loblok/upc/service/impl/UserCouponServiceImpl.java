@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,10 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
                     "redis.call('DECR', KEYS[1])\n" +
                     "return 1";
 
+
+    //系统事件（注册/升级）自动发放
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void grantCoupon(Long userId, String templateCode) {
         // 1. 查模板
         CouponTemplate template = couponTemplateService.getByCode(templateCode);
@@ -75,8 +79,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
                 throw new BizException("操作频繁，请勿重复点击");
             }
 
-            // 🔄 执行核心发放逻辑（带事务）
-            doGrantCoupon(userId, template);
+            issueCouponInternal(userId, template);
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -89,11 +92,60 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
 
     }
 
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void grabLimitedCoupon(Long userId, String activityCode) {
+        // 1. 根据活动码获取模板（可配置映射）
+        CouponTemplate template = couponTemplateService.getByActivityCode(activityCode);
+        if (template == null || template.getStatus() != 1) {
+            throw new BizException("活动不存在或已结束");
+        }
+
+        // 2. 检查用户今日是否已领取（轻量防重，用 Redis）
+        String claimKey = "coupon:claimed:" + activityCode + ":" + LocalDate.now() + ":" + userId;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(claimKey))) {
+            throw new BizException("您今天已领取过该优惠券");
+        }
+
+        // 3. 【关键】获取活动级分布式锁（防超发总量！）
+        String lockKey = "coupon:lock:activity:" + activityCode + ":" + LocalDate.now();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            if (!lock.tryLock(1, 3, TimeUnit.SECONDS)) {
+                throw new BizException("系统繁忙，请稍后再试");
+            }
+
+
+            // 【关键新增】：在锁内检查库存是否还有
+            String stockKey = RedisUtils.buildCouponStockKey(template.getId());
+            String stockStr = redisTemplate.opsForValue().get(stockKey);
+            Long stock = (stockStr != null) ? Long.parseLong(stockStr) : 0L;
+            if (stock <= 0) {
+                throw new BizException("手慢啦，优惠券已被抢光！");
+            }
+            // 5. 记录用户已领取（防重复）
+            redisTemplate.opsForValue().set(claimKey, "1", Duration.ofDays(1));
+
+
+            issueCouponInternal(userId, template);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BizException("操作被中断，请稍后重试"); // ← 统一为 BizException
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
     /**
      * 实际发放逻辑（带事务）
      */
-    @Transactional(rollbackFor = Exception.class)
-    protected void doGrantCoupon(Long userId, CouponTemplate template) {
+    // 私有方法，仅在 grantCoupon / grabLimitedCoupon 内部调用（它们已有 @Transactional）
+    private void issueCouponInternal(Long userId, CouponTemplate template) {
         // 2. 检查用户是否已达领取上限（现在在锁内，安全！）
         //典型的 应用层计数检查，而且因为在外层有 Redisson 分布式锁，所以这个 count + insert 是逻辑原子的，完全安全。
         long receivedCount = this.count(

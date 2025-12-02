@@ -6,15 +6,25 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author loblok
  * @since 2025-11-30
  */
 public interface UserService extends IService<User> {
+
+    /**
+     * 根据用户ID获取用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    User getById(Long userId);
+
     /**
      * 用户注册
+     *
      * @param username 用户名
      * @param password 密码
      * @param tenantId 租户ID
@@ -24,6 +34,7 @@ public interface UserService extends IService<User> {
 
     /**
      * 用户登录
+     *
      * @param username 用户名
      * @param password 密码
      * @return 认证响应对象

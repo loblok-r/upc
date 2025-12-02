@@ -43,6 +43,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+
+    // 可选：加本地缓存（如 Caffeine）或 Redis 缓存
+    @Override
+    public User getById(Long userId) {
+        if (userId == null) return null;
+        return userMapper.selectById(userId); // 返回 User 对象，含 level 字段
+    }
+
     @Override
     public AuthResponseDTO register(String username, String password, String tenantId) {
         // 检查用户名是否已存在

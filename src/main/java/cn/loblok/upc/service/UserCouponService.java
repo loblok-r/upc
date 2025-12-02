@@ -14,9 +14,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface UserCouponService extends IService<UserCoupon> {
 
     /**
-     * 用户领取优惠券（核心方法）
+     * 系统发放优惠券（核心方法）
      */
     public void grantCoupon(Long userId, String templateCode);
+
+    /**
+     * 用户领取限时优惠券（核心方法）
+     */
+    void grabLimitedCoupon(Long userId, String activityCode);
 
 
 }

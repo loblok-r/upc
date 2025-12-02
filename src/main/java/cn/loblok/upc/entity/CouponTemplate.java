@@ -35,6 +35,9 @@ public class CouponTemplate implements Serializable {
     @TableField("template_code")
     private String templateCode;
 
+    @TableField("activity_code")
+    private String activityCode;
+
     @TableField("name")
     private String name;
 

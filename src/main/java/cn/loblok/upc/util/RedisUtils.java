@@ -4,6 +4,8 @@ package cn.loblok.upc.util;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 public class RedisUtils {
@@ -16,11 +18,19 @@ public class RedisUtils {
 
     private static final String USER_EXP_KEY_PREFIX = "user:exp:";
 
+    private static final String USER_DAILY_QUATA_PREFIX = "user:daily:quata:";
+
+
     private static final String TODAY_CHECKIN_STATUS_KEY_PREFIX = "checkin:status:";
 
     private static final String Coupon_STOCK_PREFIX ="coupon:stock:";
 
 
+
+    public static String buildDailyQuotaKey(Long userId){
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return USER_DAILY_QUATA_PREFIX + userId + ":" + dateStr;
+    }
     public static String buildPointsKey(Long userId) {
         return USER_SCORE_KEY_PREFIX + userId;
     }

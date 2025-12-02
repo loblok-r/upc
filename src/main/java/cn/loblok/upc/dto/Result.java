@@ -8,6 +8,14 @@ public class Result<T> {
     private String msg;
     private T data;
 
+    public static <T> Result<T> success() {
+        Result<T> r = new Result<>();
+        r.code = 200;
+        r.msg = "ok";
+        r.data = null;
+        return r;
+    }
+
     public static <T> Result<T> success(T data) {
         Result<T> r = new Result<>();
         r.code = 200;
