@@ -67,6 +67,13 @@
             <artifactId>spring-boot-starter-data-redis</artifactId> <!-- Lettuce -->
         </dependency>
 
+        <!-- Redisson（推荐使用 spring boot starter 版本） -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.27.2</version> <!-- 使用最新稳定版 -->
+        </dependency>
+
         <!-- Spring Boot Test (测试框架) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -99,6 +106,13 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+        <!-- Fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>2.0.43</version>
         </dependency>
     </dependencies>
 

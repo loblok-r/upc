@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,16 +15,16 @@ import lombok.Setter;
  * </p>
  *
  * @author loblok
- * @since 2025-11-30
+ * @since 2025-12-02
  */
 
 /**
- * 签到记录
+ * 用户优惠券实例表
  */
 @Getter
 @Setter
-@TableName("checkin_record")
-public class CheckinRecord implements Serializable {
+@TableName("user_coupon")
+public class UserCoupon implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,21 +34,24 @@ public class CheckinRecord implements Serializable {
     @TableField("user_id")
     private Long userId;
 
-    @TableField("tenant_id")
-    private String tenantId;
+    @TableField("template_id")
+    private Long templateId;
 
-    @TableField("checkin_date")
-    private LocalDate checkinDate;
+    @TableField("template_code")
+    private String templateCode;
 
-    @TableField("biz_key")
-    private String bizKey;
+    @TableField("status")
+    private Byte status;
 
-    @TableField("ip_address")
-    private String ipAddress;
+    @TableField("order_id")
+    private Long orderId;
 
-    @TableField("user_agent")
-    private String userAgent;
+    @TableField("received_at")
+    private LocalDateTime receivedAt;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    @TableField("used_at")
+    private LocalDateTime usedAt;
+
+    @TableField("expired_at")
+    private LocalDateTime expiredAt;
 }

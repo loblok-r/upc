@@ -4,10 +4,12 @@ import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.CheckinRecord;
+import cn.loblok.upc.entity.ExpTransaction;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.enums.BizType;
 import cn.loblok.upc.mapper.CheckinRecordMapper;
 import cn.loblok.upc.service.CheckinRecordService;
+import cn.loblok.upc.service.ExpTransactionService;
 import cn.loblok.upc.service.PointTransactionService;
 import cn.loblok.upc.service.UserService;
 import cn.loblok.upc.util.CacheUtils;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -55,6 +58,9 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     private  PointTransactionService pointTransactionService;
 
     @Autowired
+    private ExpTransactionService expTransactionService;;
+
+    @Autowired
     private CaculateUtils caculateUtils;
     
 
@@ -63,7 +69,8 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
 
 
-    
+
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<CheckinResponseDTO> checkin(String tenantId, CheckinRequestDTO request) {
         log.info("开始处理签到请求: tenantId={}, userId={}", tenantId, request.getUserId());
@@ -81,7 +88,10 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 构造 biz_key
         String bizKey = "checkin_" + tenantId + "_" + request.getUserId() + "_" + dateStr;
         // 用户积分Key（使用Redis）
-        String scoreKey = RedisUtils.buildScoreKey(user.getId());
+        String scoreKey = RedisUtils.buildPointsKey(user.getId());
+
+        // 用户经验值Key
+        String expKey = RedisUtils.buildExpKey(user.getId());
         // 用户连续签到信息Key
         String streakKey = RedisUtils.buildStreakKey(user.getId());
 
@@ -116,6 +126,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             return Result.error("签到失败", checkinResponseDTO);
         }
 
+        // 缓存签到状态
         String cacheKey = RedisUtils.buildCheckinStatusKey(request.getUserId()) + ":" + LocalDate.now(BUSINESS_TIMEZONE);
         long expireSecs = CacheUtils.getSecondsUntilEndOfDay();
         redisTemplate.opsForValue().set(cacheKey, "true", expireSecs, TimeUnit.SECONDS);
@@ -123,13 +134,37 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 增加用户积分（基础10分）
         Long pointsAfterBase = redisTemplate.opsForValue().increment(scoreKey, 10);
 
-        redisTemplate.delete(levelKey);
+        // 增加用户经验值（基础5点）
+        Long expsAfterBase = redisTemplate.opsForValue().increment(expKey, 5);
+
+        // 更新用户经验值
+        userService.updateUserExp(request.getUserId(), expsAfterBase.intValue());
+
+        // 更新用户积分值
+        userService.updateUserPoints(request.getUserId(), pointsAfterBase.intValue());
+
+        // 删除用户等级缓存
+        // 加完经验后，判断是否可能跨越等级阈值
+        int oldExp = (int)(expsAfterBase - 5); // 粗略估计
+        int newExp = expsAfterBase.intValue();
+        String oldLevel = caculateUtils.calculateLevel(oldExp);
+        String newLevel = caculateUtils.calculateLevel(newExp);
+
+        if (!oldLevel.equals(newLevel)) { // ← 用 .equals()
+            redisTemplate.delete(levelKey);
+        }
+
         // 更新排行榜（基础10分）
         leaderboardService.updateLeaderboardScore(tenantId, request.getUserId(), 10);
 
         // 异步记录积分流水
         pointTransactionService.asyncLog(
                 tenantId, request.getUserId(), BizType.checkin_daily, checkinRecord.getId(), 10, pointsAfterBase
+        );
+
+        // 异步记录升级流水
+        expTransactionService.asyncLog(
+                tenantId, request.getUserId(), BizType.checkin_daily, checkinRecord.getId(), 5, expsAfterBase
         );
         
         // 计算连续签到天数
@@ -209,7 +244,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         //首次签到直接设 streak=1，不查 DB。
         int streakDays = 1;
         if (lastCheckinStr == null) {
-            // 如果没有上次签到记录，可能是第一次签到
+            // 如果没有上次签到记录，可能是第一次签到 todo 可能存在新设备登录的问题
             // 检查数据库中是否有历史签到记录
 //            QueryWrapper<CheckinRecord> queryWrapper = new QueryWrapper<>();
 //            queryWrapper.eq("user_id", userId);

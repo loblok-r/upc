@@ -14,9 +14,13 @@ public class RedisUtils {
 
     private static final String USER_LEVEL_KEY_PREFIX = "user:level:";
 
+    private static final String USER_EXP_KEY_PREFIX = "user:exp:";
+
     private static final String TODAY_CHECKIN_STATUS_KEY_PREFIX = "checkin:status:";
 
-    public static String buildScoreKey(Long userId) {
+    private static final String Coupon_STOCK_PREFIX ="coupon:stock:";
+
+    public static String buildPointsKey(Long userId) {
         return USER_SCORE_KEY_PREFIX + userId;
     }
 
@@ -28,27 +32,34 @@ public class RedisUtils {
         return USER_LEVEL_KEY_PREFIX + userId;
     }
 
+    public static String buildExpKey(Long userId) {
+        return USER_EXP_KEY_PREFIX + userId;
+    }
+
+    public static String buildCouponStockKey(Long templateId) {
+        return Coupon_STOCK_PREFIX + templateId;
+    }
     public static String buildCheckinStatusKey(Long userId) {
         return TODAY_CHECKIN_STATUS_KEY_PREFIX + userId;
     }
 
-        // 支持 StringRedisTemplate
-        public static void setValue(StringRedisTemplate redisTemplate,
-                                    String key, boolean value, Duration expire) {
-            redisTemplate.opsForValue().set(key, String.valueOf(value),
-                    expire.toMillis(), TimeUnit.MILLISECONDS);
-        }
+    // 支持 StringRedisTemplate
+    public static void setValue(StringRedisTemplate redisTemplate,
+                                String key, boolean value, Duration expire) {
+        redisTemplate.opsForValue().set(key, String.valueOf(value),
+                expire.toMillis(), TimeUnit.MILLISECONDS);
+    }
 
     public static void setValue(StringRedisTemplate redisTemplate,
                                 String key, boolean value, long expireSeconds) {
         redisTemplate.opsForValue().set(key, String.valueOf(value), expireSeconds, TimeUnit.SECONDS);
     }
 
-        // 或者更通用：支持任意 value（转成 String）
-        public static void setValue(StringRedisTemplate redisTemplate,
-                                    String key, Object value, Duration expire) {
-            redisTemplate.opsForValue().set(key, String.valueOf(value),
-                    expire.toMillis(), TimeUnit.MILLISECONDS);
-        }
+    // 或者更通用：支持任意 value（转成 String）
+    public static void setValue(StringRedisTemplate redisTemplate,
+                                String key, Object value, Duration expire) {
+        redisTemplate.opsForValue().set(key, String.valueOf(value),
+                expire.toMillis(), TimeUnit.MILLISECONDS);
+    }
 
 }

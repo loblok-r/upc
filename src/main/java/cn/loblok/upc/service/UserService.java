@@ -31,4 +31,9 @@ public interface UserService extends IService<User> {
     AuthResponseDTO login(String username, String password);
 
 
+    // 更新用户经验值
+    void updateUserExp(Long userId, int newvalue);
+
+    // 更新用户积分值
+    void updateUserPoints(Long userId, int newvalue);
 }

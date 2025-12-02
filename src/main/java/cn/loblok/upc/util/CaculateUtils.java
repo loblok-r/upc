@@ -15,6 +15,7 @@ public class CaculateUtils {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    // 获取积分 todo 可能要补充
     public  Integer getPoints(String scoreKey) {
         String pointsStr = redisTemplate.opsForValue().get(scoreKey);
         if (pointsStr == null) return 0;
@@ -26,7 +27,19 @@ public class CaculateUtils {
         }
     }
 
-    // 获取连续签到天数
+    // 获取经验值 todo 可能要补充
+    public  Integer getExps(String expsKey) {
+        String expsStr = redisTemplate.opsForValue().get(expsKey);
+        if (expsStr == null) return 0;
+        try {
+            return Integer.parseInt(expsStr);
+        } catch (NumberFormatException e) {
+            log.warn("经验Key格式异常: key={}, value={}", expsKey, expsStr);
+            return 0;
+        }
+    }
+
+    // 获取连续签到天数 todo 可能要补充
     public  Integer getStreakDays(String streakKey) {
         Object streakObj = redisTemplate.opsForHash().get(streakKey, "current_streak");
         String streakStr = streakObj != null ? (String) streakObj : null;
@@ -41,8 +54,8 @@ public class CaculateUtils {
             return cached;
         }
         // 缓存 miss → 查积分 → 计算等级 → 写回缓存
-        Integer points = getPoints(RedisUtils.buildScoreKey(userId));
-        String level = calculateLevel(points);
+        Integer exps = getExps(RedisUtils.buildExpKey(userId));
+        String level = calculateLevel(exps);
 
         redisTemplate.opsForValue().set(RedisUtils.buildLevelKey(userId), level, 24L, TimeUnit.HOURS);
         return level;
@@ -50,10 +63,10 @@ public class CaculateUtils {
 
     /**
      * 计算用户等级
-     * @param points
+     * @param exps
      * @return
      */
-    public static String calculateLevel(int points){
-        return UserLevel.getDesc(points);
+    public static String calculateLevel(int exps){
+        return UserLevel.getDesc(exps);
     }
 }
