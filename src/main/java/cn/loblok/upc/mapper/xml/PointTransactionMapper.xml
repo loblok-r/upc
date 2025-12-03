@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.mapper.PointTransactionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.PointTransaction">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="biz_type" property="bizType" />
+        <result column="biz_id" property="bizId" />
+        <result column="delta_points" property="deltaPoints" />
+        <result column="balance_after" property="balanceAfter" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, tenant_id, biz_type, biz_id, delta_points, balance_after, created_at
+    </sql>
+
+</mapper>
