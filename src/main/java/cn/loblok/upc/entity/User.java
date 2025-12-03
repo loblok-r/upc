@@ -42,6 +42,18 @@ public class User implements Serializable {
 
     @TableField("user_level")
     private String userLevel;
+    /**
+     * 是否为永久会员 (0: 否, 1: 是)
+     */
+    @TableField("is_permanent_member")
+    private Boolean  isPermanentMember = false;
+
+    /**
+     * 会员过期时间（null 表示非会员 或 永久会员）
+     */
+    @TableField("member_expire_at")
+    private LocalDateTime memberExpireAt;
+
 
     @TableField("tenant_id")
     private String tenantId;

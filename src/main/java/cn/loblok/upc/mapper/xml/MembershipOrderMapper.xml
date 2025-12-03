@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.mapper.MembershipOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.MembershipOrder">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="user_id" property="userId" />
+        <result column="type" property="type" />
+        <result column="duration_days" property="durationDays" />
+        <result column="amount" property="amount" />
+        <result column="status" property="status" />
+        <result column="pay_channel" property="payChannel" />
+        <result column="transaction_id" property="transactionId" />
+        <result column="paid_at" property="paidAt" />
+        <result column="expired_at" property="expiredAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="closed_at" property="closedAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, order_no, user_id, type, duration_days, amount, status, pay_channel, transaction_id, paid_at, expired_at,closed_at, created_at, updated_at
+    </sql>
+
+    <!-- 查询超时未支付订单 -->
+    <select id="selectExpiredUnpaidOrders" resultType="cn.loblok.upc.entity.MembershipOrder">
+        SELECT * FROM membership_order
+        WHERE created_at &lt;= #{expireTime}
+          AND status IN ('CREATED', 'PAYING')
+    </select>
+
+    <!-- 幂等关闭（防止并发重复关闭） -->
+    <update id="closeOrderIfUnpaid">
+        UPDATE membership_order
+        SET status = 'CLOSED',
+            closed_at = NOW()
+        WHERE id = #{orderId}
+          AND status IN ('CREATED', 'PAYING')
+    </update>
+
+</mapper>

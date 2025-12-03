@@ -6,17 +6,21 @@ import cn.loblok.upc.service.impl.LeaderboardServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 积分排行榜控制器
+ */
 @RestController
 @RequestMapping("/api/leaderboard")
 public class LeaderboardController {
-    
+
     @Autowired
     private LeaderboardServiceImpl leaderboardService;
-    
+
     /**
      * 获取积分排行榜
+     *
      * @param tenantId 租户ID
-     * @param userId 用户ID
+     * @param userId   用户ID
      * @return 排行榜信息
      */
     @GetMapping

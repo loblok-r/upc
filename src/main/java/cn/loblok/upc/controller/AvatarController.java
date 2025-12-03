@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 
+/**
+ * 图片生成控制器
+ */
 @RestController
 @RequestMapping("/api/avatar")
 public class AvatarController {
@@ -38,11 +41,11 @@ public class AvatarController {
             throw new BizException("权限不足，请升级或开通会员");
         }
 
-        // 3. 扣减权益（日常额度 or 不限次体验期）
-        entitlementService.consumeQuota(userId, request.getPlan());
-
         // 4. 调用生成服务（当前是 Mock）
         AvatarResult result = avatarService.generate(userId, request);
+
+        // 3. 扣减权益（日常额度 or 不限次体验期）
+        entitlementService.consumeQuota(userId, request.getPlan());
 
         return Result.success(result);
     }
