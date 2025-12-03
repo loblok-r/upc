@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.coupon.CouponTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.coupon.CouponTemplate">
+        <id column="id" property="id" />
+        <result column="template_code" property="templateCode" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="discount_value" property="discountValue" />
+        <result column="min_order_amount" property="minOrderAmount" />
+        <result column="total_stock" property="totalStock" />
+        <result column="per_user_limit" property="perUserLimit" />
+        <result column="valid_days" property="validDays" />
+        <result column="fixed_valid_from" property="fixedValidFrom" />
+        <result column="fixed_valid_to" property="fixedValidTo" />
+        <result column="status" property="status" />
+        <result column="biz_trigger" property="bizTrigger" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, template_code, name, type, discount_value, min_order_amount, total_stock, per_user_limit, valid_days, fixed_valid_from, fixed_valid_to, status, biz_trigger, created_at
+    </sql>
+
+</mapper>

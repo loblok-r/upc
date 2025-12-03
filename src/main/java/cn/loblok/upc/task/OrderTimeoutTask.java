@@ -1,7 +1,7 @@
 package cn.loblok.upc.task;
 
-import cn.loblok.upc.entity.MembershipOrder;
-import cn.loblok.upc.mapper.MembershipOrderMapper;
+import cn.loblok.upc.membershiporder.MembershipOrder;
+import cn.loblok.upc.membershiporder.MembershipOrderMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

@@ -1,8 +1,8 @@
 package cn.loblok.upc.intercepter;
 
-import cn.loblok.upc.annotation.RequireLevel;
-import cn.loblok.upc.util.CaculateUtils;
-import cn.loblok.upc.util.JwtUtil;
+import cn.loblok.upc.common.annotation.RequireLevel;
+import cn.loblok.upc.common.util.CaculateUtils;
+import cn.loblok.upc.common.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;

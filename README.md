@@ -1,6 +1,6 @@
-# UPC 签到系统
+# UPC 综合用户成长系统
 
-本项目是一个基于Spring Boot和MyBatis-Plus的签到系统，支持多租户签到功能、用户管理系统、积分排行榜和权限控制。
+本项目是一个基于Spring Boot和MyBatis-Plus的综合用户成长系统，包含用户签到、积分系统、等级体系、会员系统、优惠券系统以及AI头像生成功能。
 
 ## 功能特性
 
@@ -14,256 +14,68 @@
 - 连续签到奖励机制
 - 积分排行榜
 - 积分流水查询
+- 用户经验值系统
 - 用户等级系统
 - 权限控制拦截器
+- 会员系统（月度、永久、临时会员）
+- 优惠券系统（注册礼包、体验券等）
+- AI头像生成（模拟接口）
 
-## 接口文档
+## 技术栈
 
-### 1. 用户注册接口
-
-#### 接口地址
-```
-POST /user/register
-```
-
-#### 请求体
-```json
-{
-  "username": "testuser",
-  "password": "password123",
-  "tenantId": "tenant1"
-}
-```
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": {
-    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
-    "userId": 123,
-    "username": "testuser"
-  }
-}
-```
-
-### 2. 用户登录接口
-
-#### 接口地址
-```
-POST /user/login
-```
-
-#### 请求体
-```json
-{
-  "username": "testuser",
-  "password": "password123"
-}
-```
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": {
-    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
-    "userId": 123,
-    "username": "testuser"
-  }
-}
-```
-
-### 3. 用户签到接口
-
-#### 接口地址
-```
-POST /api/checkin/checkin
-```
-
-#### 请求头
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| X-Tenant-ID | 是 | 租户ID |
-| Authorization | 是 | Bearer Token |
-
-#### 请求体
-```json
-{
-  "userId": 123
-}
-```
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": {
-    "points": 25,
-    "streakDays": 3
-  }
-}
-```
-
-#### 错误响应示例
-```json
-{
-  "code": 500,
-  "msg": "今日已签到",
-  "data": {
-    "points": 25,
-    "streakDays": 3
-  }
-}
-```
-
-#### 业务流程
-
-1. 用户发起签到请求，携带用户ID
-2. 服务端从Header中获取租户ID
-3. 构造唯一的业务键(biz_key)，格式为："checkin_{租户ID}_{用户ID}_{日期}"
-4. 检查用户是否已经签到，防止重复签到
-5. 如果未签到，则插入签到记录到数据库
-6. 更新用户积分（+10分基础积分）
-7. 计算并更新连续签到天数
-8. 如果连续签到天数为7的倍数，额外奖励50积分
-9. 更新排行榜积分
-10. 异步记录积分流水到数据库
-11. 返回签到结果及最新积分和连续签到天数
-
-### 4. 查询今日是否已签到接口
-
-#### 接口地址
-```
-GET /api/checkin/status?userId={userId}
-```
-
-#### 请求头
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| X-Tenant-ID | 是 | 租户ID |
-| Authorization | 是 | Bearer Token |
-
-#### 请求参数
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| userId | 是 | 用户ID |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": true
-}
-```
-
-### 5. 积分排行榜接口
-
-#### 接口地址
-```
-GET /api/leaderboard?userId={userId}
-```
-
-#### 请求头
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| X-Tenant-ID | 是 | 租户ID |
-| Authorization | 是 | Bearer Token |
-
-#### 请求参数
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| userId | 是 | 用户ID |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": {
-    "topList": [
-      { 
-        "userId": "user:101", 
-        "score": 250.0, 
-        "rank": 1 
-      },
-      { 
-        "userId": "user:102", 
-        "score": 240.0, 
-        "rank": 2 
-      }
-    ],
-    "myRank": 15,
-    "myScore": 180.0
-  }
-}
-```
-
-#### 业务流程
-
-1. 用户请求排行榜信息，携带用户ID
-2. 服务端从Header中获取租户ID
-3. 根据租户ID和当前月份确定排行榜键
-4. 查询排行榜Top 10用户信息
-5. 查询当前用户的排名和积分
-6. 返回排行榜信息
-
-### 6. 用户积分流水查询接口
-
-#### 接口地址
-```
-GET /api/point-transactions?userId={userId}&page={page}&size={size}&bizType={bizType}
-```
-
-#### 请求头
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| X-Tenant-ID | 是 | 租户ID |
-| Authorization | 是 | Bearer Token |
-
-#### 请求参数
-| 参数名 | 必须 | 说明 |
-| --- | --- | --- |
-| userId | 是 | 用户ID |
-| page | 否 | 页码，默认为1 |
-| size | 否 | 每页条数，默认为20 |
-| bizType | 否 | 业务类型过滤，支持checkin_daily、checkin_streak_bonus |
-
-#### 响应示例
-```json
-{
-  "code": 200,
-  "msg": "ok",
-  "data": {
-    "list": [
-      {
-        "id": 1001,
-        "bizType": "checkin_daily",
-        "bizTypeDesc": "每日签到",
-        "deltaPoints": 10,
-        "balanceAfter": 150,
-        "createdAt": "2025-12-01T08:30:00"
-      }
-    ],
-    "total": 45,
-    "pageNum": 1,
-    "pageSize": 20
-  }
-}
-```
-
-#### 业务流程
-
-1. 用户请求积分流水记录，携带用户ID和其他可选参数
-2. 系统根据用户ID查询其积分流水记录
-3. 支持分页查询和业务类型过滤
-4. 返回格式化的积分流水记录列表
+- Spring Boot 3.1.5
+- Java 17
+- MyBatis-Plus 3.5.5
+- MySQL 8.0+
+- Redis
+- Redisson（分布式锁）
+- JWT（身份认证）
+- Lombok（简化代码）
+- Maven（项目管理）
 
 ## 系统架构与设计
+
+### 核心领域模型
+
+1. **用户系统**
+   - 用户基本信息管理
+   - 用户等级体系（LEVEL1-LEVEL5）
+   - 用户经验值计算
+   - 用户积分管理
+
+2. **签到系统**
+   - 每日签到功能
+   - 连续签到统计
+   - 签到奖励机制
+   - 多租户支持
+
+3. **积分系统**
+   - 积分获取与消费
+   - 积分排行榜
+   - 积分流水记录
+   - 积分异步落库
+
+4. **经验系统**
+   - 经验值获取与等级计算
+   - 经验值流水记录
+   - 等级升级事件
+
+5. **会员系统**
+   - 多种会员类型（月度、永久、临时）
+   - 会员权益管理
+   - 微信支付接入
+   - 订单管理
+
+6. **优惠券系统**
+   - 优惠券模板管理
+   - 用户优惠券管理
+   - 优惠券发放策略
+   - 分布式锁防止超发
+
+7. **头像生成系统**
+   - AI头像生成功能（模拟）
+   - 用户权益检查
+   - 不同套餐权限控制
 
 ### 幂等性保证
 
@@ -329,3 +141,488 @@ checkin_{tenantId}_{userId}_{checkinDate}
 - 重复签到：返回错误信息"今日已签到"
 - 系统异常：返回错误信息"签到失败"
 - 权限不足：返回403错误
+
+## 接口文档
+
+### 1. 用户相关接口
+
+#### 1.1 用户注册接口
+
+##### 接口地址
+```
+POST /user/register
+```
+
+##### 请求体
+```json
+{
+  "username": "testuser",
+  "password": "password123",
+  "tenantId": "tenant1"
+}
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
+    "userId": 123,
+    "username": "testuser"
+  }
+}
+```
+
+#### 1.2 用户登录接口
+
+##### 接口地址
+```
+POST /user/login
+```
+
+##### 请求体
+```json
+{
+  "username": "testuser",
+  "password": "password123"
+}
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
+    "userId": 123,
+    "username": "testuser"
+  }
+}
+```
+
+### 2. 签到相关接口
+
+#### 2.1 用户签到接口
+
+##### 接口地址
+```
+POST /api/checkin/checkin
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| X-Tenant-ID | 是 | 租户ID |
+| Authorization | 是 | Bearer Token |
+
+##### 请求体
+```json
+{
+  "userId": 123
+}
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "points": 25,
+    "streakDays": 3
+  }
+}
+```
+
+##### 错误响应示例
+```json
+{
+  "code": 500,
+  "msg": "今日已签到",
+  "data": {
+    "points": 25,
+    "streakDays": 3
+  }
+}
+```
+
+##### 业务流程
+
+1. 用户发起签到请求，携带用户ID
+2. 服务端从Header中获取租户ID
+3. 构造唯一的业务键(biz_key)，格式为："checkin_{租户ID}_{用户ID}_{日期}"
+4. 检查用户是否已经签到，防止重复签到
+5. 如果未签到，则插入签到记录到数据库
+6. 更新用户积分（+10分基础积分）
+7. 计算并更新连续签到天数
+8. 如果连续签到天数为7的倍数，额外奖励50积分
+9. 更新排行榜积分
+10. 异步记录积分流水到数据库
+11. 返回签到结果及最新积分和连续签到天数
+
+#### 2.2 查询今日是否已签到接口
+
+##### 接口地址
+```
+GET /api/checkin/status?userId={userId}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| X-Tenant-ID | 是 | 租户ID |
+| Authorization | 是 | Bearer Token |
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| userId | 是 | 用户ID |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": true
+}
+```
+
+### 3. 积分相关接口
+
+#### 3.1 积分排行榜接口
+
+##### 接口地址
+```
+GET /api/leaderboard?userId={userId}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| X-Tenant-ID | 是 | 租户ID |
+| Authorization | 是 | Bearer Token |
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| userId | 是 | 用户ID |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "topList": [
+      { 
+        "userId": "user:101", 
+        "score": 250.0, 
+        "rank": 1 
+      },
+      { 
+        "userId": "user:102", 
+        "score": 240.0, 
+        "rank": 2 
+      }
+    ],
+    "myRank": 15,
+    "myScore": 180.0
+  }
+}
+```
+
+##### 业务流程
+
+1. 用户请求排行榜信息，携带用户ID
+2. 服务端从Header中获取租户ID
+3. 根据租户ID和当前月份确定排行榜键
+4. 查询排行榜Top 10用户信息
+5. 查询当前用户的排名和积分
+6. 返回排行榜信息
+
+#### 3.2 用户积分流水查询接口
+
+##### 接口地址
+```
+GET /api/point-transactions?userId={userId}&page={page}&size={size}&bizType={bizType}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| X-Tenant-ID | 是 | 租户ID |
+| Authorization | 是 | Bearer Token |
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| userId | 是 | 用户ID |
+| page | 否 | 页码，默认为1 |
+| size | 否 | 每页条数，默认为20 |
+| bizType | 否 | 业务类型过滤，支持checkin_daily、checkin_streak_bonus |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "list": [
+      {
+        "id": 1001,
+        "bizType": "checkin_daily",
+        "bizTypeDesc": "每日签到",
+        "deltaPoints": 10,
+        "balanceAfter": 150,
+        "createdAt": "2025-12-01T08:30:00"
+      }
+    ],
+    "total": 45,
+    "pageNum": 1,
+    "pageSize": 20
+  }
+}
+```
+
+##### 业务流程
+
+1. 用户请求积分流水记录，携带用户ID和其他可选参数
+2. 系统根据用户ID查询其积分流水记录
+3. 支持分页查询和业务类型过滤
+4. 返回格式化的积分流水记录列表
+
+### 4. 经验值相关接口
+
+#### 4.1 用户经验值流水查询接口
+
+##### 接口地址
+```
+GET /api/exp-transactions?userId={userId}&page={page}&size={size}&bizType={bizType}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| X-Tenant-ID | 是 | 租户ID |
+| Authorization | 是 | Bearer Token |
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| userId | 是 | 用户ID |
+| page | 否 | 页码，默认为1 |
+| size | 否 | 每页条数，默认为20 |
+| bizType | 否 | 业务类型过滤 |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "list": [
+      {
+        "id": 1001,
+        "bizType": "checkin_daily",
+        "bizTypeDesc": "每日签到",
+        "deltaExps": 5,
+        "balanceAfter": 150,
+        "createdAt": "2025-12-01T08:30:00"
+      }
+    ],
+    "total": 45,
+    "pageNum": 1,
+    "pageSize": 20
+  }
+}
+```
+
+### 5. 会员相关接口
+
+#### 5.1 创建会员订单接口
+
+##### 接口地址
+```
+POST /api/membership-orders?userId={userId}&membershipType={membershipType}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| userId | 是 | 用户ID |
+| membershipType | 是 | 会员类型（MONTHLY、PERMANENT、MONEDAY）|
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "orderNo": "MEM20251203120001",
+    "amount": 19.90,
+    "type": "MONTHLY"
+  }
+}
+```
+
+#### 5.2 获取支付参数接口
+
+##### 接口地址
+```
+GET /api/membership-orders/{orderNo}/pay-params
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "appId": "wx1234567890",
+    "timeStamp": "1701234567",
+    "nonceStr": "randomstring",
+    "package": "prepay_id=wx20141027164856abcdef",
+    "signType": "RSA",
+    "paySign": "signaturestring"
+  }
+}
+```
+
+### 6. 优惠券相关接口
+
+#### 6.1 创建优惠券模板接口
+
+##### 接口地址
+```
+POST /api/coupon-templates
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 请求体
+```json
+{
+  "templateCode": "WELCOME_2025",
+  "name": "新用户注册礼包",
+  "type": 1,
+  "discountValue": 10,
+  "totalStock": 1000,
+  "perUserLimit": 1,
+  "validDays": 7,
+  "status": 1
+}
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": null
+}
+```
+
+#### 6.2 查询优惠券模板接口
+
+##### 接口地址
+```
+GET /api/coupon-templates/{templateCode}
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "id": 1,
+    "templateCode": "WELCOME_2025",
+    "name": "新用户注册礼包",
+    "type": 1,
+    "discountValue": 10,
+    "totalStock": 1000,
+    "perUserLimit": 1,
+    "validDays": 7,
+    "status": 1,
+    "createdAt": "2025-12-01T08:30:00"
+  }
+}
+```
+
+#### 6.3 抢AI绘图免费体验券接口
+
+##### 接口地址
+```
+POST /api/user-coupon/grab-free-ai-voucher
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": null
+}
+```
+
+### 7. AI头像生成接口
+
+#### 7.1 生成头像接口
+
+##### 接口地址
+```
+POST /api/avatar/generate
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 请求体
+```json
+{
+  "plan": "BASIC" // 可选值: BASIC, HD, PRO
+}
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "taskId": "mock-1701234567890",
+    "imageUrl": "https://mock-cdn.com/avatar_basic.jpg",
+    "thumbnailUrl": "https://mock-cdn.com/avatar_basic.jpg?x-oss-process=image/resize,w_100",
+    "commercialAllowed": false,
+    "message": "Mock: BASIC avatar generated"
+  }
+}
+```

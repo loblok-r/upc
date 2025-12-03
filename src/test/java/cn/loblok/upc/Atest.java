@@ -1,6 +1,6 @@
 package cn.loblok.upc;
 
-import cn.loblok.upc.service.impl.CheckinRecordServiceImpl;
+import cn.loblok.upc.checkin.CheckinRecordServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
