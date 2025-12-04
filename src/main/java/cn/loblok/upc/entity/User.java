@@ -33,6 +33,26 @@ public class User implements Serializable {
     @TableField("password")
     private String password;
 
+    @TableField("email")
+    private String email; // 用于登录和找回密码（比 username 更通用）
+
+    @TableField("phone")
+    private String phone; // 可选，如果未来支持短信登录
+
+    @TableField("avatar_url")
+    private String avatarUrl; // 存储用户头像（可先为空）
+
+    // ✅ 安全相关（必须）
+    @TableField("salt")
+    private String salt; // 密码加盐，提升安全性
+
+    @TableField("status")
+    private Integer status; // 0: 正常, 1: 冻结, 2: 未激活（防垃圾注册）
+
+    // ✅ 时间字段补充
+    @TableField("last_login_at")
+    private LocalDateTime lastLoginAt; // 记录最后登录时间
+
 
     @TableField("exp")
     private Integer exp;
