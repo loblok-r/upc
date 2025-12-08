@@ -140,7 +140,11 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
 
-
+        <!-- Java Mail Sender -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

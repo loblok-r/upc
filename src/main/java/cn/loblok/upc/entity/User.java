@@ -60,6 +60,9 @@ public class User implements Serializable {
     @TableField("points")
     private Integer points;
 
+    @TableField("computing_power")
+    private Integer computingPower;
+
     @TableField("user_level")
     private String userLevel;
     /**

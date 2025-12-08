@@ -25,6 +25,8 @@ public class RedisUtils {
 
     private static final String Coupon_STOCK_PREFIX ="coupon:stock:";
 
+    private static final String USER_VERIFICATION_KEY_PREFIX ="user:verification-code:";
+
 
 
     public static String buildDailyQuotaKey(Long userId){
@@ -54,6 +56,10 @@ public class RedisUtils {
     }
     public static String buildCheckinStatusKey(Long userId) {
         return TODAY_CHECKIN_STATUS_KEY_PREFIX + userId;
+    }
+
+    public static String buildVerificationCodeKey(String email, String type) {
+        return USER_VERIFICATION_KEY_PREFIX +type + ":"+ email;
     }
 
     // 支持 StringRedisTemplate

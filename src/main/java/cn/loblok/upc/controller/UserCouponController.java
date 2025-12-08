@@ -25,7 +25,7 @@ public class UserCouponController {
     public Result<Void> grabFreeAIVoucher(@CurrentUser Long userId) {
         // 业务：抢“AI绘图免费体验券”
         couponService.grabLimitedCoupon(userId, "AI_PAINT_FREE_TRIAL");
-        return Result.success();
+        return Result.success(null);
     }
 
 }

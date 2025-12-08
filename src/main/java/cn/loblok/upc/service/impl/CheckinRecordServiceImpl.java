@@ -4,6 +4,7 @@ import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.CheckinRecord;
+import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.mapper.CheckinRecordMapper;
 import cn.loblok.upc.service.CheckinRecordService;
 import cn.loblok.upc.service.impl.LeaderboardServiceImpl;
@@ -118,7 +119,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             Integer points = caculateUtils.getPoints(scoreKey);
             Integer streakDays = caculateUtils.getStreakDays(streakKey);
             CheckinResponseDTO checkinResponseDTO = new CheckinResponseDTO(points, streakDays);
-            return Result.error("今日已签到", checkinResponseDTO);
+            return Result.error(CommonStatusEnum.HasCheckedIn.getCode(), CommonStatusEnum.HasCheckedIn.getMessage());
         }
         
         // 创建签到记录
@@ -137,7 +138,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             Integer points = caculateUtils.getPoints(scoreKey);
             Integer streakDays = caculateUtils.getStreakDays(streakKey);
             CheckinResponseDTO checkinResponseDTO = new CheckinResponseDTO(points, streakDays);
-            return Result.error("签到失败", checkinResponseDTO);
+            return Result.error("签到失败");
         }
 
         // 缓存签到状态
