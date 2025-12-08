@@ -22,7 +22,7 @@ public interface CheckinRecordService extends IService<CheckinRecord> {
      * @param request 签到请求
      * @return 签到响应
      */
-    Result<CheckinResponseDTO> checkin(String tenantId, CheckinRequestDTO request);
+    Result<CheckinResponseDTO> checkin(String tenantId, Long userId);
 
     boolean hasCheckedInToday(String tenantId, Long userId);
 }

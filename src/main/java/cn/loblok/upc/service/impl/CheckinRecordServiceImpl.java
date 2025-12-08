@@ -87,11 +87,11 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Result<CheckinResponseDTO> checkin(String tenantId, CheckinRequestDTO request) {
-        log.info("开始处理签到请求: tenantId={}, userId={}", tenantId, request.getUserId());
+    public Result<CheckinResponseDTO> checkin(String tenantId, Long userId) {
+        log.info("开始处理签到请求: tenantId={}, userId={}", tenantId, userId);
 
         // 获取用户信息
-        User user = userService.getById(request.getUserId());
+        User user = userService.getById(userId);
         if (user == null) {
             return Result.error("用户不存在");
         }
@@ -101,7 +101,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         String dateStr = checkinDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         
         // 构造 biz_key
-        String bizKey = "checkin_" + tenantId + "_" + request.getUserId() + "_" + dateStr;
+        String bizKey = "checkin_" + tenantId + "_" + userId + "_" + dateStr;
         // 用户积分Key（使用Redis）
         String scoreKey = RedisUtils.buildPointsKey(user.getId());
 
@@ -124,7 +124,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         
         // 创建签到记录
         CheckinRecord checkinRecord = new CheckinRecord();
-        checkinRecord.setUserId(request.getUserId());
+        checkinRecord.setUserId(userId);
         checkinRecord.setTenantId(tenantId);
         checkinRecord.setCheckinDate(checkinDate);
         checkinRecord.setBizKey(bizKey);
@@ -141,8 +141,15 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             return Result.error("签到失败");
         }
 
+
+        //更新用户状态
+        user.setIschickined(true);
+        userService.updateById(user);
+
+
+
         // 缓存签到状态
-        String cacheKey = RedisUtils.buildCheckinStatusKey(request.getUserId()) + ":" + LocalDate.now(BUSINESS_TIMEZONE);
+        String cacheKey = RedisUtils.buildCheckinStatusKey(userId) + ":" + LocalDate.now(BUSINESS_TIMEZONE);
         long expireSecs = CacheUtils.getSecondsUntilEndOfDay();
         redisTemplate.opsForValue().set(cacheKey, "true", expireSecs, TimeUnit.SECONDS);
 
@@ -156,7 +163,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             currentExpInRedis = Integer.parseInt(expStr);
         } else {
             // Redis 无缓存，从 DB 加载
-            User userFromDb = userService.getById(request.getUserId());
+            User userFromDb = userService.getById(userId);
             currentExpInRedis = (userFromDb != null) ? userFromDb.getExp() : 0;
         }
 
@@ -182,21 +189,21 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // Step 5: 同步更新 DB（确保持久化）
         // 👇 关键新增：同时更新 DB 中的经验值和等级
         userService.updateUserExpAndLevel(
-                request.getUserId(),
+                userId,
                 expsAfterBase.intValue(),
                 newLevel // 或 newLevelNum，取决于 DB 字段类型
         );
 
         // 异步记录经验流水
         expTransactionService.asyncLog(
-                tenantId, request.getUserId(), BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
+                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
         );
 
         // 如果等级提升了，发布等级升级事件
         if (levelUpgraded) {
             UserLevelUpgradedEvent event = new UserLevelUpgradedEvent(
                     this,
-                    request.getUserId(),
+                    userId,
                     oldLevelNum,
                     newLevelNum,
                     oldLevel,
@@ -206,15 +213,15 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         }
 
         // 更新排行榜（基础10分）
-        leaderboardService.updateLeaderboardScore(tenantId, request.getUserId(), CHECKIN_BASE_POINTS);
+        leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_BASE_POINTS);
 
         // 异步记录积分流水
         pointTransactionService.asyncLog(
-                tenantId, request.getUserId(), BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
+                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
         );
         
         // 计算连续签到天数
-        Integer streakDays = calculateStreakDays(request.getUserId(), checkinDate, streakKey);
+        Integer streakDays = calculateStreakDays(userId, checkinDate, streakKey);
         
         // 额外奖励：如果连续签到7天，额外增加50积分
         int bonusPoints = 0;
@@ -223,10 +230,10 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             pointsAfterBonus  = redisTemplate.opsForValue().increment(scoreKey, CHECKIN_STREAK_POINTS);
 
             // 更新排行榜（额外50分）
-            leaderboardService.updateLeaderboardScore(tenantId, request.getUserId(), CHECKIN_STREAK_POINTS);
+            leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_STREAK_POINTS);
             // 异步记录积分流水
             pointTransactionService.asyncLog(
-                    tenantId, request.getUserId(), BizType.STREAK_SIGN, checkinRecord.getId(), CHECKIN_STREAK_POINTS, pointsAfterBonus
+                    tenantId, userId, BizType.STREAK_SIGN, checkinRecord.getId(), CHECKIN_STREAK_POINTS, pointsAfterBonus
             );
             bonusPoints = 50;
         }
@@ -236,7 +243,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         if (bonusPoints > 0) {
             finalPoints = pointsAfterBonus;
         }
-        userService.updateUserPoints(request.getUserId(), finalPoints.intValue());
+        userService.updateUserPoints(userId, finalPoints.intValue());
 
         // 设置Redis键的过期时间（例如：30天）
         redisTemplate.expire(scoreKey, SCOREKEY_EXPIRE_DAYS, TimeUnit.DAYS);

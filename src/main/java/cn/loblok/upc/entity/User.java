@@ -42,17 +42,28 @@ public class User implements Serializable {
     @TableField("avatar_url")
     private String avatarUrl; // 存储用户头像（可先为空）
 
-    // ✅ 安全相关（必须）
+
     @TableField("salt")
     private String salt; // 密码加盐，提升安全性
 
     @TableField("status")
     private Integer status; // 0: 正常, 1: 冻结, 2: 未激活（防垃圾注册）
 
-    // ✅ 时间字段补充
-    @TableField("last_login_at")
-    private LocalDateTime lastLoginAt; // 记录最后登录时间
 
+    @TableField("last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @TableField("works")
+    private Integer works;
+
+    @TableField("likes")
+    private Integer likes;
+
+    @TableField("followers")
+    private Integer followers;
+
+    @TableField("lottery_counts")
+    private Integer lotteryCounts;
 
     @TableField("exp")
     private Integer exp;
@@ -65,6 +76,16 @@ public class User implements Serializable {
 
     @TableField("user_level")
     private String userLevel;
+
+    /**
+     * 是否为永久会员 (0: 否, 1: 是)
+     */
+    @TableField("ischickined")
+    private Boolean  ischickined = false;
+
+
+    @TableField("streakdays")
+    private Integer streakdays;
     /**
      * 是否为永久会员 (0: 否, 1: 是)
      */

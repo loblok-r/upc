@@ -21,12 +21,20 @@
         <result column="is_permanent_member" property="isPermanentMember" />
         <result column="member_expire_at" property="memberExpireAt" />
         <result column="computing_power" property="computingPower" />
+        <result column="works" property="works" />
+        <result column="likes" property="likes" />
+        <result column="followers" property="followers" />
+        <result column="lottery_counts" property="lotteryCounts" />
+        <result column="ischickined" property="ischickined" />
+        <result column="streakdays" property="streakdays"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id, username, password, email, computing_power
-          phone, avatar_url, salt, status, last_login_at, tenant_id, created_at, exp, points, user_level, is_permanent_member, member_expire_at
+          phone, avatar_url, salt, status, last_login_at, tenant_id,
+          works, likes, followers,lottery_counts, ischickined, streakdays,
+          created_at, exp, points, user_level, is_permanent_member, member_expire_at
     </sql>
 
 </mapper>

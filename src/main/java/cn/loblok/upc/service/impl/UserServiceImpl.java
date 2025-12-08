@@ -2,6 +2,7 @@ package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.AuthResponseDTO;
 import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.StatsData;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.enums.VerificationCodeType;
 import cn.loblok.upc.event.UserRegisteredEvent;
@@ -134,11 +135,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 将token存储到Redis中，设置过期时间
         redisTemplate.opsForValue().set("token:" + token, String.valueOf(user.getId()), 24, TimeUnit.HOURS);
 
+        StatsData statsData = new StatsData();
+        statsData.setWorks(user.getWorks());
+        statsData.setFollowers(user.getFollowers());
+        statsData.setLikes(user.getLikes());
+
         // 返回认证响应
         AuthResponseDTO authResponse = new AuthResponseDTO();
         authResponse.setToken(token);
         authResponse.setUserId(user.getId());
         authResponse.setUsername(user.getUsername());
+        authResponse.setEmail(user.getEmail());
+        authResponse.setExp(user.getExp());
+        authResponse.setPoints(user.getPoints());
+        authResponse.setStats(statsData);
+        authResponse.setUserLevel(user.getUserLevel());
+        authResponse.setComputingPower(user.getComputingPower());
+        authResponse.setMemberExpireAt(user.getMemberExpireAt());
+        authResponse.setPermanentMember(user.getIsPermanentMember());
+        authResponse.setCheckedIn(user.getIschickined());
+        authResponse.setStreakDays(user.getStreakdays());
+        authResponse.setLotteryCounts(user.getLotteryCounts());
         authResponse.setAvatar(user.getAvatarUrl());
         authResponse.setExpiresIn(24 * 60 * 60 * 1000L);
 

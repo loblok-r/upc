@@ -1,5 +1,6 @@
 package cn.loblok.upc.controller;
 
+import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.service.CheckinRecordService;
 import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
@@ -25,13 +26,12 @@ public class CheckinRecordController {
     /**
      * 用户签到接口
      * @param tenantId 租户ID
-     * @param request 签到请求
      * @return 签到响应
      */
     @PostMapping("/checkin")
     public Result<CheckinResponseDTO> checkin(@RequestHeader("X-Tenant-ID") String tenantId,
-                          @RequestBody CheckinRequestDTO request) {
-        return checkinRecordService.checkin(tenantId, request);
+                                              @CurrentUser Long userId) {
+        return checkinRecordService.checkin(tenantId, userId);
     }
 
 
