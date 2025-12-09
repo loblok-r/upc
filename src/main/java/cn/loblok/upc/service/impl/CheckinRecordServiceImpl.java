@@ -1,5 +1,6 @@
 package cn.loblok.upc.service.impl;
 
+import cn.loblok.upc.dto.CheckinHistoryResponse;
 import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
 import cn.loblok.upc.dto.Result;
@@ -7,6 +8,7 @@ import cn.loblok.upc.entity.CheckinRecord;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.mapper.CheckinRecordMapper;
 import cn.loblok.upc.service.CheckinRecordService;
+import cn.loblok.upc.service.assist.CheckinRewardRuleService;
 import cn.loblok.upc.service.impl.LeaderboardServiceImpl;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.enums.BizType;
@@ -18,6 +20,7 @@ import cn.loblok.upc.util.CacheUtils;
 import cn.loblok.upc.util.CaculateUtils;
 import cn.loblok.upc.util.RedisUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +34,11 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -55,12 +60,18 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private CheckinRecordMapper baseMapper;
     
     @Autowired
     private LeaderboardServiceImpl leaderboardService;
 
     @Autowired
     private  PointTransactionService pointTransactionService;
+
+    @Autowired
+    private CheckinRewardRuleService rewardRuleService;
 
     @Autowired
     private ExpTransactionService expTransactionService;
@@ -74,8 +85,6 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
     private static final ZoneId BUSINESS_TIMEZONE = ZoneId.of("Asia/Shanghai");
 
-    private static final int CHECKIN_BASE_POINTS = 10;
-    private static final int CHECKIN_BASE_EXPS = 5;
 
     private static final int CHECKIN_STREAK_DAYS = 7;
 
@@ -116,9 +125,6 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         QueryWrapper<CheckinRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("biz_key", bizKey);
         if (this.count(queryWrapper) > 0) {
-            Integer points = caculateUtils.getPoints(scoreKey);
-            Integer streakDays = caculateUtils.getStreakDays(streakKey);
-            CheckinResponseDTO checkinResponseDTO = new CheckinResponseDTO(points, streakDays);
             return Result.error(CommonStatusEnum.HasCheckedIn.getCode(), CommonStatusEnum.HasCheckedIn.getMessage());
         }
         
@@ -142,11 +148,9 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         }
 
 
-        //更新用户状态
-        user.setIschickined(true);
-        userService.updateById(user);
-
-
+        CheckinRewardRuleService.RewardConfig dailyReward = rewardRuleService.getRewardByDate(checkinDate);
+        int basePoints = dailyReward.getPoints();
+        int baseExp = dailyReward.getExp();
 
         // 缓存签到状态
         String cacheKey = RedisUtils.buildCheckinStatusKey(userId) + ":" + LocalDate.now(BUSINESS_TIMEZONE);
@@ -154,9 +158,9 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         redisTemplate.opsForValue().set(cacheKey, "true", expireSecs, TimeUnit.SECONDS);
 
         // 增加用户积分（基础10分）
-        Long pointsAfterBase = redisTemplate.opsForValue().increment(scoreKey, CHECKIN_BASE_POINTS);
+        Long pointsAfterBase = redisTemplate.opsForValue().increment(scoreKey, basePoints);
 
-        // Step 1: 获取升级前的真实经验值（关键！）
+        // 获取升级前的真实经验值（关键！）
         String expStr = redisTemplate.opsForValue().get(expKey);
         int currentExpInRedis;
         if (expStr != null) {
@@ -168,7 +172,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         }
 
         // 增加用户经验值（基础5点）
-        Long expsAfterBase = redisTemplate.opsForValue().increment(expKey, CHECKIN_BASE_EXPS);
+        Long expsAfterBase = redisTemplate.opsForValue().increment(expKey, baseExp);
 
         // 删除用户等级缓存
         // 加完经验后，判断是否可能跨越等级阈值
@@ -181,44 +185,38 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
         boolean levelUpgraded = newLevelNum > oldLevelNum;
 
-        // Step 4: 如果升级，删除缓存（支持懒加载）
+        // 如果升级，删除缓存（支持懒加载）
         if (levelUpgraded) {
             redisTemplate.delete(levelKey);
         }
 
-        // Step 5: 同步更新 DB（确保持久化）
-        // 👇 关键新增：同时更新 DB 中的经验值和等级
-        userService.updateUserExpAndLevel(
-                userId,
-                expsAfterBase.intValue(),
-                newLevel // 或 newLevelNum，取决于 DB 字段类型
-        );
+
 
         // 异步记录经验流水
-        expTransactionService.asyncLog(
-                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
-        );
+//        expTransactionService.asyncLog(
+//                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
+//        );
 
         // 如果等级提升了，发布等级升级事件
-        if (levelUpgraded) {
-            UserLevelUpgradedEvent event = new UserLevelUpgradedEvent(
-                    this,
-                    userId,
-                    oldLevelNum,
-                    newLevelNum,
-                    oldLevel,
-                    newLevel
-            );
-            eventPublisher.publishEvent(event);
-        }
+//        if (levelUpgraded) {
+//            UserLevelUpgradedEvent event = new UserLevelUpgradedEvent(
+//                    this,
+//                    userId,
+//                    oldLevelNum,
+//                    newLevelNum,
+//                    oldLevel,
+//                    newLevel
+//            );
+//            eventPublisher.publishEvent(event);
+//        }
 
         // 更新排行榜（基础10分）
-        leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_BASE_POINTS);
+//        leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_BASE_POINTS);
 
         // 异步记录积分流水
-        pointTransactionService.asyncLog(
-                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
-        );
+//        pointTransactionService.asyncLog(
+//                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
+//        );
         
         // 计算连续签到天数
         Integer streakDays = calculateStreakDays(userId, checkinDate, streakKey);
@@ -243,7 +241,16 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         if (bonusPoints > 0) {
             finalPoints = pointsAfterBonus;
         }
-        userService.updateUserPoints(userId, finalPoints.intValue());
+        userService.update(
+                null,
+                new UpdateWrapper<User>()
+                        .eq("id", userId)
+                        .set("ischickined", true)
+                        .set("points", finalPoints.intValue())
+                        .set("exp", expsAfterBase.intValue())
+                        .set("user_level", newLevel)
+                        .set("streakdays", streakDays)
+        );
 
         // 设置Redis键的过期时间（例如：30天）
         redisTemplate.expire(scoreKey, SCOREKEY_EXPIRE_DAYS, TimeUnit.DAYS);
@@ -255,7 +262,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         return Result.success(checkinResponseDTO);
     }
 
-    //查询今天是否已经签到了  ⚠️ 先写一个【有问题的版本】用于演示缓存击穿
+    //查询今天是否已经签到了
     @Override
     public boolean hasCheckedInToday(String tenantId, Long userId) {
         log.info("开始处理查询今天是否已签到请求: tenantId={}, userId={}", tenantId, userId);
@@ -273,7 +280,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
                     .eq("user_id", userId)
                     .eq("checkin_date", LocalDate.now());
 
-        // 👇 关键：记录一次 DB 查询
+        // 记录一次 DB 查询
         dbQueryCount.incrementAndGet();
         boolean exists = this.exists(queryWrapper);
 
@@ -283,6 +290,27 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 3. 写回缓存（所有线程都可能走到这里！）
         RedisUtils.setValue(redisTemplate, key, exists, expireSecs); // 直接传秒数
         return exists;
+    }
+
+    @Override
+    public CheckinHistoryResponse getRecentCheckinHistory(long currentUserId,int days) {
+
+        if (days <= 0 || days > 90) {
+            days = 30; // 安全兜底
+        }
+
+
+        LocalDate startDate = LocalDate.now().minusDays(days - 1); // 包含今天共 days 天
+        LocalDate endDate = LocalDate.now();
+
+        List<LocalDate> dates = baseMapper.selectCheckinDatesByUserAndDateRange(currentUserId, startDate, endDate);
+
+        // 转为 "yyyy-MM-dd" 字符串列表
+        List<String> dateStrings = dates.stream()
+                .map(date -> date.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                .collect(Collectors.toList());
+
+        return new CheckinHistoryResponse(dateStrings);
     }
 
     /**

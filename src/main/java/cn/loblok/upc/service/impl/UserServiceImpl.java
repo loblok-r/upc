@@ -3,6 +3,7 @@ package cn.loblok.upc.service.impl;
 import cn.loblok.upc.dto.AuthResponseDTO;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.dto.StatsData;
+import cn.loblok.upc.dto.UserProfileDTO;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.enums.VerificationCodeType;
 import cn.loblok.upc.event.UserRegisteredEvent;
@@ -144,22 +145,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         AuthResponseDTO authResponse = new AuthResponseDTO();
         authResponse.setToken(token);
         authResponse.setUserId(user.getId());
-        authResponse.setUsername(user.getUsername());
-        authResponse.setEmail(user.getEmail());
-        authResponse.setExp(user.getExp());
-        authResponse.setPoints(user.getPoints());
-        authResponse.setStats(statsData);
-        authResponse.setUserLevel(user.getUserLevel());
-        authResponse.setComputingPower(user.getComputingPower());
-        authResponse.setMemberExpireAt(user.getMemberExpireAt());
-        authResponse.setPermanentMember(user.getIsPermanentMember());
-        authResponse.setCheckedIn(user.getIschickined());
-        authResponse.setStreakDays(user.getStreakdays());
-        authResponse.setLotteryCounts(user.getLotteryCounts());
-        authResponse.setAvatar(user.getAvatarUrl());
         authResponse.setExpiresIn(24 * 60 * 60 * 1000L);
 
         return Result.success(authResponse);
+    }
+
+    @Override
+    public Result<UserProfileDTO> getUserInfo(Long userId) {
+
+        User user = userMapper.selectById(userId);
+
+        if (user == null) {
+            return Result.error(
+                    CommonStatusEnum.USER_NOT_FOUND.getCode(),
+                    CommonStatusEnum.USER_NOT_FOUND.getMessage()
+            );
+        }
+
+        UserProfileDTO userProfileDTO = new UserProfileDTO();
+
+        StatsData statsData = new StatsData();
+        statsData.setWorks(user.getWorks());
+        statsData.setFollowers(user.getFollowers());
+        statsData.setLikes(user.getLikes());
+
+        userProfileDTO.setUserId(user.getId());
+        userProfileDTO.setUsername(user.getUsername());
+        userProfileDTO.setEmail(user.getEmail());
+        userProfileDTO.setExp(user.getExp());
+        userProfileDTO.setPoints(user.getPoints());
+        userProfileDTO.setStats(statsData);
+        userProfileDTO.setUserLevel(user.getUserLevel());
+        userProfileDTO.setComputingPower(user.getComputingPower());
+        userProfileDTO.setMemberExpireAt(user.getMemberExpireAt());
+        userProfileDTO.setPermanentMember(user.getIsPermanentMember());
+        userProfileDTO.setCheckedIn(user.getIschickined());
+        userProfileDTO.setStreakDays(user.getStreakdays());
+        userProfileDTO.setLotteryCounts(user.getLotteryCounts());
+        userProfileDTO.setAvatar(user.getAvatarUrl());
+
+
+
+
+        return Result.success(userProfileDTO);
     }
 
     @Override

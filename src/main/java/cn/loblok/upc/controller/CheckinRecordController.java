@@ -1,6 +1,7 @@
 package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
+import cn.loblok.upc.dto.CheckinHistoryResponse;
 import cn.loblok.upc.service.CheckinRecordService;
 import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
@@ -34,6 +35,12 @@ public class CheckinRecordController {
         return checkinRecordService.checkin(tenantId, userId);
     }
 
+
+    @GetMapping("/history")
+    public Result<CheckinHistoryResponse> getCheckinHistory(@CurrentUser Long userId) {
+        CheckinHistoryResponse response = checkinRecordService.getRecentCheckinHistory(userId,30);
+        return Result.success(response);
+    }
 
     /**
      * 查询今日是否已签到（用于前端展示按钮状态）

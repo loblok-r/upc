@@ -2,6 +2,7 @@ package cn.loblok.upc.service;
 
 import cn.loblok.upc.dto.AuthResponseDTO;
 import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.UserProfileDTO;
 import cn.loblok.upc.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -56,6 +57,8 @@ public interface UserService extends IService<User> {
 
     // 更新用户积分值
     void updateUserPoints(Long userId, int newvalue);
+
+    Result<UserProfileDTO> getUserInfo(Long userId);
 
     // 更新用户积分值以及等级
     void updateUserExpAndLevel(Long userId, int i, String newLevel);

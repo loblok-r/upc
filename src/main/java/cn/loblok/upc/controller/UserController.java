@@ -1,6 +1,7 @@
 package cn.loblok.upc.controller;
 
 
+import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.constraints.CheckVerificationCodeGroup;
 import cn.loblok.upc.constraints.SendVerificationCodeGroup;
 import cn.loblok.upc.cto.VerificationCodeCTO;
@@ -37,7 +38,10 @@ public class UserController {
 
 
 
-
+    @GetMapping("/profile")
+    public Result<UserProfileDTO> getProfile(@CurrentUser Long userId){
+        return userService.getUserInfo(userId);
+    }
     
     /**
      * 用户注册接口
