@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.mapper.ExchangeOrdersMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.ExchangeOrders">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="product_id" property="productId" />
+        <result column="product_name" property="productName" />
+        <result column="points_spent" property="pointsSpent" />
+        <result column="quantity" property="quantity" />
+        <result column="order_status" property="orderStatus" />
+        <result column="shipping_info" property="shippingInfo" />
+        <result column="is_virtual" property="isVirtual" />
+        <result column="virtual_content" property="virtualContent" />
+        <result column="transaction_id" property="transactionId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, product_id, product_name, points_spent, quantity, order_status, shipping_info, is_virtual, virtual_content, transaction_id, created_at, updated_at
+    </sql>
+
+</mapper>

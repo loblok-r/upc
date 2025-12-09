@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.mapper.FlashSalesMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.FlashSales">
+        <id column="id" property="id" />
+        <result column="product_id" property="productId" />
+        <result column="sale_price" property="salePrice" />
+        <result column="original_price" property="originalPrice" />
+        <result column="total_stock" property="totalStock" />
+        <result column="remaining_stock" property="remainingStock" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="daily_limit" property="dailyLimit" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, product_id, sale_price, original_price, total_stock, remaining_stock, start_time, end_time, daily_limit, status, created_at
+    </sql>
+
+</mapper>

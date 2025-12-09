@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.mapper.FlashOrdersMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.FlashOrders">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="flash_sale_id" property="flashSaleId" />
+        <result column="product_id" property="productId" />
+        <result column="points_spent" property="pointsSpent" />
+        <result column="order_status" property="orderStatus" />
+        <result column="reserve_expires_at" property="reserveExpiresAt" />
+        <result column="transaction_id" property="transactionId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, flash_sale_id, product_id, points_spent, order_status, reserve_expires_at, transaction_id, created_at
+    </sql>
+
+</mapper>
