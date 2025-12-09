@@ -29,7 +29,7 @@ public class UserProfileDTO {
     /**
      * 返回的会员状态
      */
-    private boolean isPermanentMember;
+    private boolean permanentMember;
 
     /**
      * 返回的会员到期时间
