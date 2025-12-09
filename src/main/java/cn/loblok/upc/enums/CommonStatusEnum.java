@@ -56,7 +56,9 @@ public enum CommonStatusEnum {
     
     CODE_ERROR(1005, "验证码错误"),
     
-    PARAM_ERROR(1006, "参数错误");
+    PARAM_ERROR(1006, "参数错误"),
+
+    USER_CANNOT_EMPTY(1007, "用户ID不能为空");
 
 
 

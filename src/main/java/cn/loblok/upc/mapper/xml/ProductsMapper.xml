@@ -17,11 +17,16 @@
         <result column="status" property="status" />
         <result column="sort_order" property="sortOrder" />
         <result column="created_at" property="createdAt" />
+        <result column="lottery_eligible" property="lotteryEligible" />
+        <result column="icon_name" property="iconName" />
+        <result column="display_color" property= "displayColor" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, name, description, category, points_required, original_price, stock, limit_per_user, tag, image_url, status, sort_order, created_at
+        id, name, description, category, points_required, original_price,
+          lottery_eligible, icon_name, display_color,
+          stock, limit_per_user, tag, image_url, status, sort_order, created_at
     </sql>
 
 </mapper>

@@ -30,6 +30,26 @@ public class Products implements Serializable {
     @TableField("name")
     private String name;
 
+    /**
+     * 是否抽奖产品
+     */
+
+    @TableField("lottery_eligible")
+    private Boolean lotteryEligible;
+
+    /**
+     * 图标名称
+     */
+
+    @TableField("icon_name")
+    private String iconName;
+
+    /**
+     * 颜色 抽奖的产品贵重程度 黄色 > 紫色 > 蓝色
+     */
+    @TableField("display_color")
+    private String displayColor;
+
     @TableField("description")
     private String description;
 

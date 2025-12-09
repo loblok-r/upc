@@ -1,21 +1,16 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.dto.CheckinHistoryResponse;
-import cn.loblok.upc.dto.CheckinRequestDTO;
-import cn.loblok.upc.dto.CheckinResponseDTO;
-import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.*;
 import cn.loblok.upc.entity.CheckinRecord;
+import cn.loblok.upc.entity.UserPoints;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.mapper.CheckinRecordMapper;
-import cn.loblok.upc.service.CheckinRecordService;
+import cn.loblok.upc.service.*;
 import cn.loblok.upc.service.assist.CheckinRewardRuleService;
 import cn.loblok.upc.service.impl.LeaderboardServiceImpl;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.enums.BizType;
 import cn.loblok.upc.event.UserLevelUpgradedEvent;
-import cn.loblok.upc.service.ExpTransactionService;
-import cn.loblok.upc.service.PointTransactionService;
-import cn.loblok.upc.service.UserService;
 import cn.loblok.upc.util.CacheUtils;
 import cn.loblok.upc.util.CaculateUtils;
 import cn.loblok.upc.util.RedisUtils;
@@ -57,6 +52,9 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserPointsService userPointsService;
     
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -152,13 +150,17 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         int basePoints = dailyReward.getPoints();
         int baseExp = dailyReward.getExp();
 
+        log.info("签到成功，获取积分：{}", basePoints);
+        log.info("签到成功，获取经验值：{}", baseExp);
+
         // 缓存签到状态
         String cacheKey = RedisUtils.buildCheckinStatusKey(userId) + ":" + LocalDate.now(BUSINESS_TIMEZONE);
         long expireSecs = CacheUtils.getSecondsUntilEndOfDay();
         redisTemplate.opsForValue().set(cacheKey, "true", expireSecs, TimeUnit.SECONDS);
 
-        // 增加用户积分（基础10分）
+        // 增加用户积分后的积分
         Long pointsAfterBase = redisTemplate.opsForValue().increment(scoreKey, basePoints);
+
 
         // 获取升级前的真实经验值（关键！）
         String expStr = redisTemplate.opsForValue().get(expKey);
@@ -222,7 +224,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         Integer streakDays = calculateStreakDays(userId, checkinDate, streakKey);
         
         // 额外奖励：如果连续签到7天，额外增加50积分
-        int bonusPoints = 0;
+        int bonusPoints = basePoints;
         Long pointsAfterBonus = pointsAfterBase;
         if (streakDays >= CHECKIN_STREAK_DAYS && streakDays % CHECKIN_STREAK_DAYS == 0) {
             pointsAfterBonus  = redisTemplate.opsForValue().increment(scoreKey, CHECKIN_STREAK_POINTS);
@@ -233,7 +235,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             pointTransactionService.asyncLog(
                     tenantId, userId, BizType.STREAK_SIGN, checkinRecord.getId(), CHECKIN_STREAK_POINTS, pointsAfterBonus
             );
-            bonusPoints = 50;
+            bonusPoints = bonusPoints+50;
         }
 
         // 更新用户积分值
@@ -241,15 +243,32 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         if (bonusPoints > 0) {
             finalPoints = pointsAfterBonus;
         }
+//        log.info("更新用户积分值：{}", finalPoints);
+        log.info("用户获得积分值：{}", bonusPoints);
+
+
+        //更新用户积分表
+        userPointsService.update(
+                null,
+                new UpdateWrapper<UserPoints>()
+                        .eq("user_id", userId)
+                        .setSql("balance = balance + " + bonusPoints +
+                                ", total_earned = total_earned + " + bonusPoints +
+                                ", total_spent = 0" +
+                                ", updated_at = NOW()")
+        );
+
+
+        //更新用户表
         userService.update(
                 null,
                 new UpdateWrapper<User>()
                         .eq("id", userId)
-                        .set("ischickined", true)
-                        .set("points", finalPoints.intValue())
-                        .set("exp", expsAfterBase.intValue())
-                        .set("user_level", newLevel)
-                        .set("streakdays", streakDays)
+                        .setSql("ischickined = 1, " +
+                                "points = points + " + bonusPoints + ", " +
+                                "exp = " + expsAfterBase.intValue() + ", " +
+                                "user_level = '" + newLevel + "', " +
+                                "streakdays = " + streakDays)
         );
 
         // 设置Redis键的过期时间（例如：30天）

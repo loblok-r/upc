@@ -1,5 +1,6 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.UserPointsResponse;
 import cn.loblok.upc.entity.UserPoints;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserPointsService extends IService<UserPoints> {
 
+    UserPointsResponse getUserPoints(Long userId);
 }

@@ -1,5 +1,13 @@
 package cn.loblok.upc.controller;
 
+import cn.loblok.upc.annotation.CurrentUser;
+import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.UserPointsResponse;
+import cn.loblok.upc.enums.CommonStatusEnum;
+import cn.loblok.upc.service.UserPointsService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,8 +19,39 @@ import org.springframework.web.bind.annotation.RestController;
  * @author loblok
  * @since 2025-12-09
  */
+@Slf4j
 @RestController
-@RequestMapping("/user-points")
+@RequestMapping("api/mall/user")
+@RequiredArgsConstructor
 public class UserPointsController {
+
+        private final UserPointsService pointsService;
+
+        /**
+         * 获取用户积分信息
+         */
+        @GetMapping("/points")
+        public Result<UserPointsResponse> getUserPoints(@CurrentUser Long userId) {
+            try {
+
+
+                if (userId == null) {
+                    return Result.error(CommonStatusEnum.USER_CANNOT_EMPTY.getCode(),CommonStatusEnum.USER_EMPTY_ERROR.getMessage());
+                }
+
+                log.info("查询用户积分信息，用户ID: {}", userId);
+
+                // 2. 调用Service获取积分信息
+                UserPointsResponse pointsResponse = pointsService.getUserPoints(userId);
+
+                log.info("用户积分查询成功: {}", pointsResponse);
+                return Result.success(pointsResponse);
+
+            } catch (Exception e) {
+                log.error("查询用户积分失败", e);
+                return Result.error(500, "查询用户积分失败");
+            }
+        }
+
 
 }

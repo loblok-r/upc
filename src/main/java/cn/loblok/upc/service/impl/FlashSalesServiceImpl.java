@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务实现类
+ *   秒杀抢购
  * </p>
  *
  * @author loblok
@@ -16,5 +16,23 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSales> implements FlashSalesService {
-
+    
+    @Override
+    public boolean updateStock(String flashSaleId, int quantity) {
+        // 使用乐观锁更新库存
+        FlashSales flashSale = this.getById(flashSaleId);
+        if (flashSale == null) {
+            return false;
+        }
+        
+        int newStock = flashSale.getRemainingStock() + quantity;
+        if (newStock < 0) {
+            // 库存不足
+            return false;
+        }
+        
+        flashSale.setRemainingStock(newStock);
+        // 使用updateById会利用MyBatis Plus的乐观锁机制（需要version字段）
+        return this.updateById(flashSale);
+    }
 }

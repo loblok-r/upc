@@ -12,5 +12,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2025-12-09
  */
 public interface FlashSalesService extends IService<FlashSales> {
-
+    
+    /**
+     * 更新秒杀活动库存
+     * 
+     * @param flashSaleId 秒杀活动ID
+     * @param quantity 更新数量（减少库存时为负数）
+     * @return 是否更新成功
+     */
+    boolean updateStock(String flashSaleId, int quantity);
 }

@@ -259,10 +259,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
-    // 可选：加本地缓存（如 Caffeine）或 Redis 缓存
+    // 本地缓存（如 Caffeine）或 Redis 缓存
     @Override
     public User getById(Long userId) {
         if (userId == null) return null;
-        return userMapper.selectById(userId); // 返回 User 对象，含 level 字段
+        return userMapper.selectById(userId);
     }
 }

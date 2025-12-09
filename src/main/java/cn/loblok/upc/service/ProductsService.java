@@ -13,4 +13,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ProductsService extends IService<Products> {
 
+    Products drawRandomPrize();
+
+
+
 }
