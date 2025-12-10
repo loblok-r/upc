@@ -77,7 +77,18 @@ public class UserController {
 
         }
     }
-    
+
+    /**
+     * 获取用户资源接口
+     * @param userId 用户ID
+     * @return 用户资源对象
+     */
+    @GetMapping("/resources")
+    public Result<UserResourcesDTO> getResources(@CurrentUser Long userId) {
+        return userService.getResources(userId);
+    }
+
+
     /**
      * 用户登录接口
      * @param loginRequest 登录请求参数

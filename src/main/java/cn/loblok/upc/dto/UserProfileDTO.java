@@ -84,4 +84,11 @@ public class UserProfileDTO {
      * 返回的统计数据
      */
     private StatsData stats;
+
+
+    private DailyUsageResponse dailyUsage;
+
+
+
+
 }

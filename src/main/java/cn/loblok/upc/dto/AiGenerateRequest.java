@@ -1,6 +1,7 @@
 package cn.loblok.upc.dto;
 
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -8,7 +9,12 @@ import lombok.Data;
  */
 @Data
 public class AiGenerateRequest {
+
+    @NotBlank(message = "模式不能为空")
     private String mode;          // "TEXT_CHAT", "AI_DRAWING"
-    private String prompt;        // 用户输入
+
+    @NotBlank(message = "用户输入不能为空")
+    private String prompt;        // 用户输入,必填
+
     private String referenceImage; // Base64 图像（可选，当前先忽略）
 }

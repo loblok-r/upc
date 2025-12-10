@@ -13,28 +13,28 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * 定时任务：每日签到状态重置
+ * 定时任务：每日状态重置
  */
 @Service
 @Slf4j
-public class CheckInResetTask {
+public class ResetTask {
     @Autowired
     private UserMapper userMapper;
 
     /**
-     * 每天00:00重置签到状态
+     * 每天00:00重置状态 签到 todo 额度重置
      * cron表达式: 秒 分 时 日 月 周
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 14 1 * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void resetDailyCheckin() {
         log.info("开始执行每日签到状态重置任务: {}", LocalDateTime.now());
 
         try {
             UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.set("checked_in", 0)
-                    .set("update_time", LocalDateTime.now())
-                    .eq("checked_in", 1);
+            updateWrapper.set("ischickined", 0)
+                    .set("update_at", LocalDateTime.now())
+                    .eq("ischickined", 1);
 
             int affectedRows = userMapper.update(null, updateWrapper);
 
@@ -61,9 +61,9 @@ public class CheckInResetTask {
         LocalDateTime now = LocalDateTime.now();
         if (now.toLocalTime().isAfter(LocalTime.of(0, 30))) {
             UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.set("checked_in", 0)
-                    .set("update_time", now)
-                    .ge("checked_in", 1); // 大于等于1的都重置
+            updateWrapper.set("ischickined", 0)
+                    .set("update_at", now)
+                    .ge("ischickined", 1); // 大于等于1的都重置
             int affectedRows = userMapper.update(null, updateWrapper);
 
             if (affectedRows > 0) {

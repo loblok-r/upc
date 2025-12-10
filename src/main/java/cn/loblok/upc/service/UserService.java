@@ -3,6 +3,7 @@ package cn.loblok.upc.service;
 import cn.loblok.upc.dto.AuthResponseDTO;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.dto.UserProfileDTO;
+import cn.loblok.upc.dto.UserResourcesDTO;
 import cn.loblok.upc.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -52,18 +53,71 @@ public interface UserService extends IService<User> {
      */
     Result forgotPassword(String email, String newPassword, String code);
 
-    // 更新用户经验值
+    /**
+     * 更新用户经验值
+     *
+     * @param userId 用户ID
+     * @param newvalue 新经验值
+     */
     void updateUserExp(Long userId, int newvalue);
 
-    // 更新用户积分值
+    /**
+     * 添加用户积分值
+     *
+     * @param userId 用户ID
+     * @param newvalue 积分值
+     */
     void updateUserPoints(Long userId, int newvalue);
 
+    /**
+     * 获取用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
     Result<UserProfileDTO> getUserInfo(Long userId);
 
-    // 更新用户积分值以及等级
+
+
+    /**
+     * 更新用户经验值和等级
+     *
+     * @param userId 用户ID
+     * @param i 新经验值
+     * @param newLevel 新等级
+     */
     void updateUserExpAndLevel(Long userId, int i, String newLevel);
 
+    /**
+     * 添加用户算力值
+     *
+     * @param userId 用户ID
+     * @param amount 新算力值
+     */
     void addComputePower(Long userId, Integer amount);
 
+    /**
+     * 添加用户会员天数
+     *
+     * @param userId 用户ID
+     * @param days 新会员天数
+     */
     void extendVipDays(Long userId, Integer days);
+
+    /**
+     * 判断用户是否为会员
+     *
+     * @param userId 用户ID
+     * @return 是否为会员
+     */
+    Boolean isMember(Long userId);
+
+    /**
+     * 获取用户资源
+     *
+     * @param userId 用户ID
+     * @return 用户资源
+     */
+    Result<UserResourcesDTO> getResources(Long userId);
+
 }

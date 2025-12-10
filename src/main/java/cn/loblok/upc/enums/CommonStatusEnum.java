@@ -58,9 +58,14 @@ public enum CommonStatusEnum {
     
     PARAM_ERROR(1006, "参数错误"),
 
-    USER_CANNOT_EMPTY(1007, "用户ID不能为空");
+    USER_CANNOT_EMPTY(1007, "用户ID不能为空"),
 
-
+    INSUFFICIENT_COMPUTING_POWER(1008, "INSUFFICIENT_COMPUTING_POWER"),
+    
+    DAILY_LIMIT_EXCEEDED(1009, "DAILY_LIMIT_EXCEEDED"),
+    INVALID_ARGUMENT(1010, "无效的参数"),
+    INTERNAL_SERVER_ERROR(1011, "服务器内部错误"),
+    UNAUTHORIZED(1012, "未授权");
 
     @Getter
     private int code;

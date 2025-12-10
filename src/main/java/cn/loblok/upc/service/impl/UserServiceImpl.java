@@ -1,14 +1,13 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.dto.AuthResponseDTO;
-import cn.loblok.upc.dto.Result;
-import cn.loblok.upc.dto.StatsData;
-import cn.loblok.upc.dto.UserProfileDTO;
+import cn.loblok.upc.dto.*;
+import cn.loblok.upc.entity.DailyUsage;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.enums.UserItemType;
 import cn.loblok.upc.enums.VerificationCodeType;
 import cn.loblok.upc.event.UserRegisteredEvent;
 import cn.loblok.upc.mapper.UserMapper;
+import cn.loblok.upc.service.DailyUsageService;
 import cn.loblok.upc.service.UserItemsService;
 import cn.loblok.upc.service.UserService;
 import cn.loblok.upc.entity.User;
@@ -26,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
@@ -61,20 +61,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     private final StringRedisTemplate redisTemplate;
-    
+
 
     private final ApplicationEventPublisher eventPublisher;
-    
+
 
     private final VerificationCodeService verificationCodeService;
 
-    private final  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
     private final UserItemsService userItemsService;
 
-
-
+    private final DailyUsageService dailyUsageService;
 
 
     @Override
@@ -88,7 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.or().eq("email", email);
 
         if (userMapper.selectCount(queryWrapper) > 0) {
-            return Result.error(CommonStatusEnum.USER_EXIST.getCode(),CommonStatusEnum.USER_EXIST.getMessage());
+            return Result.error(CommonStatusEnum.USER_EXIST.getCode(), CommonStatusEnum.USER_EXIST.getMessage());
         }
 
         log.info("用户注册：{}", username);
@@ -134,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 验证密码
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(),CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
+            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(), CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
         }
 
         // 生成token
@@ -169,6 +168,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             );
         }
 
+        DailyUsage dailyUsage = dailyUsageService.selectByUserId(userId);
+
+        DailyUsageResponse dailyUsageResponse = new DailyUsageResponse();
+
+        dailyUsageResponse.setAiDrawingCounts(dailyUsage.getAiDrawingCount());
+        dailyUsageResponse.setTextChatCounts(dailyUsage.getTextChatCount());
+
         //查询抽奖次数
         int totolLotteryChances = userItemsService.getTotalLotteryChances(userId);
 
@@ -178,6 +184,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         statsData.setWorks(user.getWorks());
         statsData.setFollowers(user.getFollowers());
         statsData.setLikes(user.getLikes());
+
 
         userProfileDTO.setUserId(user.getId());
         userProfileDTO.setUsername(user.getUsername());
@@ -192,6 +199,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userProfileDTO.setCheckedIn(user.getIschickined());
         userProfileDTO.setStreakDays(user.getStreakdays());
         userProfileDTO.setLotteryCounts(totolLotteryChances);
+        userProfileDTO.setDailyUsage(dailyUsageResponse);
         userProfileDTO.setAvatar(user.getAvatarUrl());
 
 
@@ -207,12 +215,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 2. 验证密码一致性（这里应该验证新密码和确认密码是否一致，但在service层我们只接收一个密码参数）
         // 这个验证应该在controller层完成
-        
+
         // 3. 验证用户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", email);
         User user = userMapper.selectOne(queryWrapper);
-        
+
         if (user == null) {
             return Result.error(CommonStatusEnum.USER_NOT_FOUND.getCode(), CommonStatusEnum.USER_NOT_FOUND.getMessage());
         }
@@ -230,7 +238,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         log.info("用户 {} 密码重置成功", email);
         return Result.success("密码重置成功");
     }
-
 
 
     @Override
@@ -276,6 +283,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void extendVipDays(Long userId, Integer days) {
 
+    }
+
+    @Override
+    public Boolean isMember(Long userId) {
+        log.info("检查用户{}是否会员...", userId);
+        User user = getById(userId);
+        Boolean isPermanentMember = user.getIsPermanentMember();
+        if (isPermanentMember) {
+            return true;
+        } else {
+            LocalDateTime memberExpireAt = user.getMemberExpireAt();
+            if (memberExpireAt == null) {
+                return false;
+            }
+            return memberExpireAt.isAfter(LocalDateTime.now());
+        }
+    }
+
+    @Override
+    public Result<UserResourcesDTO> getResources(Long userId) {
+        log.info("获取用户{}的资源信息...", userId);
+        if (userId == null) {
+            return Result.error(CommonStatusEnum.UNAUTHORIZED.getCode(),
+                    CommonStatusEnum.UNAUTHORIZED.getMessage());
+        }
+
+        // TODO: 从数据库或服务中获取真实数据
+        // 这里先 mock 示例数据
+
+        User user = getById(userId);
+        if (user == null) {
+            return Result.error(CommonStatusEnum.USER_NOT_FOUND.getCode(),
+                    CommonStatusEnum.USER_NOT_FOUND.getMessage());
+        }
+        DailyUsage dailyUsage = dailyUsageService.selectByUserId(userId);
+
+        DailyUsageDTO dailyUsageDTO = new DailyUsageDTO();
+        dailyUsageDTO.setTextChat(dailyUsage.getTextChatCount());
+        dailyUsageDTO.setAiDrawing(dailyUsage.getAiDrawingCount());
+        dailyUsageDTO.setLastResetDate(dailyUsage.getDate().toString());
+
+        UserResourcesDTO resources = new UserResourcesDTO();
+        resources.setDailyUsage(dailyUsageDTO);
+        resources.setComputingPower(user.getComputingPower());     // 当前算力
+        resources.setMaxComputingPower(1000); // 最大算力
+        return Result.success(resources);
     }
 
     // 本地缓存（如 Caffeine）或 Redis 缓存

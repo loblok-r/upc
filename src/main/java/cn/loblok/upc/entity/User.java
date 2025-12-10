@@ -113,4 +113,7 @@ public class User implements Serializable {
 
     @TableField("created_at")
     private LocalDateTime createdAt;
+
+    @TableField("update_at")
+    private LocalDateTime updateAt;
 }
