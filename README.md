@@ -1,6 +1,6 @@
-# UPC 综合用户成长系统
+# UPC 综合用户成长与商城系统
 
-本项目是一个基于Spring Boot和MyBatis-Plus的综合用户成长系统，包含用户签到、积分系统、等级体系、会员系统、优惠券系统以及AI头像生成功能。
+本项目是一个基于Spring Boot和MyBatis-Plus的综合用户成长与商城系统，不仅包含用户签到、积分系统、等级体系、会员系统、优惠券系统，还包括一个完整的商城系统，支持商品展示、秒杀活动、抽奖等功能。
 
 ## 功能特性
 
@@ -19,7 +19,10 @@
 - 权限控制拦截器
 - 会员系统（月度、永久、临时会员）
 - 优惠券系统（注册礼包、体验券等）
-- AI头像生成（模拟接口）
+- 商城系统（商品浏览、兑换）
+- 秒杀系统
+- 抽奖系统
+- AI绘图功能
 
 ## 技术栈
 
@@ -42,6 +45,7 @@
    - 用户等级体系（LEVEL1-LEVEL5）
    - 用户经验值计算
    - 用户积分管理
+   - 用户资源管理（算力值、抽奖次数等）
 
 2. **签到系统**
    - 每日签到功能
@@ -72,10 +76,16 @@
    - 优惠券发放策略
    - 分布式锁防止超发
 
-7. **头像生成系统**
-   - AI头像生成功能（模拟）
-   - 用户权益检查
-   - 不同套餐权限控制
+7. **商城系统**
+   - 商品管理
+   - 秒杀活动
+   - 抽奖系统
+   - 虚拟商品和实物商品分发
+
+8. **AI绘图系统**
+   - AI绘图功能
+   - 算力值消耗
+   - 用户额度管理
 
 ### 幂等性保证
 
@@ -150,7 +160,7 @@ checkin_{tenantId}_{userId}_{checkinDate}
 
 ##### 接口地址
 ```
-POST /user/register
+POST /api/user/register
 ```
 
 ##### 请求体
@@ -158,20 +168,18 @@ POST /user/register
 {
   "username": "testuser",
   "password": "password123",
-  "tenantId": "tenant1"
+  "email": "test@example.com",
+  "confirmPassword": "password123",
+  "code": "123456"
 }
 ```
 
 ##### 响应示例
-```json
+```
 {
   "code": 200,
   "msg": "ok",
-  "data": {
-    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
-    "userId": 123,
-    "username": "testuser"
-  }
+  "data": null
 }
 ```
 
@@ -179,16 +187,42 @@ POST /user/register
 
 ##### 接口地址
 ```
-POST /user/login
+POST /api/user/login
 ```
 
 ##### 请求体
 ```json
 {
-  "username": "testuser",
-  "password": "password123"
+  "email": "test@example.com",
+  "password": "password123",
+  "code": "123456"
 }
 ```
+
+##### 响应示例
+```
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
+    "userId": 123,
+    "expiresIn": 86400000
+  }
+}
+```
+
+#### 1.3 获取用户资料接口
+
+##### 接口地址
+```
+GET /api/user/profile
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
 
 ##### 响应示例
 ```json
@@ -196,10 +230,84 @@ POST /user/login
   "code": 200,
   "msg": "ok",
   "data": {
-    "token": "eyJhbGciOiJIUzUxNiJ9.xxxx",
-    "userId": 123,
-    "username": "testuser"
+    "userId": 1,
+    "username": "testuser",
+    "email": "test@example.com",
+    "exp": 150,
+    "points": 250,
+    "stats": {
+      "works": 0,
+      "followers": 0,
+      "likes": 0
+    },
+    "userLevel": "LEVEL2",
+    "computingPower": 100,
+    "memberExpireAt": null,
+    "permanentMember": false,
+    "checkedIn": false,
+    "streakDays": 3,
+    "lotteryCounts": 2,
+    "dailyUsage": {
+      "aiDrawingCounts": 0,
+      "textChatCounts": 0
+    },
+    "avatar": "/avatars/default1.png"
   }
+}
+```
+
+#### 1.4 获取用户资源接口
+
+##### 接口地址
+```
+GET /api/user/resources
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "dailyUsage": {
+      "textChat": 0,
+      "aiDrawing": 0,
+      "lastResetDate": "2025-12-11"
+    },
+    "computingPower": 100,
+    "maxComputingPower": 1000
+  }
+}
+```
+
+#### 1.5 重置密码接口
+
+##### 接口地址
+```
+POST /api/user/resetPassword
+```
+
+##### 请求体
+```json
+{
+  "email": "test@example.com",
+  "newPassword": "newpassword123",
+  "confirmNewPassword": "newpassword123",
+  "code": "123456"
+}
+```
+
+##### 响应示例
+```
+{
+  "code": 200,
+  "msg": "ok",
+  "data": "密码重置成功"
 }
 ```
 
@@ -218,13 +326,6 @@ POST /api/checkin/checkin
 | X-Tenant-ID | 是 | 租户ID |
 | Authorization | 是 | Bearer Token |
 
-##### 请求体
-```json
-{
-  "userId": 123
-}
-```
-
 ##### 响应示例
 ```json
 {
@@ -238,21 +339,18 @@ POST /api/checkin/checkin
 ```
 
 ##### 错误响应示例
-```json
+```
 {
   "code": 500,
   "msg": "今日已签到",
-  "data": {
-    "points": 25,
-    "streakDays": 3
-  }
+  "data": null
 }
 ```
 
 ##### 业务流程
 
-1. 用户发起签到请求，携带用户ID
-2. 服务端从Header中获取租户ID
+1. 用户发起签到请求
+2. 服务端从Header中获取租户ID和用户ID
 3. 构造唯一的业务键(biz_key)，格式为："checkin_{租户ID}_{用户ID}_{日期}"
 4. 检查用户是否已经签到，防止重复签到
 5. 如果未签到，则插入签到记录到数据库
@@ -267,7 +365,7 @@ POST /api/checkin/checkin
 
 ##### 接口地址
 ```
-GET /api/checkin/status?userId={userId}
+GET /api/checkin/status
 ```
 
 ##### 请求头
@@ -276,17 +374,39 @@ GET /api/checkin/status?userId={userId}
 | X-Tenant-ID | 是 | 租户ID |
 | Authorization | 是 | Bearer Token |
 
-##### 请求参数
+##### 响应示例
+```
+{
+  "code": 200,
+  "msg": "ok",
+  "data": true
+}
+```
+
+#### 2.3 获取签到历史接口
+
+##### 接口地址
+```
+GET /api/checkin/history
+```
+
+##### 请求头
 | 参数名 | 必须 | 说明 |
 | --- | --- | --- |
-| userId | 是 | 用户ID |
+| Authorization | 是 | Bearer Token |
 
 ##### 响应示例
 ```json
 {
   "code": 200,
   "msg": "ok",
-  "data": true
+  "data": {
+    "dates": [
+      "2025-12-01",
+      "2025-12-02",
+      "2025-12-03"
+    ]
+  }
 }
 ```
 
@@ -296,7 +416,7 @@ GET /api/checkin/status?userId={userId}
 
 ##### 接口地址
 ```
-GET /api/leaderboard?userId={userId}
+GET /api/leaderboard
 ```
 
 ##### 请求头
@@ -336,7 +456,7 @@ GET /api/leaderboard?userId={userId}
 
 ##### 业务流程
 
-1. 用户请求排行榜信息，携带用户ID
+1. 用户请求排行榜信息
 2. 服务端从Header中获取租户ID
 3. 根据租户ID和当前月份确定排行榜键
 4. 查询排行榜Top 10用户信息
@@ -347,7 +467,7 @@ GET /api/leaderboard?userId={userId}
 
 ##### 接口地址
 ```
-GET /api/point-transactions?userId={userId}&page={page}&size={size}&bizType={bizType}
+GET /api/point-transactions
 ```
 
 ##### 请求头
@@ -400,7 +520,7 @@ GET /api/point-transactions?userId={userId}&page={page}&size={size}&bizType={biz
 
 ##### 接口地址
 ```
-GET /api/exp-transactions?userId={userId}&page={page}&size={size}&bizType={bizType}
+GET /api/exp-transactions
 ```
 
 ##### 请求头
@@ -446,7 +566,7 @@ GET /api/exp-transactions?userId={userId}&page={page}&size={size}&bizType={bizTy
 
 ##### 接口地址
 ```
-POST /api/membership-orders?userId={userId}&membershipType={membershipType}
+POST /api/membership-orders
 ```
 
 ##### 请求头
@@ -530,7 +650,7 @@ POST /api/coupon-templates
 ```
 
 ##### 响应示例
-```json
+```
 {
   "code": 200,
   "msg": "ok",
@@ -591,13 +711,201 @@ POST /api/user-coupon/grab-free-ai-voucher
 }
 ```
 
-### 7. AI头像生成接口
+### 7. 商城相关接口
 
-#### 7.1 生成头像接口
+#### 7.1 获取商品列表接口
 
 ##### 接口地址
 ```
-POST /api/avatar/generate
+GET /api/mall/products
+```
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| page | 否 | 页码，默认为1 |
+| size | 否 | 每页条数，默认为20 |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "list": [
+      {
+        "id": "prod_001",
+        "name": "算力值充值包",
+        "description": "100点算力值",
+        "price": 100,
+        "iconName": "power_icon",
+        "displayColor": "#FF0000",
+        "tag": "热销"
+      }
+    ],
+    "total": 10,
+    "pageNum": 1,
+    "pageSize": 20
+  }
+}
+```
+
+#### 7.2 获取抽奖奖品列表接口
+
+##### 接口地址
+```
+GET /api/mall/lotteryPrizes
+```
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": [
+    {
+      "id": "prize_001",
+      "title": "算力值大礼包",
+      "subtitle": "1000算力值",
+      "icon": "gift_icon",
+      "color": "#FF0000",
+      "badge": "稀有"
+    }
+  ]
+}
+```
+
+#### 7.3 获取用户积分信息接口
+
+##### 接口地址
+```
+GET /api/mall/user/points
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "points": 250,
+    "totalEarned": 500,
+    "totalSpent": 250
+  }
+}
+```
+
+### 8. 秒杀相关接口
+
+#### 8.1 获取秒杀活动列表接口
+
+##### 接口地址
+```
+GET /api/mall/flash-sales
+```
+
+##### 请求参数
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| page | 否 | 页码，默认为1 |
+| size | 否 | 每页条数，默认为10 |
+| date | 否 | 查询指定日期的活动 |
+
+##### 响应示例
+```json
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "list": [
+      {
+        "id": "flash_001",
+        "productId": "prod_001",
+        "productName": "算力值充值包",
+        "originalPrice": 100,
+        "salePrice": 50,
+        "totalStock": 100,
+        "remainingStock": 50,
+        "startTime": "2025-12-11T10:00:00",
+        "endTime": "2025-12-11T12:00:00",
+        "status": "active"
+      }
+    ],
+    "total": 5,
+    "pageNum": 1,
+    "pageSize": 10
+  }
+}
+```
+
+#### 8.2 秒杀抢购接口
+
+##### 接口地址
+```
+POST /api/mall/flash/grab
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 请求体
+```json
+{
+  "flashSaleId": "flash_001"
+}
+```
+
+##### 响应示例
+```
+{
+  "code": 200,
+  "msg": "ok",
+  "data": "抢购成功"
+}
+```
+
+### 9. 抽奖相关接口
+
+#### 9.1 抽奖接口
+
+##### 接口地址
+```
+POST /api/lottery/draw
+```
+
+##### 请求头
+| 参数名 | 必须 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | Bearer Token |
+
+##### 响应示例
+```
+{
+  "code": 200,
+  "msg": "ok",
+  "data": {
+    "prizeId": "prize_001",
+    "user": {
+      "id": 123
+    }
+  }
+}
+```
+
+### 10. AI绘图接口
+
+#### 10.1 生成图片接口
+
+##### 接口地址
+```
+POST /api/ai/generate
 ```
 
 ##### 请求头
@@ -613,7 +921,7 @@ POST /api/avatar/generate
 ```
 
 ##### 响应示例
-```json
+```
 {
   "code": 200,
   "msg": "ok",
@@ -625,4 +933,3 @@ POST /api/avatar/generate
     "message": "Mock: BASIC avatar generated"
   }
 }
-```
