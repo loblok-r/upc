@@ -1,6 +1,5 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.dto.GenerateRequest;
 import cn.loblok.upc.service.AiService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;

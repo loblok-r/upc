@@ -3,10 +3,10 @@ package cn.loblok.upc.enums;
 import lombok.Getter;
 
 /**
- * @author 再来亿组手枪腿
- * @site
- * @company zenstar
- * @create 2025-02-21 13:21
+ * 通用状态枚举
+ *
+ * @author loblok
+ * @date 2025/12/01
  */
 public enum CommonStatusEnum {
 

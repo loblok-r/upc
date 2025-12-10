@@ -1,5 +1,8 @@
 package cn.loblok.upc.config;
 
+/**
+ * 微信支付配置
+ */
 public class WechatPayConfig {
     public static final String APP_ID = "wx1234567890abcdef";      // 公众号/开放平台 AppID
     public static final String MCH_ID = "1900000109";              // 商户号

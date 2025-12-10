@@ -3,7 +3,6 @@ package cn.loblok.upc.controller;
 import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.CheckinHistoryResponse;
 import cn.loblok.upc.service.CheckinRecordService;
-import cn.loblok.upc.dto.CheckinRequestDTO;
 import cn.loblok.upc.dto.CheckinResponseDTO;
 import cn.loblok.upc.dto.Result;
 import org.springframework.beans.factory.annotation.Autowired;

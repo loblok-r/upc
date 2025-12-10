@@ -3,7 +3,9 @@ package cn.loblok.upc.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-// 专用于 Native 扫码支付
+/**
+ * 微信扫码支付响应
+ */
 @Data
 @AllArgsConstructor
 public class WechatNativePayResponse {

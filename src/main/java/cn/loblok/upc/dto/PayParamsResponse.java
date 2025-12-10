@@ -6,6 +6,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Map;
 
+/**
+ * 支付参数响应体
+ */
 @Data
 @Builder
 public class PayParamsResponse {

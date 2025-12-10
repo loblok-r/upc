@@ -17,23 +17,26 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.io.IOException;
 import java.util.Map;
 
-// 权限拦截器
+/**
+ * 权限拦截器
+ */
 @Component
 @Slf4j
 public class LevelAuthInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
 
     @Autowired
-    private CaculateUtils caculateUtils; // ← 关键！调用你的 getUserLevel()
+    private CaculateUtils caculateUtils;
 
+    /**
+     * 请求处理之前执行
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 1. 只拦截带 @RequireLevel 注解的方法
+        // 只拦截带 @RequireLevel 注解的方法
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
@@ -43,7 +46,7 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
             return true; // 无需权限校验
         }
 
-        // 2. 从 Header 获取 Token
+        //从 Header 获取 Token
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             writeErrorResponse(response, "Missing or invalid token", 401);
@@ -51,7 +54,7 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
         }
         String token = authHeader.substring(7);
 
-        // 3. 验证 Token 并获取 userId
+        // 验证 Token 并获取 userId
         try {
             Long userId = getUserIdFromToken(token);
             if (userId == null) {
@@ -59,7 +62,7 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
                 return false;
             }
 
-            // 4. 【核心】获取用户等级并校验
+            // 【核心】获取用户等级并校验
             String userLevel = caculateUtils.getUserLevel(userId);
             String requiredLevel = requireLevel.value();
 
@@ -68,7 +71,7 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
                 return false;
             }
 
-            // 5. 权限通过，继续执行
+            // 权限通过，继续执行
             return true;
 
         } catch (Exception e) {
@@ -78,14 +81,17 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
         }
     }
 
+    /**
+     * 从 Token 中获取 userId
+     */
     private Long getUserIdFromToken(String token) {
-        // 方式1：从 Redis 查（你已存 token -> userId）
+        // 从 Redis 查（已存 token -> userId）
         String userIdStr = redisTemplate.opsForValue().get("token:" + token);
         if (userIdStr != null) {
             return Long.parseLong(userIdStr);
         }
 
-        // 方式2：从 JWT 解析（备用）
+        // 从 JWT 解析（备用）
         try {
             Claims claims = Jwts.parser()
                     .setSigningKey("upc_secret_key")
@@ -97,9 +103,11 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
         }
     }
 
+    /**
+     * 判断用户等级是否满足要求
+     */
     private boolean isLevelSufficient(String userLevel, String requiredLevel) {
         // 简单字符串比较（假设 LEVEL1 < LEVEL2 < ...）
-        // 更健壮做法：映射为数字比较
         Map<String, Integer> levelMap = Map.of(
                 "LEVEL1", 1,
                 "LEVEL2", 2,
@@ -112,6 +120,9 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
         return user >= required;
     }
 
+    /**
+     * 封装错误响应
+     */
     private void writeErrorResponse(HttpServletResponse response, String message, int status) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");

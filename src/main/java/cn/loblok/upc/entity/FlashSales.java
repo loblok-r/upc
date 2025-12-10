@@ -10,7 +10,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *       秒杀商品
  * </p>
  *
  * @author loblok

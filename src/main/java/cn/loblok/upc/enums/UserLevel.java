@@ -1,8 +1,8 @@
 package cn.loblok.upc.enums;
 
-
-// 1. 等级枚举（清晰表达业务规则）
-
+/**
+ * 用户等级枚举
+ */
 public enum UserLevel {
     LEVEL1(0, "Level1"),
     LEVEL2(500, "Level2"),

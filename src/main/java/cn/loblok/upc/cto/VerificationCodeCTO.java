@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
+/**
+ * 验证码请求参数
+ */
 @Data
 public class VerificationCodeCTO {
 

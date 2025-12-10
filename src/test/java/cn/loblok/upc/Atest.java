@@ -1,6 +1,8 @@
 package cn.loblok.upc;
 
 import cn.loblok.upc.service.impl.CheckinRecordServiceImpl;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +16,26 @@ import java.util.concurrent.Executors;
 
 @SpringBootTest
 public class Atest {
+
+    public static void main(String[] args) {
+        String password = "THISISUPCAPPLICATION"; // ← 这是你自己定的密钥（不是数据库密码！）
+        String plainText = "HLjPHYx2A7mjNHfB"; // ← 要加密的真实密码
+
+        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+        SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+        config.setPassword(password);
+        config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
+        config.setKeyObtentionIterations("1000");
+        config.setPoolSize("1");
+        config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
+        config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator");
+        config.setStringOutputType("base64");
+        encryptor.setConfig(config);
+
+        String encrypted = encryptor.encrypt(plainText);
+        System.out.println("加密结果（复制到 Nacos）:");
+        System.out.println("ENC(" + encrypted + ")");
+    }
 
     @Autowired
     private StringRedisTemplate redisTemplate;

@@ -12,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+/**
+ * 定时任务：每日签到状态重置
+ */
 @Service
 @Slf4j
 public class CheckInResetTask {

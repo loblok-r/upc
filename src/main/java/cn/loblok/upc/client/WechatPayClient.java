@@ -12,13 +12,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 微信支付客户端
+ */
 @Service
 public class WechatPayClient {
 
     private static final String UNIFIED_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 
     public WechatNativePayResponse unifiedOrderNative(WechatUnifiedOrderRequest request) {
-        // 1. 构建参数 Map
+        // 构建参数 Map
         Map<String, String> params = new HashMap<>();
         params.put("appid", WechatPayConfig.APP_ID);
         params.put("mch_id", WechatPayConfig.MCH_ID);
@@ -30,15 +33,15 @@ public class WechatPayClient {
         params.put("notify_url", request.getNotifyUrl());
         params.put("trade_type", request.getTradeType()); // "NATIVE"
 
-        // 2. 生成签名
+        // 生成签名
         String sign = WechatSignatureUtil.generateSign(params, WechatPayConfig.API_KEY);
         params.put("sign", sign);
 
-        // 3. 转 XML 并发送请求
+        // 转 XML 并发送请求
         String xmlRequest = XmlUtils.toXml(params);
         String xmlResponse = HttpUtil.post(UNIFIED_ORDER_URL, xmlRequest);
 
-        // 4. 解析响应
+        // 解析响应
         Map<String, String> respMap = XmlUtils.toMap(xmlResponse);
 
         String returnCode = respMap.get("return_code");
@@ -51,7 +54,7 @@ public class WechatPayClient {
             throw new RuntimeException("微信业务失败: " + respMap.get("err_code_des") + " (" + respMap.get("err_code") + ")");
         }
 
-        // 5. 提取 code_url
+        // 提取 code_url
         String codeUrl = respMap.get("code_url");
         if (codeUrl == null || codeUrl.isEmpty()) {
             throw new RuntimeException("微信未返回 code_url");

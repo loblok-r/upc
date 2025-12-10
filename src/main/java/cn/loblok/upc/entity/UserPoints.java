@@ -11,7 +11,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *      用户积分表
  * </p>
  *
  * @author loblok
@@ -24,24 +24,45 @@ public class UserPoints implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
+    /**
+     * 用户ID
+     */
     @TableField("user_id")
     private Long userId;
 
+    /**
+     * 当前余额
+     */
     @TableField("balance")
     private Integer balance;
 
+    /**
+     * 总获得积分
+     */
     @TableField("total_earned")
     private Integer totalEarned;
 
+    /**
+     * 总消费积分
+     */
     @TableField("total_spent")
     private Integer totalSpent;
 
+    /**
+     * 创建时间
+     */
     @TableField("created_at")
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间
+     */
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 }

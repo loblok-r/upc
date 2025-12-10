@@ -11,6 +11,9 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * XML 工具类
+ */
 public class XmlUtils {
 
     public static String toXml(Map<String, String> params) {

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author loblok
@@ -25,33 +25,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserPointsController {
 
-        private final UserPointsService pointsService;
+    private final UserPointsService pointsService;
 
-        /**
-         * 获取用户积分信息
-         */
-        @GetMapping("/points")
-        public Result<UserPointsResponse> getUserPoints(@CurrentUser Long userId) {
-            try {
+    /**
+     * 获取用户积分信息
+     */
+    @GetMapping("/points")
+    public Result<UserPointsResponse> getUserPoints(@CurrentUser Long userId) {
 
-
-                if (userId == null) {
-                    return Result.error(CommonStatusEnum.USER_CANNOT_EMPTY.getCode(),CommonStatusEnum.USER_EMPTY_ERROR.getMessage());
-                }
-
-                log.info("查询用户积分信息，用户ID: {}", userId);
-
-                // 2. 调用Service获取积分信息
-                UserPointsResponse pointsResponse = pointsService.getUserPoints(userId);
-
-                log.info("用户积分查询成功: {}", pointsResponse);
-                return Result.success(pointsResponse);
-
-            } catch (Exception e) {
-                log.error("查询用户积分失败", e);
-                return Result.error(500, "查询用户积分失败");
+        log.info("查询用户积分信息，用户ID: {}", userId);
+        try {
+            if (userId == null) {
+                return Result.error(CommonStatusEnum.USER_CANNOT_EMPTY.getCode(), CommonStatusEnum.USER_EMPTY_ERROR.getMessage());
             }
+
+            // 调用Service获取积分信息
+            UserPointsResponse pointsResponse = pointsService.getUserPoints(userId);
+
+            log.info("用户积分查询成功: {}", pointsResponse);
+            return Result.success(pointsResponse);
+
+        } catch (Exception e) {
+            log.error("查询用户积分失败", e);
+            return Result.error(500, "查询用户积分失败");
         }
+    }
 
 
 }

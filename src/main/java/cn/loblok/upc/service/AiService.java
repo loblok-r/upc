@@ -1,10 +1,5 @@
 package cn.loblok.upc.service;
 
-import cn.loblok.upc.dto.GenerateRequest;
-import cn.loblok.upc.dto.Result;
-
-import java.util.Map;
-
 public interface AiService {
     /**
      * 核心生成方法（预留，后续替换为真实 AI 调用）

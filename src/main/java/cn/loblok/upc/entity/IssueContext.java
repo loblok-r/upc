@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.Map;
-
+/**
+ * 优惠券发放上下文
+ */
 @Data
 @Builder
 public class IssueContext {

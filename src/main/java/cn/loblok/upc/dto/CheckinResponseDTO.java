@@ -2,7 +2,9 @@ package cn.loblok.upc.dto;
 
 import lombok.Data;
 
-//签到响应体
+/**
+ * 签到响应参数
+ */
 @Data
 public class CheckinResponseDTO {
 

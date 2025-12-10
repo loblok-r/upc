@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 验证码控制器
+ */
 @RestController
 @RequestMapping("/api/auth")
 @Slf4j
@@ -29,7 +32,7 @@ public class VerificationCodeController {
     @PostMapping("/sendCode")
     public Result sendCode(@Validated(SendVerificationCodeGroup.class)
                            @RequestBody VerificationCodeCTO verificationCodeCTO) {
-        log.info("发送验证码请求: {}", verificationCodeCTO);
+        log.info("用户请求发送验证码: {}", verificationCodeCTO);
         
         // 验证邮箱不为空
         if (!StringUtils.hasText(verificationCodeCTO.getEmail())) {

@@ -2,6 +2,9 @@ package cn.loblok.upc.enums;
 
 import lombok.Getter;
 
+/**
+ * 验证码类型枚举
+ */
 @Getter
 public enum VerificationCodeType{
 

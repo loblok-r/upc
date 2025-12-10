@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * 优惠券发放记录表 服务实现类
+ *      优惠券发放记录表 服务实现类
  * </p>
  *
  * @author loblok

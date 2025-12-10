@@ -1,8 +1,11 @@
-package cn.loblok.upc.cto;
+package cn.loblok.upc.dto;
 
 
 import lombok.Data;
 
+/**
+ * AI绘图请求参数
+ */
 @Data
 public class AiGenerateRequest {
     private String mode;          // "TEXT_CHAT", "AI_DRAWING"

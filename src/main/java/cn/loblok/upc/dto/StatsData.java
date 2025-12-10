@@ -2,6 +2,10 @@ package cn.loblok.upc.dto;
 
 import lombok.Data;
 
+/**
+ * 用户社区状态
+ *
+ */
 @Data
 public class StatsData {
 

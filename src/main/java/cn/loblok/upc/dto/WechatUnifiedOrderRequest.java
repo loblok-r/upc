@@ -3,6 +3,9 @@ package cn.loblok.upc.dto;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * 微信统一下单请求参数
+ */
 @Data
 @Builder
 public class WechatUnifiedOrderRequest {

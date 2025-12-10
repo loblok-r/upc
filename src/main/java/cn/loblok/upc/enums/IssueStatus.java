@@ -1,5 +1,8 @@
 package cn.loblok.upc.enums;
 
+/**
+ * 优惠券发放状态枚举
+ */
 public enum IssueStatus {
     SUCCESS((byte) 0, "发放成功"),
     FAILED((byte) 1, "发放失败");

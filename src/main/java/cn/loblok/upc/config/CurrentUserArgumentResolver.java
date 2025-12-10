@@ -9,28 +9,40 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+/**
+ * 自定义参数解析器，用于解析当前用户ID
+ */
 @Component
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
+
+    /**
+     * 判断参数类型是否支持解析
+     */
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUser.class)
                 && parameter.getParameterType().equals(Long.class);
     }
 
+
+    /**
+     * 解析参数
+     */
     @Override
     public Object resolveArgument(
             MethodParameter parameter,
             ModelAndViewContainer mavContainer,
             NativeWebRequest webRequest,
-            WebDataBinderFactory binderFactory) throws Exception {
+            WebDataBinderFactory binderFactory) {
 
         // 从 Header 中获取 Token
         String authHeader = webRequest.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7); // 去掉 "Bearer "
-            // 假设你有一个工具类解析用户ID
-            Long userId = JwtUtil.getUserIdFromToken(token); // ← 你需要实现这个逻辑
+            // 去掉 "Bearer "
+            String token = authHeader.substring(7);
+            // 解析 Token 获取 userId
+            Long userId = JwtUtil.getUserIdFromToken(token);
             if (userId == null) {
                 throw new RuntimeException("无效用户凭证");
             }

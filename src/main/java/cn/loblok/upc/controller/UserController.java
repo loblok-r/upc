@@ -3,8 +3,7 @@ package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.constraints.CheckVerificationCodeGroup;
-import cn.loblok.upc.constraints.SendVerificationCodeGroup;
-import cn.loblok.upc.cto.VerificationCodeCTO;
+import cn.loblok.upc.dto.RegisterRequestDTO;
 import cn.loblok.upc.dto.*;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.enums.VerificationCodeType;

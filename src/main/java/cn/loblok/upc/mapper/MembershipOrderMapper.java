@@ -28,6 +28,12 @@ public interface MembershipOrderMapper extends BaseMapper<MembershipOrder> {
     @Select("SELECT * FROM membership_order WHERE order_no = #{orderNo}")
     MembershipOrder selectByOrderNo(@Param("orderNo") String orderNo);
 
+    /**
+     * 查询过期未支付的订单
+     * @param expireTime 过期时间
+     * @return 过期未支付的订单列表
+     */
+    @Select("SELECT * FROM membership_order WHERE status = 'CREATED' AND created_at < #{expireTime}")
     List<MembershipOrder> selectExpiredUnpaidOrders(LocalDateTime expireTime);
 
     int closeOrderIfUnpaid(@Param("orderId") Long orderId);

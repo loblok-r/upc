@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: upc-core
+
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: devId
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+
+# Jasypt 配置
+jasypt:
+  encryptor:
+    algorithm: PBEWITHHMACSHA512ANDAES_256
+    iv-generator-classname: org.jasypt.iv.RandomIvGenerator
+    salt-generator-classname: org.jasypt.salt.RandomSaltGenerator
+    string-output-type: base64
+
+#upc-core-dev.yaml

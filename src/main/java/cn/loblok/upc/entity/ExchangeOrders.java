@@ -10,7 +10,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *    交易订单
  * </p>
  *
  * @author loblok

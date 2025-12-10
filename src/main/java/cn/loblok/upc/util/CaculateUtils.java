@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 计算工具类
+ */
 @Service
 @Slf4j
 public class CaculateUtils {

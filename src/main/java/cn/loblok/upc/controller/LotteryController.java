@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 抽奖控制器
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/lottery")

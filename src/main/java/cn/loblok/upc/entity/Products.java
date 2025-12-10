@@ -11,7 +11,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *    产品表
  * </p>
  *
  * @author loblok

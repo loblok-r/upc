@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 定时任务：处理订单超时未支付
+ */
 @Component
 @Slf4j
 public class OrderTimeoutTask {

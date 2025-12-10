@@ -11,7 +11,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *      用户表
  * </p>
  *
  * @author loblok
@@ -34,20 +34,26 @@ public class User implements Serializable {
     private String password;
 
     @TableField("email")
-    private String email; // 用于登录和找回密码（比 username 更通用）
+    private String email;
 
     @TableField("phone")
-    private String phone; // 可选，如果未来支持短信登录
+    private String phone;
 
     @TableField("avatar_url")
-    private String avatarUrl; // 存储用户头像（可先为空）
+    private String avatarUrl;
 
 
+    /**
+     * 密码盐
+     */
     @TableField("salt")
-    private String salt; // 密码加盐，提升安全性
+    private String salt;
 
+    /**
+     * 状态 0: 正常, 1: 冻结, 2: 未激活（防垃圾注册）
+     */
     @TableField("status")
-    private Integer status; // 0: 正常, 1: 冻结, 2: 未激活（防垃圾注册）
+    private Integer status;
 
 
     @TableField("last_login_at")
@@ -78,12 +84,15 @@ public class User implements Serializable {
     private String userLevel;
 
     /**
-     * 是否为永久会员 (0: 否, 1: 是)
+     * 当天是否签到 (0: 否, 1: 是)
      */
     @TableField("ischickined")
     private Boolean  ischickined = false;
 
 
+    /**
+     * 连续签到天数
+     */
     @TableField("streakdays")
     private Integer streakdays;
     /**

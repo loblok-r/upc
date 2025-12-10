@@ -3,6 +3,9 @@ package cn.loblok.upc.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+/**
+ * 创建会员订单请求参数
+ */
 @Data
 public class CreateMembershipOrderRequest {
     /**

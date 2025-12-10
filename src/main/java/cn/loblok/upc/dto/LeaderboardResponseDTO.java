@@ -3,6 +3,9 @@ package cn.loblok.upc.dto;
 import lombok.Data;
 import java.util.List;
 
+/**
+ * 积分排行榜响应体
+ */
 @Data
 public class LeaderboardResponseDTO {
 

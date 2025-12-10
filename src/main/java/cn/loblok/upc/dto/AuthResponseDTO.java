@@ -2,7 +2,9 @@ package cn.loblok.upc.dto;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+/**
+ * 登录响应体
+ */
 
 @Data
 public class AuthResponseDTO {

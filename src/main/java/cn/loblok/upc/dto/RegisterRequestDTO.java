@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
+/**
+ * 注册请求参数
+ */
 @Data
 public class RegisterRequestDTO {
     /**

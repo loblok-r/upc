@@ -1,6 +1,8 @@
 package cn.loblok.upc.enums;
 
-//业务类型
+/**
+ * 业务类型枚举
+ */
 public enum BizType {
 
     REGISTER_GIFT("注册礼包"),

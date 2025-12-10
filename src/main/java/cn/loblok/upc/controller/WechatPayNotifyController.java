@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 微信支付异步通知处理控制器
+ */
 @RestController
 @Slf4j
 public class WechatPayNotifyController {

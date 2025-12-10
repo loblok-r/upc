@@ -3,7 +3,9 @@ package cn.loblok.upc.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-
+/**
+ * 用户资料返回对象
+ */
 @Data
 public class UserProfileDTO {
 

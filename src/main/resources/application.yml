@@ -1,41 +1,4 @@
-server:
-  port: 8069
-spring:
-  application:
-    name: upc
-  data:
-    redis:
-      host: 127.0.0.1
-      port: 6379
-      database: 1
-  datasource:
-    url: jdbc:mysql://localhost:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 16
-      minimum-idle: 4
-      connection-timeout: 30000
-  mail:
-    host: smtp.163.com
-    port: 465
-    username: cjz0329@163.com
-    password: HLjPHYx2A7mjNHfB
-    protocol: smtp
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
-            required: true
-          socketFactory:
-            class: javax.net.ssl.SSLSocketFactory
-            fallback: false
-          starttls:
-            enable: false
-            required: false
+#敏感信息加密配置在nacos
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -48,12 +11,6 @@ mybatis-plus:
       logic-not-delete-value: 0
   mapper-locations: classpath*:mapper/**/*.xml
 
-ai:
-  openai:
-    api-key: ${OPENAI_API_KEY:}   # 从环境变量读取，fallback 为空
-    model: gpt-3.5-turbo
-    url: https://api.openai.com/v1/chat/completions
-  stability:
-    api-key: ${STABILITY_API_KEY:}
-    engine-id: stable-diffusion-xl-base-1.0
-    url: https://api.stability.ai/v1/generation/${ai.stability.engine-id}/text-to-image
+logging:
+  level:
+    cn.loblok.upc: debug

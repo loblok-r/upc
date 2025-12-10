@@ -2,6 +2,9 @@ package cn.loblok.upc.dto;
 
 import java.util.List;
 
+/**
+ * 签到历史响应体
+ */
 public class CheckinHistoryResponse {
 
     // yyyy-MM-dd

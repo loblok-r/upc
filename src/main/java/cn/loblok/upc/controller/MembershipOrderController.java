@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
- *  前端控制器
+ *   会员订单控制器
  * </p>
  *
  * @author loblok

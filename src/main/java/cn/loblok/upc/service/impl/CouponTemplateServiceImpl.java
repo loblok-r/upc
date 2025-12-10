@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
- *  服务实现类
+ *  优惠券模板 服务实现类
  * </p>
  *
  * @author loblok

@@ -4,6 +4,10 @@ import cn.loblok.upc.enums.CommonStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * 通用返回结果
+ * @param <T>
+ */
 @Data
 @Accessors(chain = true)
 public class Result<T> {

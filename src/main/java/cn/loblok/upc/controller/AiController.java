@@ -1,19 +1,7 @@
 package cn.loblok.upc.controller;
 
-import cn.loblok.upc.annotation.CurrentUser;
-import cn.loblok.upc.cto.AiGenerateRequest;
-import cn.loblok.upc.dto.Result;
-import cn.loblok.upc.dto.GenerateRequest;
-import cn.loblok.upc.exception.BizException;
-import cn.loblok.upc.service.AiService;
-import cn.loblok.upc.service.UserEntitlementService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
 
 /**
  * 图片生成控制器

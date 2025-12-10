@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * 商品信息
+ */
 @Data
 public class ProductDTO {
     private String id;

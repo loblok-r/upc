@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * 秒杀活动信息
+ */
 @Data
 public class ExpTransactionDTO {
     private Long id;
