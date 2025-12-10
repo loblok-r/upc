@@ -1,11 +1,17 @@
 package cn.loblok.upc.entity;
 
+import cn.loblok.upc.enums.ProductStatus;
+import cn.loblok.upc.enums.ProductType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -53,8 +59,16 @@ public class Products implements Serializable {
     @TableField("description")
     private String description;
 
+    /**
+     * 分类
+     *
+     * 1. 实物商品	physical 需要物流发货的实体物品	订单进入「待发货」，人工/系统后续处理
+     * 2. 虚拟权益	virtual	直接提升用户账户数值或状态（如算力、会员）	同步发放（写 DB）
+     * 3. 优惠凭证	voucher 一种“未来可用”的权利（如折扣、卡券、抽奖次数）	同步发放到用户资产表，包含一些 可消耗的道具
+     *
+     */
     @TableField("category")
-    private String category;
+    private ProductType category;
 
     @TableField("points_required")
     private Integer pointsRequired;
@@ -75,11 +89,14 @@ public class Products implements Serializable {
     private String imageUrl;
 
     @TableField("status")
-    private String status;
+    private ProductStatus status;
 
     @TableField("sort_order")
     private Integer sortOrder;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
+
+    @TableField("delivery_config")
+    private String deliveryConfig;
 }

@@ -5,15 +5,18 @@ import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.dto.StatsData;
 import cn.loblok.upc.dto.UserProfileDTO;
 import cn.loblok.upc.enums.CommonStatusEnum;
+import cn.loblok.upc.enums.UserItemType;
 import cn.loblok.upc.enums.VerificationCodeType;
 import cn.loblok.upc.event.UserRegisteredEvent;
 import cn.loblok.upc.mapper.UserMapper;
+import cn.loblok.upc.service.UserItemsService;
 import cn.loblok.upc.service.UserService;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.service.VerificationCodeService;
 import cn.loblok.upc.util.JwtUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,6 +42,7 @@ import static cn.hutool.core.lang.Validator.isEmail;
 @Service
 @Primary
 @Slf4j
+@AllArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
 
@@ -49,22 +53,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             "/avatars/default4.png",
             "/avatars/default5.png",
     };
-    @Autowired
-    private UserMapper userMapper;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+
+    private final JwtUtil jwtUtil;
+
+
+    private final StringRedisTemplate redisTemplate;
     
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
-    
-    @Autowired
-    private VerificationCodeService verificationCodeService;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final ApplicationEventPublisher eventPublisher;
+    
+
+    private final VerificationCodeService verificationCodeService;
+
+    private final  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
+    private final UserItemsService userItemsService;
 
 
 
@@ -162,6 +169,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             );
         }
 
+        //查询抽奖次数
+        int totolLotteryChances = userItemsService.getTotalLotteryChances(userId);
+
         UserProfileDTO userProfileDTO = new UserProfileDTO();
 
         StatsData statsData = new StatsData();
@@ -181,10 +191,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userProfileDTO.setPermanentMember(user.getIsPermanentMember());
         userProfileDTO.setCheckedIn(user.getIschickined());
         userProfileDTO.setStreakDays(user.getStreakdays());
-        userProfileDTO.setLotteryCounts(user.getLotteryCounts());
+        userProfileDTO.setLotteryCounts(totolLotteryChances);
         userProfileDTO.setAvatar(user.getAvatarUrl());
-
-
 
 
         return Result.success(userProfileDTO);
@@ -257,6 +265,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else {
             throw new RuntimeException("用户不存在");
         }
+    }
+
+    @Override
+    public void addComputePower(Long userId, Integer amount) {
+
+
+    }
+
+    @Override
+    public void extendVipDays(Long userId, Integer days) {
+
     }
 
     // 本地缓存（如 Caffeine）或 Redis 缓存

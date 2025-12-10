@@ -1,0 +1,42 @@
+package cn.loblok.upc.service;
+
+import cn.loblok.upc.entity.UserItems;
+import cn.loblok.upc.enums.UserItemSourceType;
+import cn.loblok.upc.enums.UserItemType;
+import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ * 用户虚拟道具/资产表（不含优惠券） 服务类
+ * </p>
+ *
+ * @author loblok
+ * @since 2025-12-10
+ */
+public interface UserItemsService extends IService<UserItems> {
+
+    List<UserItems> getByUserId(Long userId, UserItemType userItemType);
+
+    void addItem(
+            Long userId,
+            UserItemType itemType,
+            UserItemSourceType sourceType,
+            String sourceId,      // 👈 建议加上，用于追踪来源（如订单ID）
+            Map<String, Object> extra,  // 👈 所有额外属性放这里
+            Integer quantity      // 👈 数量（必须是整数）
+    );
+
+    /**
+     * 获取用户抽奖次数
+     *
+     * @param userId 用户ID
+     * @return 抽奖次数
+     */
+    int getTotalLotteryChances(Long userId);
+
+    int consumeOneChanceWithOptimisticLock(Long id);
+}

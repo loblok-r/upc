@@ -14,5 +14,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserPointsService extends IService<UserPoints> {
 
+    boolean addUserPoints(Long userId, int deltaPoints);
+
+    boolean reduceUserPoints(Long userId, int deltaPoints);
+
     UserPointsResponse getUserPoints(Long userId);
 }

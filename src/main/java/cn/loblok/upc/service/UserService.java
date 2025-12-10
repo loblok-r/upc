@@ -62,4 +62,8 @@ public interface UserService extends IService<User> {
 
     // 更新用户积分值以及等级
     void updateUserExpAndLevel(Long userId, int i, String newLevel);
+
+    void addComputePower(Long userId, Integer amount);
+
+    void extendVipDays(Long userId, Integer days);
 }

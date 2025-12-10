@@ -5,6 +5,7 @@ import cn.loblok.upc.dto.PageResult;
 import cn.loblok.upc.dto.ProductDTO;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.Products;
+import cn.loblok.upc.enums.ProductStatus;
 import cn.loblok.upc.service.ProductsService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -74,7 +75,7 @@ public class ProductsController {
     public Result<List<LotteryPrizeDTO>> getLotteryPrizes() {
         log.info("开始获取抽奖奖品列表");
         QueryWrapper<Products> query = new QueryWrapper<>();
-        query.eq("status", "active")
+        query.eq("status", ProductStatus.ACTIVE)
                 .eq("lottery_eligible", true)
                 .orderByAsc("sort_order");
 

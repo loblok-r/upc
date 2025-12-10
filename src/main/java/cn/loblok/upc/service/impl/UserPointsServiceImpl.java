@@ -30,9 +30,8 @@ public class UserPointsServiceImpl extends ServiceImpl<UserPointsMapper, UserPoi
 
 
     @Override
-    public UserPointsResponse getUserPoints(Long userId) {
+    public boolean addUserPoints(Long userId, int deltaPoints) {
 
-        // 1. 查询用户积分记录
         QueryWrapper<UserPoints> userPointsQueryWrapper = new QueryWrapper<>();
         userPointsQueryWrapper.eq("user_id", userId);
         UserPoints userPoints = userPointsMapper.selectOne(userPointsQueryWrapper);
@@ -42,14 +41,48 @@ public class UserPointsServiceImpl extends ServiceImpl<UserPointsMapper, UserPoi
             log.info("用户 {} 无积分记录，创建默认记录", userId);
             userPoints = createDefaultUserPoints(userId);
         }
+        userPoints.setBalance(userPoints.getBalance() + deltaPoints);
+        userPoints.setTotalEarned(userPoints.getTotalEarned() + deltaPoints);
+        userPoints.setUpdatedAt(LocalDateTime.now());
+        return userPointsMapper.update(userPoints, userPointsQueryWrapper) > 0;
+    }
 
-        // 2. 计算累计获得积分（需要查询积分流水表）
+    @Override
+    public boolean reduceUserPoints(Long userId, int deltaPoints) {
+
+        QueryWrapper<UserPoints> userPointsQueryWrapper = new QueryWrapper<>();
+        userPointsQueryWrapper.eq("user_id", userId);
+        UserPoints userPoints = userPointsMapper.selectOne(userPointsQueryWrapper);
+        if (userPoints == null) {
+            // 如果用户没有积分记录，初始化一个
+            log.info("用户 {} 无积分记录，创建默认记录", userId);
+            userPoints = createDefaultUserPoints(userId);
+        }
+        if (userPoints.getBalance() < deltaPoints) {
+            return false;
+        }
+        userPoints.setBalance(userPoints.getBalance() - deltaPoints);
+        userPoints.setTotalSpent(userPoints.getTotalSpent() + deltaPoints);
+        userPoints.setUpdatedAt(LocalDateTime.now());
+        return userPointsMapper.update(userPoints, userPointsQueryWrapper) > 0;
+    }
+
+    @Override
+    public UserPointsResponse getUserPoints(Long userId) {
+
+
+        QueryWrapper<UserPoints> userPointsQueryWrapper = new QueryWrapper<>();
+        userPointsQueryWrapper.eq("user_id", userId);
+        UserPoints userPoints = userPointsMapper.selectOne(userPointsQueryWrapper);
+
+        if (userPoints == null) {
+            log.info("用户 {} 无积分记录，创建默认记录", userId);
+            userPoints = createDefaultUserPoints(userId);
+        }
+
         Integer totalEarned = userPoints.getTotalEarned();
-
-        // 3. 计算累计消费积分
         Integer totalSpent = userPoints.getTotalSpent();
 
-        // 4. 构建响应
         return UserPointsResponse.builder()
                 .balance(userPoints.getBalance())
                 .totalEarned(totalEarned)

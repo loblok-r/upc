@@ -1,5 +1,6 @@
 package cn.loblok.upc.entity;
 
+import cn.loblok.upc.enums.MallOrderStatus;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -39,7 +40,7 @@ public class FlashOrders implements Serializable {
     private Integer pointsSpent;
 
     @TableField("order_status")
-    private String orderStatus;
+    private MallOrderStatus mallOrderStatus;
 
     @TableField("reserve_expires_at")
     private LocalDateTime reserveExpiresAt;
