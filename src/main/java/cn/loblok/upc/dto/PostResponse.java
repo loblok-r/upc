@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class PostResponse {
 
+    private Long id;
 
     private Author author;
 

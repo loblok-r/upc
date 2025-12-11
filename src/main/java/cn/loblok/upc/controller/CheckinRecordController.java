@@ -2,11 +2,17 @@ package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.CheckinHistoryResponse;
+import cn.loblok.upc.dto.RetroRequest;
+import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.service.CheckinRecordService;
 import cn.loblok.upc.dto.CheckinResponseDTO;
 import cn.loblok.upc.dto.Result;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 /**
  * <p>
@@ -18,10 +24,12 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/checkin")
+@AllArgsConstructor
+@Slf4j
 public class CheckinRecordController {
     
-    @Autowired
-    private CheckinRecordService checkinRecordService;
+
+    private final CheckinRecordService checkinRecordService;
     
     /**
      * 用户签到接口
@@ -52,4 +60,17 @@ public class CheckinRecordController {
         boolean checked = checkinRecordService.hasCheckedInToday(tenantId, userId);
         return Result.success(checked);
     }
+
+
+    @PostMapping("/retro")
+    public Result<CheckinResponseDTO> reTroChickIn(@CurrentUser Long userId,@RequestBody RetroRequest request) {
+        log.info("RetroRequest: {}", request);
+
+        LocalDate retroDate = request.getRetroDate();
+        if(retroDate == null){
+            return Result.error(CommonStatusEnum.CANT_RETRO_DATE_NULL.getCode(),CommonStatusEnum.CANT_RETRO_DATE_NULL.getMessage());
+        }
+        return checkinRecordService.reTroChickIn(userId,retroDate);
+    }
+
 }

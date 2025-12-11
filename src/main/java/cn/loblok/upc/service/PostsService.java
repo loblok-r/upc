@@ -39,4 +39,12 @@ public interface PostsService extends IService<Posts> {
      * @return 最新帖子列表
      */
     List<PostResponse> getLatestPosts(Long userId);
+
+    /**
+     * 获取我的帖子
+     *
+     * @param userId 用户ID
+     * @return 我的帖子列表
+     */
+    List<PostResponse> getMyPosts(Long userId);
 }

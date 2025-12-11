@@ -183,7 +183,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             dailyUsageResponse.setTextChatCounts(dailyUsage.getTextChatCount());
         }
         //查询抽奖次数
-        int totolLotteryChances = userItemsService.getTotalLotteryChances(userId);
+        int totolLotteryChances = userItemsService.getTotalChances(userId, UserItemType.LOTTERY_TICKET);
+
+        int retroCounts =userItemsService.getTotalChances(userId, UserItemType.RESIGN_CARD);
 
         UserProfileDTO userProfileDTO = new UserProfileDTO();
 
@@ -209,6 +211,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userProfileDTO.setDailyUsage(dailyUsageResponse);
         userProfileDTO.setAvatar(user.getAvatarUrl());
 
+        userProfileDTO.setRetroCounts(retroCounts);
 
         return Result.success(userProfileDTO);
     }

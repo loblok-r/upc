@@ -31,12 +31,20 @@ public interface UserItemsService extends IService<UserItems> {
     );
 
     /**
-     * 获取用户抽奖次数
+     * 获取道具次数
      *
      * @param userId 用户ID
      * @return 抽奖次数
      */
-    int getTotalLotteryChances(Long userId);
+    int getTotalChances(Long userId, UserItemType itemType);
 
+    /**
+     * 扣减道具次数
+     *
+     * @param id 道具id
+     * @return 抽奖次数
+     */
     int consumeOneChanceWithOptimisticLock(Long id);
+
+
 }

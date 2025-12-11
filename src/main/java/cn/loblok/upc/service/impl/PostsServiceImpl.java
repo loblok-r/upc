@@ -142,5 +142,39 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                 .toList();
     }
 
+@Override
+public List<PostResponse> getMyPosts(Long userId) {
+    // 查询当前用户发布的所有帖子
+    QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
+    queryWrapper.eq("user_id", userId);
+    queryWrapper.eq("is_deleted", false);
+    queryWrapper.orderByDesc("created_at");
+
+    return this.list(queryWrapper).stream()
+            .map(post -> {
+                Author author = new Author();
+                User user = userService.getById(post.getUserId());
+                author.setId(user.getId());
+                author.setName(user.getUsername());
+                author.setAvatar(user.getAvatarUrl());
+                author.setHandle(user.getUsername());
+                author.setFollowers(user.getFollowers());
+
+                PostResponse response = new PostResponse();
+                response.setId(post.getId());
+                response.setTitle(post.getTitle());
+                response.setContent(post.getContent());
+                response.setAuthor(author);
+                response.setCommentsCount(post.getCommentsCount());
+                response.setImageUrl(post.getImageUrl());
+                response.setLikesCount(post.getLikesCount());
+                response.setCreatedAt(post.getCreatedAt());
+                response.setUpdatedAt(post.getUpdatedAt());
+                return response;
+            })
+            .toList();
+}
+
+
 
 }

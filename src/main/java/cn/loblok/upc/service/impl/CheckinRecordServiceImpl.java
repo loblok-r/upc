@@ -2,8 +2,10 @@ package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.*;
 import cn.loblok.upc.entity.CheckinRecord;
+import cn.loblok.upc.entity.UserItems;
 import cn.loblok.upc.entity.UserPoints;
 import cn.loblok.upc.enums.CommonStatusEnum;
+import cn.loblok.upc.enums.UserItemType;
 import cn.loblok.upc.mapper.CheckinRecordMapper;
 import cn.loblok.upc.service.*;
 import cn.loblok.upc.service.assist.CheckinRewardRuleService;
@@ -17,12 +19,14 @@ import cn.loblok.upc.util.RedisUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
@@ -37,7 +41,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- *      签到记录服务实现
+ * 签到记录服务实现
  * </p>
  *
  * @author loblok
@@ -46,39 +50,42 @@ import java.util.stream.Collectors;
 @Service
 @Primary
 @Slf4j
+@AllArgsConstructor
 public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, CheckinRecord> implements CheckinRecordService {
 
     public static AtomicInteger dbQueryCount = new AtomicInteger(0);
 
-    @Autowired
-    private UserService userService;
 
-    @Autowired
-    private UserPointsService userPointsService;
-    
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired
-    private CheckinRecordMapper baseMapper;
-    
-    @Autowired
-    private LeaderboardServiceImpl leaderboardService;
-
-    @Autowired
-    private  PointTransactionService pointTransactionService;
-
-    @Autowired
-    private CheckinRewardRuleService rewardRuleService;
-
-    @Autowired
-    private ExpTransactionService expTransactionService;
+    private final UserService userService;
 
 
-    @Autowired
-    private CaculateUtils caculateUtils;
-    
-    @Autowired
+    private final UserPointsService userPointsService;
+
+
+    private final StringRedisTemplate redisTemplate;
+
+
+    private final CheckinRecordMapper baseMapper;
+
+
+    private final LeaderboardServiceImpl leaderboardService;
+
+
+    private final UserItemsService userItemsService;
+
+
+    private final PointTransactionService pointTransactionService;
+
+
+    private final CheckinRewardRuleService rewardRuleService;
+
+
+    private final ExpTransactionService expTransactionService;
+
+
+    private final CaculateUtils caculateUtils;
+
+
     private ApplicationEventPublisher eventPublisher;
 
     private static final ZoneId BUSINESS_TIMEZONE = ZoneId.of("Asia/Shanghai");
@@ -95,18 +102,22 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<CheckinResponseDTO> checkin(String tenantId, Long userId) {
-        log.info("开始处理签到请求: tenantId={}, userId={}", tenantId, userId);
+        return executeCheckin(tenantId, userId, LocalDate.now());
+    }
+
+    @Override
+    public Result<CheckinResponseDTO> executeCheckin(String tenantId, Long userId, LocalDate checkinDate) {
+        log.info("开始处理签到请求: tenantId={}, userId={},chickinDate = {}", tenantId, userId, checkinDate);
 
         // 获取用户信息
         User user = userService.getById(userId);
         if (user == null) {
             return Result.error("用户不存在");
         }
-        
+
         // 获取当前日期
-        LocalDate checkinDate = LocalDate.now(BUSINESS_TIMEZONE);
         String dateStr = checkinDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        
+
         // 构造 biz_key
         String bizKey = "checkin_" + tenantId + "_" + userId + "_" + dateStr;
         // 用户积分Key（使用Redis）
@@ -125,7 +136,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         if (this.count(queryWrapper) > 0) {
             return Result.error(CommonStatusEnum.HasCheckedIn.getCode(), CommonStatusEnum.HasCheckedIn.getMessage());
         }
-        
+
         // 创建签到记录
         CheckinRecord checkinRecord = new CheckinRecord();
         checkinRecord.setUserId(userId);
@@ -135,7 +146,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 这里可以添加IP地址和User-Agent，但在实际应用中应该从请求中获取
         checkinRecord.setIpAddress("192.168.1.100"); // 示例IP地址
         checkinRecord.setUserAgent("Mozilla/5.0 ..."); // 示例User-Agent
-        
+
         // 插入签到记录
         boolean saveResult = this.save(checkinRecord);
         if (!saveResult) {
@@ -193,7 +204,6 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         }
 
 
-
         // 异步记录经验流水
 //        expTransactionService.asyncLog(
 //                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
@@ -219,15 +229,15 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 //        pointTransactionService.asyncLog(
 //                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
 //        );
-        
+
         // 计算连续签到天数
         Integer streakDays = calculateStreakDays(userId, checkinDate, streakKey);
-        
+
         // 额外奖励：如果连续签到7天，额外增加50积分
         int bonusPoints = basePoints;
         Long pointsAfterBonus = pointsAfterBase;
         if (streakDays >= CHECKIN_STREAK_DAYS && streakDays % CHECKIN_STREAK_DAYS == 0) {
-            pointsAfterBonus  = redisTemplate.opsForValue().increment(scoreKey, CHECKIN_STREAK_POINTS);
+            pointsAfterBonus = redisTemplate.opsForValue().increment(scoreKey, CHECKIN_STREAK_POINTS);
 
             // 更新排行榜（额外50分）
             leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_STREAK_POINTS);
@@ -235,7 +245,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             pointTransactionService.asyncLog(
                     tenantId, userId, BizType.STREAK_SIGN, checkinRecord.getId(), CHECKIN_STREAK_POINTS, pointsAfterBonus
             );
-            bonusPoints = bonusPoints+50;
+            bonusPoints = bonusPoints + 50;
         }
 
         // 更新用户积分值
@@ -274,18 +284,108 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 设置Redis键的过期时间（例如：30天）
         redisTemplate.expire(scoreKey, SCOREKEY_EXPIRE_DAYS, TimeUnit.DAYS);
         redisTemplate.expire(streakKey, EXPKEY_EXPIRE_DAYS, TimeUnit.DAYS);
-        
+
         // 返回成功响应，包含最新的积分值和连续签到天数
         Integer points = caculateUtils.getPoints(scoreKey);
         CheckinResponseDTO checkinResponseDTO = new CheckinResponseDTO(points, streakDays);
         return Result.success(checkinResponseDTO);
     }
 
-    //查询今天是否已经签到了
+    /**
+     * 签到（复签）
+     *
+     * @param userId    用户ID
+     * @param retroDate 复签日期
+     * @return 签到响应
+     */
+
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Result<CheckinResponseDTO> reTroChickIn(Long userId, LocalDate retroDate) {
+
+
+        //暂不启用
+        String tenantId = "default";
+
+        try {
+
+            // 验证和准备（无事务）
+            ValidationResult validation = validateRetroCheckin(tenantId, userId, retroDate);
+            if (!validation.isValid()) {
+                return Result.error(validation.getMessage());
+            }
+
+            // 扣除补签卡（单独事务）
+            boolean deductSuccess = deductRetroCard(userId);
+            if (!deductSuccess) {
+                return Result.error("补签卡不足");
+            }
+
+            log.info("执行复签");
+            return executeCheckin(tenantId, userId, retroDate);
+
+
+        } catch (Exception e) {
+            log.error("复签失败", e);
+            return Result.error("复签失败");
+        }
+    }
+
+    // 验证补签
+    private ValidationResult validateRetroCheckin(String tenantId, Long userId, LocalDate retroDate) {
+        // 不能补签未来日期
+        if (retroDate.isAfter(LocalDate.now())) {
+            return new ValidationResult(false, "不能补签未来日期");
+        }
+
+        // 只能补签最近30天
+        if (ChronoUnit.DAYS.between(retroDate, LocalDate.now()) > 30) {
+            return new ValidationResult(false, "只能补签最近30天的日期");
+        }
+
+        // 检查是否已签到
+        if (hasCheckedInToday(tenantId, userId, retroDate)) {
+            return ValidationResult.error("该日期已签到");
+        }
+
+        return ValidationResult.success();
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    public boolean deductRetroCard(Long userId) {
+
+
+        log.info("开始扣减补签卡");
+        List<UserItems> chances =  userItemsService.getByUserId(userId, UserItemType.RESIGN_CARD);
+
+        // 检查补签
+        if (chances.isEmpty()) {
+            return false;
+        }
+
+        // todo 扣减次数，原子操作，生产环境 需要换数据库乐观锁或 Redis 分布式锁
+        for (UserItems chance : chances) {
+            // 尝试乐观锁扣减（推荐）
+            int updated = userItemsService.consumeOneChanceWithOptimisticLock(chance.getId());
+            if (updated > 0) {
+                // 扣减成功，退出
+               return true;
+            }
+            // 如果失败（quantity 被别人改了），继续下一条
+        }
+        return false;
+    }
+
+
     @Override
     public boolean hasCheckedInToday(String tenantId, Long userId) {
+        return hasCheckedInToday(tenantId, userId, LocalDate.now());
+    }
+
+    public boolean hasCheckedInToday(String tenantId, Long userId, LocalDate checkinDate) {
         log.info("开始处理查询今天是否已签到请求: tenantId={}, userId={}", tenantId, userId);
-        String key= RedisUtils.buildCheckinStatusKey(userId) + LocalDate.now(BUSINESS_TIMEZONE);
+        String key = RedisUtils.buildCheckinStatusKey(userId) + LocalDate.now(BUSINESS_TIMEZONE);
 
         // 1. 查缓存
         String cached = redisTemplate.opsForValue().get(key);
@@ -296,8 +396,8 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         // 2. 缓存未命中 → 查 DB（击穿点！）
         QueryWrapper<CheckinRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("tenant_id", tenantId)
-                    .eq("user_id", userId)
-                    .eq("checkin_date", LocalDate.now());
+                .eq("user_id", userId)
+                .eq("checkin_date", checkinDate);
 
         // 记录一次 DB 查询
         dbQueryCount.incrementAndGet();
@@ -312,8 +412,10 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     }
 
     @Override
-    public CheckinHistoryResponse getRecentCheckinHistory(long currentUserId,int days) {
+    public CheckinHistoryResponse getRecentCheckinHistory(long currentUserId, int days) {
 
+
+        log.info("开始获取最近签到记录: userId={}, days={}", currentUserId, days);
         if (days <= 0 || days > 90) {
             days = 30; // 安全兜底
         }
@@ -332,17 +434,19 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         return new CheckinHistoryResponse(dateStrings);
     }
 
+
     /**
      * 计算连续签到天数
-     * @param userId 用户ID
+     *
+     * @param userId      用户ID
      * @param checkinDate 签到日期
-     * @param streakKey 连续签到信息Redis键
+     * @param streakKey   连续签到信息Redis键
      * @return 连续签到天数
      */
     private Integer calculateStreakDays(Long userId, LocalDate checkinDate, String streakKey) {
         // 获取上次签到日期
         Map<Object, Object> streakInfo = redisTemplate.opsForHash().entries(streakKey);
-        
+
         String lastCheckinStr = (String) streakInfo.get("last_checkin_date");
 
 
@@ -361,10 +465,10 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 //                lastCheckinStr = lastRecord.getCheckinDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 //            }
             streakDays = 1;
-        }else{
+        } else {
             LocalDate lastCheckinDate = LocalDate.parse(lastCheckinStr);
             long daysBetween = ChronoUnit.DAYS.between(lastCheckinDate, checkinDate);
-            
+
             if (daysBetween == 1) {
                 // 昨天签到了，连续签到天数+1
                 String streakStr = (String) streakInfo.get("current_streak");
@@ -378,18 +482,19 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
                 streakDays = 1;
             }
         }
-        
+
         // 更新Redis Hash中的连续签到天数和上次签到日期
         Map<String, String> updateValues = new HashMap<>();
         updateValues.put("current_streak", String.valueOf(streakDays));
         updateValues.put("last_checkin_date", checkinDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         redisTemplate.opsForHash().putAll(streakKey, updateValues);
-        
+
         return streakDays;
     }
-    
+
     /**
      * 解析等级名称中的数字
+     *
      * @param levelName 等级名称，如"LEVEL1"
      * @return 等级数字，如1
      */

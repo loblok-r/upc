@@ -88,7 +88,9 @@ public class UserProfileDTO {
 
     private DailyUsageResponse dailyUsage;
 
-
-
+    /**
+     * 补签次数
+     */
+    private int retroCounts;
 
 }

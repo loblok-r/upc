@@ -74,16 +74,16 @@ public class UserItemsServiceImpl extends ServiceImpl<UserItemsMapper, UserItems
     }
 
     @Override
-    public int getTotalLotteryChances(Long userId) {
+    public int getTotalChances(Long userId, UserItemType itemType) {
 
-        log.info("开始获取抽奖次数: userId={}", userId);
+        log.info("开始获取道具{}次数: userId={}", itemType,userId);
         if (userId == null) {
             return 0;
         }
 
         List<UserItems> userItems = this.lambdaQuery()
                 .eq(UserItems::getUserId, userId)
-                .eq(UserItems::getItemType, UserItemType.LOTTERY_TICKET)
+                .eq(UserItems::getItemType, itemType)
                 .list();
 
         return userItems.stream()
@@ -95,7 +95,7 @@ public class UserItemsServiceImpl extends ServiceImpl<UserItemsMapper, UserItems
     public int consumeOneChanceWithOptimisticLock(Long id) {
         int i = userItemMapper.consumeOneChance(id);
 
-        log.info("产品{} 扣减抽奖次数: {}", id, i);
+        log.info("产品{} 扣减结果: {}", id, i);
         return i;
     }
 

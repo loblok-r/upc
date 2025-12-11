@@ -65,7 +65,9 @@ public enum CommonStatusEnum {
     DAILY_LIMIT_EXCEEDED(1009, "DAILY_LIMIT_EXCEEDED"),
     INVALID_ARGUMENT(1010, "无效的参数"),
     INTERNAL_SERVER_ERROR(1011, "服务器内部错误"),
-    UNAUTHORIZED(1012, "未授权");
+    UNAUTHORIZED(1012, "未授权"),
+    CANT_RETRO_FUTURE_DATE(1080, "不能补签未来日期"),
+    CANT_RETRO_DATE_NULL(1081, "补签日期不能为空");
 
     @Getter
     private int code;

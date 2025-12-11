@@ -7,6 +7,8 @@ import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.CheckinRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.time.LocalDate;
+
 /**
  * <p>
  *  服务类
@@ -25,7 +27,11 @@ public interface CheckinRecordService extends IService<CheckinRecord> {
      */
     Result<CheckinResponseDTO> checkin(String tenantId, Long userId);
 
+    Result<CheckinResponseDTO> executeCheckin(String tenantId, Long userId,LocalDate retroDate);
+
     boolean hasCheckedInToday(String tenantId, Long userId);
 
     CheckinHistoryResponse getRecentCheckinHistory(long userid, int days);
+
+    Result<CheckinResponseDTO> reTroChickIn(Long userId, LocalDate retroDate);
 }

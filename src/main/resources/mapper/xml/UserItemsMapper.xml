@@ -26,7 +26,6 @@
             UPDATE user_items
             SET quantity = quantity - 1, updated_at = NOW()
             WHERE id = #{Id}
-              AND item_type = 4
               AND quantity > 0
               AND (valid_to IS NULL OR valid_to > NOW())
                 ORDER BY valid_to ASC, created_at ASC

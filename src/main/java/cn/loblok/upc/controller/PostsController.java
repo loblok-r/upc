@@ -63,6 +63,18 @@ public class PostsController {
     }
 
     /**
+     * 获取我的帖子
+     *
+     * @param userId 当前用户ID
+     * @return 我的帖子列表
+     */
+    @GetMapping("/mine")
+    public  Result<List<PostResponse>>  getMyPosts(@CurrentUser Long userId) {
+        List<PostResponse> posts = postsService.getMyPosts(userId);
+        return Result.success(posts);
+    }
+
+    /**
      * 获取推荐帖子
      *
      * @param userId 当前用户ID

@@ -50,7 +50,7 @@ public class LotteryServiceImpl implements LotteryService {
             // 如果失败（quantity 被别人改了），继续下一条
         }
         //获取扣减后的总次数
-        int totalLotteryChances = userItemsService.getTotalLotteryChances(userId);
+        int totalLotteryChances = userItemsService.getTotalChances(userId, UserItemType.LOTTERY_TICKET);
 
         // 随机抽取奖品
         Products prize = productsService.drawRandomPrize();
