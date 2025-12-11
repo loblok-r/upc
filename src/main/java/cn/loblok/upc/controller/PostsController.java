@@ -97,4 +97,5 @@ public class PostsController {
         List<PostResponse> posts = postsService.getLatestPosts(userId);
         return Result.success(posts);
     }
+
 }

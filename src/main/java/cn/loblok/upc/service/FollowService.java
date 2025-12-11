@@ -1,5 +1,6 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.Author;
 import cn.loblok.upc.dto.FollowUserResponse;
 import cn.loblok.upc.entity.Follow;
 import cn.loblok.upc.entity.User;
@@ -30,5 +31,12 @@ public interface FollowService extends IService<Follow> {
      * @param userId 用户ID
      * @return 关注的用户列表
      */
-    List<User> getFollowingList(Long userId);
+    List<Author> getFollowingList(Long userId);
+
+    /**
+     * 获取推荐关注列表
+     * @return 推荐关注列表
+     */
+    List<Author> getRecommendFollowList(Long userId);
+
 }

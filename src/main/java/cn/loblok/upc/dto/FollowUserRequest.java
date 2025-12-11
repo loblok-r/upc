@@ -8,6 +8,6 @@ import lombok.Data;
  */
 @Data
 public class FollowUserRequest {
-    private Long targetUserId;
+    private Long userId;
     // getters and setters
 }

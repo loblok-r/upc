@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static cn.hutool.core.lang.Validator.isEmail;
@@ -343,6 +344,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         resources.setComputingPower(user.getComputingPower());     // 当前算力
         resources.setMaxComputingPower(1000); // 最大算力
         return Result.success(resources);
+    }
+
+    /**
+     * 获取创作者排行榜
+     * @return
+     */
+    @Override
+    public List<Author> getCreatorLeaderboard() {
+        return null;
     }
 
     // 本地缓存（如 Caffeine）或 Redis 缓存

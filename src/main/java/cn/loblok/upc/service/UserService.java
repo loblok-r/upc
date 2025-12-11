@@ -1,11 +1,10 @@
 package cn.loblok.upc.service;
 
-import cn.loblok.upc.dto.AuthResponseDTO;
-import cn.loblok.upc.dto.Result;
-import cn.loblok.upc.dto.UserProfileDTO;
-import cn.loblok.upc.dto.UserResourcesDTO;
+import cn.loblok.upc.dto.*;
 import cn.loblok.upc.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -119,5 +118,11 @@ public interface UserService extends IService<User> {
      * @return 用户资源
      */
     Result<UserResourcesDTO> getResources(Long userId);
+
+    /**
+     * 获取创作者排行榜
+     * @return 创作者排行榜
+     */
+    List<Author> getCreatorLeaderboard();
 
 }
