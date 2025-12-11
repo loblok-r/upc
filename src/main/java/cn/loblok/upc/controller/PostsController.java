@@ -2,6 +2,7 @@ package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.CreatePostRequest;
+import cn.loblok.upc.dto.PostResponse;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.service.PostsService;
@@ -68,8 +69,8 @@ public class PostsController {
      * @return 推荐帖子列表
      */
     @GetMapping("/recommend")
-    public Result<List<Posts>> getRecommendPosts(@CurrentUser Long userId) {
-        List<Posts> posts = postsService.getRecommendPosts(userId);
+    public Result<List<PostResponse>> getRecommendPosts(@CurrentUser Long userId) {
+        List<PostResponse> posts = postsService.getRecommendPosts(userId);
         return Result.success(posts);
     }
 
@@ -80,8 +81,8 @@ public class PostsController {
      * @return 关注用户的帖子列表
      */
     @GetMapping("/following")
-    public Result<List<Posts>> getFollowingPosts(@CurrentUser Long userId) {
-        List<Posts> posts = postsService.getFollowingPosts(userId);
+    public Result<List<PostResponse>> getFollowingPosts(@CurrentUser Long userId) {
+        List<PostResponse> posts = postsService.getFollowingPosts(userId);
         return Result.success(posts);
     }
 
@@ -92,8 +93,8 @@ public class PostsController {
      * @return 最新帖子列表
      */
     @GetMapping("/latest")
-    public Result<List<Posts>> getLatestPosts(@CurrentUser Long userId) {
-        List<Posts> posts = postsService.getLatestPosts(userId);
+    public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId) {
+        List<PostResponse> posts = postsService.getLatestPosts(userId);
         return Result.success(posts);
     }
 }

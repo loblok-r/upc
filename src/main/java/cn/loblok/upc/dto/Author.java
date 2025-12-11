@@ -2,6 +2,9 @@ package cn.loblok.upc.dto;
 
 import lombok.Data;
 
+/**
+ * 作者信息
+ */
 @Data
 public class Author {
 

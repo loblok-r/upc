@@ -1,5 +1,6 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.PostResponse;
 import cn.loblok.upc.entity.Posts;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -21,7 +22,7 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 推荐帖子列表
      */
-    List<Posts> getRecommendPosts(Long userId);
+    List<PostResponse> getRecommendPosts(Long userId);
 
     /**
      * 获取关注用户的帖子
@@ -29,7 +30,7 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 关注用户的帖子列表
      */
-    List<Posts> getFollowingPosts(Long userId);
+    List<PostResponse> getFollowingPosts(Long userId);
 
     /**
      * 获取最新帖子
@@ -37,5 +38,5 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 最新帖子列表
      */
-    List<Posts> getLatestPosts(Long userId);
+    List<PostResponse> getLatestPosts(Long userId);
 }
