@@ -51,6 +51,11 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
         String key = RedisUtils.buildVerificationCodeKey(email,type);
 
+        log.info("登录 验证码的 key:"+key);
+        log.info("Redis连接工厂: {}", stringRedisTemplate.getConnectionFactory());
+        log.info("Redis模板配置: {}", stringRedisTemplate);
+
+
         stringRedisTemplate.opsForValue().set(key,numbercode+"",2, TimeUnit.MINUTES);
 
         // 调用第三方发送到邮箱

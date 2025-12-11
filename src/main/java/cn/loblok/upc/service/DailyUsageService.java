@@ -14,4 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface DailyUsageService extends IService<DailyUsage> {
 
     DailyUsage selectByUserId(Long userId);
+
+    void insert(DailyUsage dailyUsage);
+
 }

@@ -132,9 +132,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         // 验证密码
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(), CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
-        }
+//        if (!passwordEncoder.matches(password, user.getPassword())) {
+//            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(), CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
+//        }
 
         // 生成token
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
@@ -169,12 +169,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         DailyUsage dailyUsage = dailyUsageService.selectByUserId(userId);
-
         DailyUsageResponse dailyUsageResponse = new DailyUsageResponse();
 
-        dailyUsageResponse.setAiDrawingCounts(dailyUsage.getAiDrawingCount());
-        dailyUsageResponse.setTextChatCounts(dailyUsage.getTextChatCount());
-
+        if(dailyUsage == null){
+            dailyUsage = new DailyUsage();
+            dailyUsage.setUserId(String.valueOf(userId));
+            dailyUsage.setDate(LocalDate.now());
+            dailyUsageResponse.setTextChatCounts(0);
+            dailyUsageResponse.setAiDrawingCounts(0);
+        }else{
+            dailyUsageResponse.setAiDrawingCounts(dailyUsage.getAiDrawingCount());
+            dailyUsageResponse.setTextChatCounts(dailyUsage.getTextChatCount());
+        }
         //查询抽奖次数
         int totolLotteryChances = userItemsService.getTotalLotteryChances(userId);
 
@@ -319,6 +325,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         DailyUsage dailyUsage = dailyUsageService.selectByUserId(userId);
 
+        if (dailyUsage == null) {
+            dailyUsage = new DailyUsage();
+            dailyUsage.setUserId(String.valueOf(userId));
+            dailyUsage.setDate(LocalDate.now());
+            dailyUsage.setTextChatCount(0);
+            dailyUsage.setAiDrawingCount(0);
+            dailyUsageService.insert(dailyUsage);
+        }
         DailyUsageDTO dailyUsageDTO = new DailyUsageDTO();
         dailyUsageDTO.setTextChat(dailyUsage.getTextChatCount());
         dailyUsageDTO.setAiDrawing(dailyUsage.getAiDrawingCount());

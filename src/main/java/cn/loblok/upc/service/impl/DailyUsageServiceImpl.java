@@ -30,4 +30,9 @@ public class DailyUsageServiceImpl extends ServiceImpl<DailyUsageMapper, DailyUs
 
         return this.getOne(queryWrapper);
     }
+
+    @Override
+    public void insert(DailyUsage dailyUsage) {
+        this.save(dailyUsage);
+    }
 }
