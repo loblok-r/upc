@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -105,9 +106,9 @@ public class PointTransactionServiceImpl extends ServiceImpl<PointTransactionMap
         Page<PointTransaction> page = new Page<>(pageNum, pageSize);
 
         QueryWrapper<PointTransaction> query = new QueryWrapper<>();
-        query.eq("tenant_id", tenantId)
-                .eq("user_id", userId);
-
+//        query.eq("tenant_id", tenantId)
+//                .eq("user_id", userId);
+        query.eq("user_id", userId);
         if (StringUtils.hasText(bizType)) {
             // 安全校验：防止非法枚举值
             if (VALID_BIZ_TYPES.contains(bizType)) {
@@ -119,8 +120,11 @@ public class PointTransactionServiceImpl extends ServiceImpl<PointTransactionMap
 
         IPage<PointTransaction> result = this.page(page, query);
 
+log.info("查询用户积分流水，租户ID:{}，用户ID:{}，业务类型:{}，页码:{}，页面大小:{}，结果总数:{}",
+         tenantId, userId, bizType, pageNum, pageSize, result.getSize());
+
         // 转 DTO（可加 bizTypeDesc）
-        return result.convert(tx -> {
+        IPage<PointTransactionDTO> convert = result.convert(tx -> {
             PointTransactionDTO dto = new PointTransactionDTO();
             dto.setId(tx.getId());
             dto.setBizType(tx.getBizType().name());
@@ -130,5 +134,8 @@ public class PointTransactionServiceImpl extends ServiceImpl<PointTransactionMap
             dto.setCreatedAt(tx.getCreatedAt());
             return dto;
         });
+        convert.setTotal(result.getTotal());
+        convert.setPages(result.getPages());
+        return convert;
     }
 }

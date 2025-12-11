@@ -1,5 +1,6 @@
 package cn.loblok.upc.controller;
 
+import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.PageResult;
 import cn.loblok.upc.dto.PointTransactionDTO;
 import cn.loblok.upc.dto.Result;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 2025-12-01
  */
 @RestController
-@RequestMapping("/api/point-transactions")
+@RequestMapping("/api/points/transactions")
 public class PointTransactionController {
 
     @Autowired
@@ -35,11 +36,13 @@ public class PointTransactionController {
     @GetMapping
     public Result<PageResult<PointTransactionDTO>> getUserTransactions(
             @RequestHeader("X-Tenant-ID") String tenantId,
-            @RequestParam(value = "userId", required = true) Long userId,
+            @CurrentUser Long userId,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "pageSize", defaultValue = "20") int size,
             @RequestParam(value = "bizType", required = false) String bizType) {
 
+        //暂不启用多租户
+        tenantId = "default";
         // TODO: 权限校验`，上线前必须补！
         IPage<PointTransactionDTO> pageResult = pointTransactionService.getUserTransactions(tenantId, userId, bizType, page, size);
 

@@ -33,5 +33,5 @@ public interface CheckinRecordService extends IService<CheckinRecord> {
 
     CheckinHistoryResponse getRecentCheckinHistory(long userid, int days);
 
-    Result<CheckinResponseDTO> reTroChickIn(Long userId, LocalDate retroDate);
+    Result<CheckinResponseDTO> reTroChickIn(String tenantId,Long userId, LocalDate retroDate);
 }

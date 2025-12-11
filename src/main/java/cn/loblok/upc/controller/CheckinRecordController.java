@@ -30,6 +30,8 @@ public class CheckinRecordController {
     
 
     private final CheckinRecordService checkinRecordService;
+
+    private static final String TEMP_TENANT_ID = "default";
     
     /**
      * 用户签到接口
@@ -39,6 +41,8 @@ public class CheckinRecordController {
     @PostMapping("/checkin")
     public Result<CheckinResponseDTO> checkin(@RequestHeader("X-Tenant-ID") String tenantId,
                                               @CurrentUser Long userId) {
+        //暂不启用
+        tenantId = TEMP_TENANT_ID;
         return checkinRecordService.checkin(tenantId, userId);
     }
 
@@ -57,6 +61,9 @@ public class CheckinRecordController {
             @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam("userId") Long userId) {
 
+        //暂不启用
+        tenantId = TEMP_TENANT_ID;
+
         boolean checked = checkinRecordService.hasCheckedInToday(tenantId, userId);
         return Result.success(checked);
     }
@@ -65,12 +72,13 @@ public class CheckinRecordController {
     @PostMapping("/retro")
     public Result<CheckinResponseDTO> reTroChickIn(@CurrentUser Long userId,@RequestBody RetroRequest request) {
         log.info("RetroRequest: {}", request);
-
+        //暂不启用
+        String tenantId = TEMP_TENANT_ID;
         LocalDate retroDate = request.getRetroDate();
         if(retroDate == null){
             return Result.error(CommonStatusEnum.CANT_RETRO_DATE_NULL.getCode(),CommonStatusEnum.CANT_RETRO_DATE_NULL.getMessage());
         }
-        return checkinRecordService.reTroChickIn(userId,retroDate);
+        return checkinRecordService.reTroChickIn(tenantId,userId,retroDate);
     }
 
 }

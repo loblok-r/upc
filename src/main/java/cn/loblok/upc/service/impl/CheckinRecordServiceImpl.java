@@ -102,6 +102,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<CheckinResponseDTO> checkin(String tenantId, Long userId) {
+
         return executeCheckin(tenantId, userId, LocalDate.now());
     }
 
@@ -204,12 +205,12 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         }
 
 
-        // 异步记录经验流水
-//        expTransactionService.asyncLog(
-//                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_EXPS, expsAfterBase
-//        );
+//         异步记录经验流水
+        expTransactionService.asyncLog(
+                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), baseExp, expsAfterBase
+        );
 
-        // 如果等级提升了，发布等级升级事件
+//         如果等级提升了，发布等级升级事件
 //        if (levelUpgraded) {
 //            UserLevelUpgradedEvent event = new UserLevelUpgradedEvent(
 //                    this,
@@ -222,13 +223,13 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 //            eventPublisher.publishEvent(event);
 //        }
 
-        // 更新排行榜（基础10分）
+//         更新排行榜（基础10分）
 //        leaderboardService.updateLeaderboardScore(tenantId, userId, CHECKIN_BASE_POINTS);
 
-        // 异步记录积分流水
-//        pointTransactionService.asyncLog(
-//                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), CHECKIN_BASE_POINTS, pointsAfterBase
-//        );
+//         异步记录积分流水
+        pointTransactionService.asyncLog(
+                tenantId, userId, BizType.DAILY_SIGN, checkinRecord.getId(), basePoints, pointsAfterBase
+        );
 
         // 计算连续签到天数
         Integer streakDays = calculateStreakDays(userId, checkinDate, streakKey);
@@ -302,11 +303,8 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Result<CheckinResponseDTO> reTroChickIn(Long userId, LocalDate retroDate) {
+    public Result<CheckinResponseDTO> reTroChickIn(String tenantId,Long userId, LocalDate retroDate) {
 
-
-        //暂不启用
-        String tenantId = "default";
 
         try {
 

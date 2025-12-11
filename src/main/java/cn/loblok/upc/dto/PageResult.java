@@ -14,6 +14,7 @@ public class PageResult<T> {
     private long total;
     private int pageNum;
     private int pageSize;
+    private int totalPages;
 
     public static <T> PageResult<T> of(IPage<T> page) {
         PageResult<T> result = new PageResult<>();
@@ -21,6 +22,7 @@ public class PageResult<T> {
         result.setTotal(page.getTotal());
         result.setPageNum((int) page.getCurrent());
         result.setPageSize((int) page.getSize());
+        result.setTotalPages((int) page.getPages());
         return result;
     }
 }

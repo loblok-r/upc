@@ -11,12 +11,24 @@ public enum BizType {
    // MARKETING_CAMPAIGN("营销活动"),
     UPGRADE_PACKAGE("升级礼包"),
     //ACTIVITY_PARTICIPATION("活动参与奖励"),
+    TASK_REWARD("任务奖励"),
 
     DAILY_SIGN("每日签到"),
     STREAK_SIGN("连续签到");
 
     private final String desc;
+
+
     BizType(String desc) { this.desc = desc; }
     public String getDesc() { return desc; }
+
+    public static BizType fromName(String name) {
+        for (BizType value : values()) {
+            if (value.name().equals(name)) {
+                return value;
+            }
+        }
+        return null;
+    }
 
 }
