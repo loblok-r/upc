@@ -2,12 +2,11 @@ package cn.loblok.upc.controller;
 
 
 import cn.loblok.upc.annotation.CurrentUser;
-import cn.loblok.upc.dto.Author;
-import cn.loblok.upc.dto.FollowUserRequest;
-import cn.loblok.upc.dto.FollowUserResponse;
-import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.*;
+import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.UserService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +14,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/community")
+@AllArgsConstructor
 public class CommunityController {
 
-    @Autowired
-    private FollowService followService;
-    
-    @Autowired
-    private UserService userService;
+
+    private final FollowService followService;
+
+    private final CommunityService communityService;
+
+
 
     /**
      * 关注或取消关注用户
@@ -79,13 +80,30 @@ public class CommunityController {
      *
      */
     @GetMapping("/leaderboard/creators")
-    public Result<List<Author>> getCreatorLeaderboard() {
+    public Result<List<CreatorLeaderboardResponse>> getCreatorLeaderboard(@CurrentUser Long userId) {
         try {
-            List<Author> creatorLeaderboard = userService.getCreatorLeaderboard();
+            List<CreatorLeaderboardResponse> creatorLeaderboard = communityService.getCreatorLeaderboard(userId);
             return Result.success(creatorLeaderboard);
         } catch (Exception e) {
             return Result.error(500, "查询失败", e.getMessage());
         }
     }
+
+
+    /**
+     *
+     * 查询新创作者排行榜
+     *
+     */
+    @GetMapping("/leaderboard/newcreators")
+    public Result<List<CreatorLeaderboardResponse>> getNewCreatorLeaderboard(@CurrentUser Long userId) {
+        try {
+            List<CreatorLeaderboardResponse> creatorLeaderboard = communityService.getNewCreatorLeaderboard(userId);
+            return Result.success(creatorLeaderboard);
+        } catch (Exception e) {
+            return Result.error(500, "查询失败", e.getMessage());
+        }
+    }
+
 
 }

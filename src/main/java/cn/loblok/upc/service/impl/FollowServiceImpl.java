@@ -39,7 +39,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
     @Transactional
     public FollowUserResponse followOrUnfollow(Long followerId, Long followeeId) {
 
-        log.info("开始关注/取关用户 {}",followerId);
+        log.info("开始关注/取关用户 {}", followerId);
 
         // 检查是否已经关注
         QueryWrapper<Follow> queryWrapper = new QueryWrapper<>();
@@ -117,7 +117,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 
     @Override
     public List<Author> getRecommendFollowList(Long userId) {
-        log.info("开始获取 推荐的用户 {}",userId);
+        log.info("开始获取 推荐的用户 {}", userId);
         // 获取所有用户
         List<User> allUsers = userService.list();
 
@@ -125,7 +125,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         List<Long> hasFollweeIdlist = this.lambdaQuery().eq(Follow::getFollowerId, userId).list().stream().map(follow -> follow.getFolloweeId()).collect(Collectors.toList());
 
 
-        log.info("当前用户关注了{}个用户" ,hasFollweeIdlist.size());
+        log.info("当前用户关注了{}个用户", hasFollweeIdlist.size());
         // 根据粉丝数和获赞数进行排序，粉丝数权重0.6，获赞数权重0.4
         List<User> list = allUsers.stream()
                 // 过滤掉当前用户关注的用户
@@ -145,6 +145,17 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean isFollowed(Long userId, Long targetId) {
+        // 检查用户是否关注了目标用户
+        QueryWrapper<Follow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("follower_id", userId);
+        queryWrapper.eq("followee_id", targetId);
+
+        return this.count(queryWrapper) > 0;
+    }
+
 
     /**
      * 将User对象转换为Author对象

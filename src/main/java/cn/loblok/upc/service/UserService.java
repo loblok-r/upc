@@ -119,10 +119,5 @@ public interface UserService extends IService<User> {
      */
     Result<UserResourcesDTO> getResources(Long userId);
 
-    /**
-     * 获取创作者排行榜
-     * @return 创作者排行榜
-     */
-    List<Author> getCreatorLeaderboard();
 
 }

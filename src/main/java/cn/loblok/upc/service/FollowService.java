@@ -39,4 +39,11 @@ public interface FollowService extends IService<Follow> {
      */
     List<Author> getRecommendFollowList(Long userId);
 
+    /**
+     * 判断用户是否已关注某个用户
+     * @param userId 用户ID
+     * @param targetId 目标用户ID
+     * @return 是否已关注
+     */
+    boolean isFollowed(Long userId, Long targetId);
 }

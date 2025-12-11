@@ -7,16 +7,14 @@ import cn.loblok.upc.enums.UserItemType;
 import cn.loblok.upc.enums.VerificationCodeType;
 import cn.loblok.upc.event.UserRegisteredEvent;
 import cn.loblok.upc.mapper.UserMapper;
-import cn.loblok.upc.service.DailyUsageService;
-import cn.loblok.upc.service.UserItemsService;
-import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.service.*;
 import cn.loblok.upc.entity.User;
-import cn.loblok.upc.service.VerificationCodeService;
 import cn.loblok.upc.util.JwtUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
@@ -27,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.hutool.core.lang.Validator.isEmail;
 
@@ -172,13 +172,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         DailyUsage dailyUsage = dailyUsageService.selectByUserId(userId);
         DailyUsageResponse dailyUsageResponse = new DailyUsageResponse();
 
-        if(dailyUsage == null){
+        if (dailyUsage == null) {
             dailyUsage = new DailyUsage();
             dailyUsage.setUserId(String.valueOf(userId));
             dailyUsage.setDate(LocalDate.now());
             dailyUsageResponse.setTextChatCounts(0);
             dailyUsageResponse.setAiDrawingCounts(0);
-        }else{
+        } else {
             dailyUsageResponse.setAiDrawingCounts(dailyUsage.getAiDrawingCount());
             dailyUsageResponse.setTextChatCounts(dailyUsage.getTextChatCount());
         }
@@ -346,14 +346,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.success(resources);
     }
 
-    /**
-     * 获取创作者排行榜
-     * @return
-     */
-    @Override
-    public List<Author> getCreatorLeaderboard() {
-        return null;
-    }
+
 
     // 本地缓存（如 Caffeine）或 Redis 缓存
     @Override
