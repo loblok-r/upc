@@ -40,7 +40,7 @@ public class LotteryController {
     /**
      * 获取抽奖奖池
      */
-    @GetMapping("/lotteryPrizes")
+    @GetMapping("/list")
     public Result<List<LotteryPrizeDTO>> getLotteryPrizes() {
         log.info("开始获取抽奖奖品列表");
         QueryWrapper<Products> query = new QueryWrapper<>();

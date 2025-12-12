@@ -1,29 +1,129 @@
 {
-  "platform_name": "Mitce",
-  "support_hours": "09:00 - 18:00",
-  "key_features": [
-    "Telegram会员订阅",
-    "Disney+会员订阅",
-    "流量数据包充值",
-    "AI绘图与对话功能"
-  ],
-  "rules": {
-    "lottery": "每充值5美元余额，即可获得3次抽奖机会。",
-    "membership": "会员分为普通用户和专业版会员，专业版可以使用高清绘图。",
-    "points": "积分可以通过签到、活动或购买商品获得，积分过期时间为获取后一年。"
+  "platform_profile": {
+    "name": "Universal Picture Composer (UPC)",
+    "alias": ["UPC","Loblok SaaS"],
+    "slogan": "AI-Powered Visual Creation / 人工智能技术融入创意生产",
+    "core_technology": "Powered by Gemini 2.5 Flash & Pro Models",
+    "description": "一个革命性的AI辅助创意平台，集成了AI对话、AI绘图、AI写作、智能演示文稿生成等功能，致力于降低视觉创作门槛。"
   },
-  "faq": [
-    {
-      "question": "如何联系人工客服？",
-      "answer": "客服工作时间为9:00-18:00，您可以点击对话框上方的链接提交工单。"
+  "service_hours": {
+    "human_support": "09:00 - 18:00 (工作日)",
+    "ai_support": "24/7 全天候在线",
+    "ticket_url": "https://upc.net/submitticket?step=2&deptid=1"
+  },
+  "membership_system": {
+    "user_levels": {
+      "free": {
+        "name": "普通用户",
+        "features": [
+          "每日文字对话限制: 20次",
+          "每日AI绘图限制: 5张",
+          "单次对话长度限制: 1000字",
+          "图片分辨率: 标准",
+          "水印: 包含平台水印",
+          "历史记录: 保存7天",
+          "初始算力: 100点"
+        ]
+      },
+      "pro": {
+        "name": "Pro/专业版会员",
+        "features": [
+          "文字对话: 无限制 (单次支持5000字)",
+          "AI绘图: 无次数限制",
+          "图片分辨率: 高清 (HD)",
+          "水印: 无水印输出",
+          "高级功能: 支持批量生成 (最多4张)",
+          "历史记录: 保存30天",
+          "算力赠送: 每月1000点 + 额外获取途径",
+          "特权: 优先排队生成"
+        ]
+      }
     },
-    {
-      "question": "为什么我充值了没有抽奖次数？",
-      "answer": "请确认单笔充值是否达到5美元。如果满足条件仍未到账，请提供订单号给人工客服。"
+    "pricing_plans": [
+      {
+        "id": "week",
+        "name": "7天体验卡",
+        "price": "5.99 CNY",
+        "description": "7天后自动续费 (19.99/月)，适合短期体验"
+      },
+      {
+        "id": "month",
+        "name": "月度会员",
+        "price": "19.99 CNY",
+        "original_price": "29.99 CNY",
+        "discount": "省 34%",
+        "description": "下个月自动续费"
+      },
+      {
+        "id": "year",
+        "name": "年度会员 (推荐)",
+        "price": "94.8 CNY (平均 7.90 CNY/月)",
+        "original_price": "239.88 CNY",
+        "discount": "省 61%",
+        "description": "最划算的选择，按年付费"
+      }
+    ]
+  },
+  "virtual_assets": {
+    "computing_power": {
+      "name": "算力 (Computing Power)",
+      "description": "用于消耗以生成AI内容的核心资源。",
+      "consumption_rules": {
+        "text_chat": "1点 / 1000字",
+        "ai_drawing_standard": "10点 / 张",
+        "ai_drawing_hd": "25点 / 张 (仅限会员)",
+        "ai_writing": "2点 / 500字",
+        "smart_presentation": "50点 / 次",
+        "deep_search": "5点 / 次",
+        "podcast": "30点 / 分钟"
+      },
+      "acquisition": "会员每月赠送、积分兑换、活动赠送。"
+    },
+    "points": {
+      "name": "积分 (Points)",
+      "description": "平台的通用货币，用于商城兑换或抽奖。",
+      "acquisition": [
+        "每日签到 (连续签到奖励递增)",
+        "完成社区任务 (如分享作品、邀请好友)",
+        "购买商品赠送"
+      ],
+      "usage": [
+        "兑换算力包",
+        "兑换抽奖次数",
+        "商城兑换实物或虚拟权益"
+      ]
     }
-  ],
-  "pricing": {
-    "text_chat": "每1000字消耗1点算力",
-    "ai_drawing": "标准图10点/张，高清图25点/张"
+  },
+  "features_status": {
+    "ai_drawing": "已上线 (支持文生图、图生图)",
+    "text_chat": "已上线 (通用问答)",
+    "ai_writing": "开发中 (敬请期待)",
+    "smart_presentation": "开发中 (敬请期待)",
+    "deep_search": "开发中 (敬请期待)",
+    "podcast": "开发中 (敬请期待)"
+  },
+  "mall_and_events": {
+    "daily_check_in": {
+      "rules": "每日0点刷新。连续签到7天可获得神秘大礼包(通常包含大量积分或算力)。",
+      "retro_check_in": "漏签可使用'补签卡'进行补签，补签卡通过任务获取。"
+    },
+    "lottery": {
+      "rules": "每次抽奖消耗1次抽奖机会。抽奖机会可通过积分兑换或充值获得。",
+      "prizes": ["现金奖励", "专业版月卡", "永久会员", "积分包", "算力包", "实物周边"],
+      "probability": "蓝色奖品(50%)、紫色奖品(30%)、金色奖品(20%)"
+    },
+    "flash_sale": {
+      "description": "积分秒杀活动，每日限量，需拼手速。",
+      "rules": "部分商品限制每人限购数量，需在订单生成后规定时间内完成支付(如有)或确认。"
+    }
+  },
+  "community_rules": {
+    "publishing": "用户可以将生成的图片发布到社区广场。",
+    "interaction": "支持点赞、评论、关注作者。",
+    "leaderboard": "设有热门创作者榜单和新锐作者榜单，根据热度值(点赞/评论/粉丝)排序。"
+  },
+  "payment_methods": {
+    "supported": ["微信支付 (WeChat Pay)"],
+    "others_displayed_but_unavailable": ["Alipay", "Credit Card", "PayPal", "USDT"]
   }
 }

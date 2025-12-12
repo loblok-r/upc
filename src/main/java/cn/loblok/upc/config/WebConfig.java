@@ -1,5 +1,6 @@
 package cn.loblok.upc.config;
 
+import cn.loblok.upc.intercepter.IpRateLimitInterceptor;
 import cn.loblok.upc.intercepter.LevelAuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,9 @@ public class WebConfig implements WebMvcConfigurer {
     private LevelAuthInterceptor levelAuthInterceptor;
 
     @Autowired
+    private IpRateLimitInterceptor ipRateLimitInterceptor;
+
+    @Autowired
     private CurrentUserArgumentResolver currentUserArgumentResolver;
 
     /**
@@ -40,6 +44,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")
                 // 放行登录注册
                 .excludePathPatterns("/user/**", "/public/**");
+
+        registry.addInterceptor(ipRateLimitInterceptor)
+                .addPathPatterns("/api/chat/completions");
     }
 
     /**

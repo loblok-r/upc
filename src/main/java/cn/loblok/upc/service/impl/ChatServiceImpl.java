@@ -25,23 +25,29 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public String generateAnswer(String userMessage, List<ChatBotRequest.MessageContext>  history) {
+        log.info("客服生成答案: userMessage:{}, history:{}", userMessage, history);
         // 1. 获取知识库 JSON
         JsonNode knowledge = knowledgeLoader.getKnowledgeJson();
 
         // 2. 构造系统提示词（System Prompt）
         String systemPrompt = """
-            你是一个名为 "Mitce AI" 的专业客服助手。
-            你的任务是根据以下【背景知识】回答用户的问题。
+                你是一个名为 "UPC AI" 的专业客服助手。
+                你的任务是根据以下【背景知识】回答用户的问题。
 
-            【重要规则】
-            1. 只能根据【背景知识】回答问题。如果知识库中没有相关信息，必须回答：“抱歉，我不清楚这个具体细节，建议您查看帮助文档或联系人工客服。”
-            2. 严禁编造事实（Hallucination）。
-            3. 语气要专业、亲切、简洁。
-            4. 货币单位默认为美元(USD)。
+                【重要规则】
+                1. **只能基于下方【官方知识库】回答**。如果问题超出范围，必须回答：
+                   “抱歉，我不清楚这个具体细节，建议您查看帮助中心或联系人工客服。”
+                2. **严禁编造、推测或幻觉**。
+                3. **禁止输出任何 JSON、代码、字段名（如 "pricing_plans"）、双引号包裹的内容**。
+                4. 回答必须使用**自然中文口语**，语气亲切、简洁、专业。
+                5. 若涉及列表（如会员方案、功能对比），请使用 **Markdown 无序列表（- 或 *）**，但不要用代码块。
+                6. 货币单位统一为 CNY（人民币），不要写 USD。
+                7. 所有信息必须与知识库完全一致，不得增删改。
+                               
 
-            【背景知识 (JSON Context)】
-            %s
-            """.formatted(knowledge.toPrettyString());
+                【官方知识库 (JSON Context)】
+                %s
+                """.formatted(knowledge.toPrettyString());
 
         // 3. 调用 DeepSeek
         return deepSeekClient.callDeepSeek(systemPrompt, objectMapper.valueToTree(history), userMessage);

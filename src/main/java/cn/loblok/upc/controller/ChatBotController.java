@@ -4,7 +4,12 @@ import cn.loblok.upc.dto.ChatBotRequest;
 import cn.loblok.upc.dto.ChatBotResponse;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.service.ChatService;
+import cn.loblok.upc.service.assist.IpRateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +19,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
+@AllArgsConstructor
 public class ChatBotController {
 
 
-    @Autowired
-    private ChatService chatService; // 假设你有一个服务层处理RAG逻辑
+
+    private final  ChatService chatService; // 假设你有一个服务层处理RAG逻辑
 
     /**
      * 处理对话请求
@@ -26,6 +32,7 @@ public class ChatBotController {
      */
     @PostMapping("/completions")
     public Result<ChatBotResponse> chatCompletions(@RequestBody ChatBotRequest request) {
+
 
 
         String userMessage = request.getMessage();
@@ -42,9 +49,6 @@ public class ChatBotController {
 
         return Result.success(responseData);
     }
-
-
-
 
 
 }
