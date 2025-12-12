@@ -1,7 +1,9 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.CouponResponse;
 import cn.loblok.upc.entity.IssueContext;
 import cn.loblok.upc.entity.UserCoupon;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -35,4 +37,5 @@ public interface UserCouponService extends IService<UserCoupon> {
     boolean useCoupon(Long userId, Long couponId);
 
 
+    IPage<CouponResponse> getUserCoupons(Long userId, Integer pageNum, Integer pageSize);
 }

@@ -1,6 +1,6 @@
 package cn.loblok.upc.service;
 
-import cn.loblok.upc.entity.FlashOrders;
+import cn.loblok.upc.entity.Orders;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author loblok
  * @since 2025-12-09
  */
-public interface FlashOrdersService extends IService<FlashOrders> {
+public interface OrdersService extends IService<Orders> {
 
 }

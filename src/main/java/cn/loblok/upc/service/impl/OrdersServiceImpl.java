@@ -1,8 +1,8 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.entity.FlashOrders;
+import cn.loblok.upc.entity.Orders;
 import cn.loblok.upc.mapper.FlashOrdersMapper;
-import cn.loblok.upc.service.FlashOrdersService;
+import cn.loblok.upc.service.OrdersService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2025-12-09
  */
 @Service
-public class FlashOrdersServiceImpl extends ServiceImpl<FlashOrdersMapper, FlashOrders> implements FlashOrdersService {
+public class OrdersServiceImpl extends ServiceImpl<FlashOrdersMapper, Orders> implements OrdersService {
 
 }

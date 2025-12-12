@@ -1,6 +1,6 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.entity.FlashOrders;
+import cn.loblok.upc.entity.Orders;
 import cn.loblok.upc.entity.Products;
 import cn.loblok.upc.enums.MallOrderStatus;
 import cn.loblok.upc.enums.UserItemSourceType;
@@ -34,7 +34,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final UserItemsService userItemService;
 
     @Override
-    public void deliverPhysical(FlashOrders order) {
+    public void deliverPhysical(Orders order) {
         log.info("开始发货：订单ID={}", order.getId());
 //         只需确保订单状态为 "待发货"
         order.setMallOrderStatus(MallOrderStatus.AWAITING_SHIPMENT);
@@ -43,7 +43,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     @Override
-    public void deliverVirtual(FlashOrders order, Products product) {
+    public void deliverVirtual(Orders order, Products product) {
         log.info("开始发放虚拟资产：订单ID={}", order.getId());
         Long userId = order.getUserId();
         Map<String, Object> config = parseConfig(product.getDeliveryConfig());
@@ -66,7 +66,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     @Override
-    public void deliverVoucher(FlashOrders order, Products product) {
+    public void deliverVoucher(Orders order, Products product) {
         log.info("开始发放代金券：订单ID={}", order.getId());
         Long userId = order.getUserId();
         Map<String, Object> config = parseConfig(product.getDeliveryConfig());
@@ -111,7 +111,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
 
     @Override
-    public void deliverThirdPartyVirtual(FlashOrders order, Products product) {
+    public void deliverThirdPartyVirtual(Orders order, Products product) {
         // 标记为“外部发放中”
         order.setMallOrderStatus(MallOrderStatus.PENDING_EXTERNAL);
         flashOrdersMapper.updateById(order);

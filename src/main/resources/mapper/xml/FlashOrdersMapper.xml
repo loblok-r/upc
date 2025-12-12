@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.FlashOrdersMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.FlashOrders">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.Orders">
         <id column="id" property="id" />
         <result column="user_id" property="userId" />
         <result column="flash_sale_id" property="flashSaleId" />

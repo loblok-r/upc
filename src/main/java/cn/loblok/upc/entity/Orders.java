@@ -1,6 +1,7 @@
 package cn.loblok.upc.entity;
 
 import cn.loblok.upc.enums.MallOrderStatus;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -19,8 +20,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("flash_orders")
-public class FlashOrders implements Serializable {
+@TableName("orders")
+public class Orders implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,7 +31,7 @@ public class FlashOrders implements Serializable {
     @TableField("user_id")
     private Long userId;
 
-    @TableField("flash_sale_id")
+    @TableField(value = "flash_sale_id",insertStrategy = FieldStrategy.ALWAYS)
     private String flashSaleId;
 
     @TableField("product_id")

@@ -1,5 +1,6 @@
 package cn.loblok.upc.service.impl;
 
+import cn.loblok.upc.dto.CouponResponse;
 import cn.loblok.upc.service.CouponTemplateService;
 import cn.loblok.upc.service.UserCouponService;
 import cn.loblok.upc.entity.CouponTemplate;
@@ -14,6 +15,8 @@ import cn.loblok.upc.util.RedisUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -208,6 +211,27 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
         // 清缓存
         updateUserCouponCache(userId);
         return true;
+    }
+
+    @Override
+    public IPage<CouponResponse> getUserCoupons(Long userId, Integer pageNum, Integer pageSize) {
+        log.info("getUserCoupons 查询 userId={}, pageNum={}, pageSize={}", userId, pageNum, pageSize);
+        Page<UserCoupon> page = new Page<>(pageNum, pageSize);
+
+        QueryWrapper<UserCoupon> query = new QueryWrapper<>();
+        query.eq("user_id", userId);
+        query.orderByDesc("created_at");
+        IPage<UserCoupon> result = this.page(page, query);
+        IPage<CouponResponse> convert = result.convert(item -> {
+            CouponResponse couponResponse = new CouponResponse();
+
+            // 转换
+
+            return couponResponse;
+        });
+        convert.setTotal(result.getTotal());
+        convert.setPages(result.getPages());
+        return convert;
     }
 
     /**

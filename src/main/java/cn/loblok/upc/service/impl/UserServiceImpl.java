@@ -185,7 +185,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //查询抽奖次数
         int totolLotteryChances = userItemsService.getTotalChances(userId, UserItemType.LOTTERY_TICKET);
 
-        int retroCounts =userItemsService.getTotalChances(userId, UserItemType.RESIGN_CARD);
+        int retroCounts = userItemsService.getTotalChances(userId, UserItemType.RESIGN_CARD);
 
         UserProfileDTO userProfileDTO = new UserProfileDTO();
 
@@ -286,14 +286,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void addComputePower(Long userId, Integer amount) {
+        if (userId == null || amount == null || amount <= 0) {
+            log.warn("参数无效：userId={}, amount={}", userId, amount);
+            return;
+        }
 
-
+        try {
+            User user = getById(userId);
+            if (user != null) {
+                user.setComputingPower(user.getComputingPower() + amount);
+                userMapper.updateById(user);
+                log.info("用户{}算力增加{}，当前算力：{}", userId, amount, user.getComputingPower());
+            } else {
+                log.warn("用户不存在，userId={}", userId);
+            }
+        } catch (Exception e) {
+            log.error("增加用户算力失败，userId={}, amount={}", userId, amount, e);
+        }
     }
 
-    @Override
-    public void extendVipDays(Long userId, Integer days) {
 
+@Override
+public void extendVipDays(Long userId, Integer days) {
+    if (userId == null || days == null || days <= 0) {
+        log.warn("参数无效：userId={}, days={}", userId, days);
+        return;
     }
+    
+    try {
+        User user = getById(userId);
+        if (user != null) {
+            LocalDateTime currentExpireTime = user.getMemberExpireAt();
+            LocalDateTime newExpireTime;
+
+            if (currentExpireTime == null || currentExpireTime.isBefore(LocalDateTime.now())) {
+                // 如果当前会员已过期或从未开通会员，则从现在开始计算
+                newExpireTime = LocalDateTime.now().plusDays(days);
+            } else {
+                // 如果当前会员仍在有效期内，则在原有基础上延长
+                newExpireTime = currentExpireTime.plusDays(days);
+            }
+
+            user.setMemberExpireAt(newExpireTime);
+            userMapper.updateById(user);
+            log.info("用户{}VIP天数延长{}天，新的到期时间：{}", userId, days, newExpireTime);
+        } else {
+            log.warn("用户不存在，userId={}", userId);
+        }
+    } catch (Exception e) {
+        log.error("延长用户VIP天数失败，userId={}, days={}", userId, days, e);
+    }
+}
+
 
     @Override
     public Boolean isMember(Long userId) {
@@ -348,7 +392,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         resources.setMaxComputingPower(1000); // 最大算力
         return Result.success(resources);
     }
-
 
 
     // 本地缓存（如 Caffeine）或 Redis 缓存

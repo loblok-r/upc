@@ -2,20 +2,25 @@ package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.FlashOrderRequestDTO;
+import cn.loblok.upc.dto.FlashSaleDTO;
+import cn.loblok.upc.dto.PageResult;
 import cn.loblok.upc.dto.Result;
-import cn.loblok.upc.entity.FlashOrders;
+import cn.loblok.upc.entity.Orders;
 import cn.loblok.upc.entity.FlashSales;
 import cn.loblok.upc.entity.Products;
 import cn.loblok.upc.enums.MallOrderStatus;
 import cn.loblok.upc.exception.BizException;
 import cn.loblok.upc.service.*;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -27,13 +32,13 @@ import java.time.LocalDateTime;
  * @since 2025-12-09
  */
 @RestController
-@RequestMapping("/api/mall")
+@RequestMapping("/api/mall/flash")
 @AllArgsConstructor
 @Slf4j
-public class FlashOrdersController {
+public class FlashController {
     
 
-    private final FlashOrdersService flashOrdersService;
+    private final OrdersService ordersService;
     
 
     private final FlashSalesService flashSalesService;
@@ -46,13 +51,71 @@ public class FlashOrdersController {
     private final ProductsService productsService;
 
     /**
+     * 获取秒杀活动列表
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 秒杀活动列表
+     */
+    @GetMapping("/list")
+    public Result<PageResult<FlashSaleDTO>> getFlashSales(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String date) {  // 添加日期参数
+
+        log.info("开始获取秒杀活动列表: page={}, size={}, date={}", page, size, date);
+
+        IPage<FlashSales> flashSalePage = new Page<>(page, size);
+        QueryWrapper<FlashSales> queryWrapper = new QueryWrapper<>();
+
+        if (date != null && !date.isEmpty()) {
+            // 如果有日期参数，只查询该日期的数据
+            queryWrapper.apply("DATE(start_time) = {0}", date);
+        } else {
+            // 默认查询今天、明天、后天
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+            LocalDate dayAfterTomorrow = today.plusDays(2);
+
+            queryWrapper.and(wrapper -> wrapper
+                    .apply("DATE(start_time) = {0}", today)
+                    .or()
+                    .apply("DATE(start_time) = {0}", tomorrow)
+                    .or()
+                    .apply("DATE(start_time) = {0}", dayAfterTomorrow)
+            );
+        }
+
+        // 按状态和时间排序
+        queryWrapper.orderByAsc("status", "start_time");
+
+        IPage<FlashSales> result = flashSalesService.page(flashSalePage, queryWrapper);
+
+        // 转换为 DTO
+        IPage<FlashSaleDTO> dtoPage = result.convert(flashSale -> {
+            FlashSaleDTO dto = new FlashSaleDTO();
+            BeanUtils.copyProperties(flashSale, dto);
+
+            // 获取商品名称
+            Products product = productsService.getById(flashSale.getProductId());
+            if (product != null) {
+                dto.setProductName(product.getName());
+            }
+
+            return dto;
+        });
+
+        return Result.success(PageResult.of(dtoPage));
+    }
+
+    /**
      * 秒杀抢购接口
      *
      * @param userId 当前用户ID
      * @param request 请求参数
      * @return 抢购结果
      */
-    @PostMapping("/flash/grab")
+    @PostMapping("/grab")
     public Result<String> purchaseFlashSale(@CurrentUser Long userId, 
                                           @Valid @RequestBody FlashOrderRequestDTO request) {
 
@@ -91,7 +154,7 @@ public class FlashOrdersController {
 
         // TODO: 这里应该加入分布式锁来确保并发安全
         // 创建订单
-        FlashOrders order = new FlashOrders();
+        Orders order = new Orders();
         order.setUserId(userId);
         order.setFlashSaleId(request.getFlashSaleId());
         order.setProductId(flashSale.getProductId());
@@ -102,7 +165,7 @@ public class FlashOrdersController {
         order.setReserveExpiresAt(null);
         order.setCreatedAt(LocalDateTime.now());
         
-        boolean saved = flashOrdersService.save(order);
+        boolean saved = ordersService.save(order);
         if (!saved) {
             throw new BizException("抢购失败，请重试");
         }
@@ -114,47 +177,10 @@ public class FlashOrdersController {
         Products product = productsService.getById(productId);
 
         //发放商品
-        onFlashGrabSuccess(order, product);
+        productsService.onOrderSuccess(order, product);
 
         return Result.success("抢购成功");
     }
 
-    /**
-     * 秒杀抢购成功后的处理逻辑
-     *
-     * @param order 订单信息
-     * @param product 商品信息
-     */
-    public void onFlashGrabSuccess(FlashOrders order, Products product) {
 
-
-        log.info("用户{}抢购成功，商品{},进入处理逻辑", order.getUserId(), product.getName());
-
-        // 特殊处理：第三方会员（即使类型是 VIRTUAL）
-        if (isThirdPartyProduct(product)) {
-            deliveryService.deliverThirdPartyVirtual(order, product);
-            return;
-        }
-
-        // 普通分发
-        switch (product.getCategory()) {
-            case PHYSICAL:
-                deliveryService.deliverPhysical(order);
-                break;
-            case VIRTUAL:
-                deliveryService.deliverVirtual(order, product);
-                break;
-            case VOUCHER:
-                deliveryService.deliverVoucher(order, product);
-                break;
-            default:
-                throw new IllegalStateException("未知商品类型: " + product.getCategory());
-        }
-    }
-
-    //todo 暂未实现
-    private boolean isThirdPartyProduct(Products product) {
-
-        return false;
-    }
 }
