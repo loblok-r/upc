@@ -1,8 +1,11 @@
 package cn.loblok.upc.task;
 
+import cn.loblok.upc.entity.DailyUsage;
 import cn.loblok.upc.entity.User;
+import cn.loblok.upc.mapper.DailyUsageMapper;
 import cn.loblok.upc.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,9 +20,13 @@ import java.time.LocalTime;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ResetTask {
-    @Autowired
-    private UserMapper userMapper;
+
+    private final UserMapper userMapper;
+
+    private final DailyUsageMapper dailyUsageMapper;
+
 
     /**
      * 每天00:00重置状态 签到 todo 额度重置
@@ -31,6 +38,24 @@ public class ResetTask {
         log.info("开始执行每日签到状态重置任务: {}", LocalDateTime.now());
 
         try {
+            UpdateWrapper<DailyUsage> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.set("text_chat_count",0)
+                    .set("ai_drawing_count",0)
+                    .set("update_at", LocalDateTime.now());
+
+            int affectedRows = dailyUsageMapper.update(null, updateWrapper);
+
+            log.info("日用额状态重置完成，重置用户数: {}", affectedRows);
+
+//            todo 记录操作日志到数据库
+//            logResetOperation(affectedRows);
+
+        } catch (Exception e) {
+            log.error("重置日用额度失败", e);
+            throw e; // 触发事务回滚
+        }
+
+        try {
             UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
             updateWrapper.set("ischickined", 0)
                     .set("update_at", LocalDateTime.now())
@@ -40,7 +65,7 @@ public class ResetTask {
 
             log.info("签到状态重置完成，重置用户数: {}", affectedRows);
 
-//            // 记录操作日志到数据库（可选）
+//            todo 记录操作日志到数据库
 //            logResetOperation(affectedRows);
 
         } catch (Exception e) {
