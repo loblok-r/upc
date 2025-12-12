@@ -1,9 +1,7 @@
 package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
-import cn.loblok.upc.dto.AiGenerateRequest;
-import cn.loblok.upc.dto.AiGenerateResponse;
-import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.*;
 import cn.loblok.upc.enums.CommonStatusEnum;
 import cn.loblok.upc.exception.DailyLimitExceededException;
 import cn.loblok.upc.exception.InsufficientComputingPowerException;
@@ -11,11 +9,7 @@ import cn.loblok.upc.service.AiService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 图片生成控制器
@@ -55,4 +49,5 @@ public class AiController {
         }
 
     }
+
 }

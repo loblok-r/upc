@@ -15,12 +15,17 @@ public class AiGenerateResponse {
      */
     private String type;
     /**
-     * 响应内容,文本模式有值
+     *
      */
     private String content;
     /**
      * 响应内容,图片模式有值
      */
     private String imageUrl;
+
+    /*
+     * 会话ID
+     */
+    private String sessionId;
 
 }

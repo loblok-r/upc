@@ -17,4 +17,7 @@ public class AiGenerateRequest {
     private String prompt;        // 用户输入,必填
 
     private String referenceImage; // Base64 图像（可选，当前先忽略）
+
+    @NotBlank(message = "session不能为空")
+    private String sessionId;
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2025-12-10
  */
 @RestController
-@RequestMapping("/daily-usage")
+@RequestMapping("/api/daily-usage")
 public class DailyUsageController {
 
 }

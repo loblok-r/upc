@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("api/mall/user")
+@RequestMapping("/api/mall/user")
 @RequiredArgsConstructor
 public class UserPointsController {
 

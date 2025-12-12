@@ -312,7 +312,7 @@ public void extendVipDays(Long userId, Integer days) {
         log.warn("参数无效：userId={}, days={}", userId, days);
         return;
     }
-    
+
     try {
         User user = getById(userId);
         if (user != null) {

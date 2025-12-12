@@ -5,9 +5,7 @@ import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.*;
 import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
-import cn.loblok.upc.service.UserService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

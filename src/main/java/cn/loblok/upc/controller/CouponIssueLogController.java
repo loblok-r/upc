@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2025-12-02
  */
 @RestController
-@RequestMapping("/coupon-issue-log")
+@RequestMapping("/api/coupon-issue-log")
 public class CouponIssueLogController {
 
 }

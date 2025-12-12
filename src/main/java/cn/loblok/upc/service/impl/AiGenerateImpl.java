@@ -1,14 +1,18 @@
 package cn.loblok.upc.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.dto.AiGenerateRequest;
 import cn.loblok.upc.dto.AiGenerateResponse;
+import cn.loblok.upc.entity.AiGenerationLogs;
 import cn.loblok.upc.entity.DailyUsage;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.enums.AppMode;
+import cn.loblok.upc.enums.MessageContentType;
 import cn.loblok.upc.exception.DailyLimitExceededException;
 import cn.loblok.upc.exception.InsufficientComputingPowerException;
 import cn.loblok.upc.mapper.DailyUsageMapper;
 import cn.loblok.upc.mapper.UserMapper;
+import cn.loblok.upc.service.AiGenerationLogsService;
 import cn.loblok.upc.service.AiService;
 import cn.loblok.upc.service.UserService;
 import lombok.AllArgsConstructor;
@@ -19,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * AI功能实现类
@@ -33,6 +38,7 @@ public class AiGenerateImpl implements AiService {
     private final UserService userService;
     private final DailyUsageMapper dailyUsageMapper;
     // private final UsageLogMapper usageLogMapper; // 可选
+    private final AiGenerationLogsService aiGenerationLogsMapper;
 
 
     @Override
@@ -70,16 +76,38 @@ public class AiGenerateImpl implements AiService {
         user.setComputingPower(user.getComputingPower() - cost);
         userMapper.updateById(user);
 
-            log.info("已扣除算力: {}", cost);
-        // todo 记录日志
-        // logUsage(userId, mode, cost, prompt);
+        log.info("已扣除算力: {}", cost);
 
+        //判断是否开启新会话
+        String sessionId = req.getSessionId() == null ? IdUtil.randomUUID() : req.getSessionId();
 
+        //记录日志
+        AiGenerationLogs aiGenerationLogs = new AiGenerationLogs();
+        aiGenerationLogs.setId(IdUtil.randomUUID());
+        aiGenerationLogs.setUserId(userId);
+        aiGenerationLogs.setSessionId(sessionId);
+        aiGenerationLogs.setPrompt(prompt);
+        aiGenerationLogs.setContentType(mode == AppMode.TEXT_CHAT ? MessageContentType.TEXT : MessageContentType.IMAGE);
+        aiGenerationLogs.setCost(cost);
+        aiGenerationLogs.setParams(req.getReferenceImage());
+        aiGenerationLogs.setStatus("SUCCESS");
+        if(mode == AppMode.TEXT_CHAT){
+            aiGenerationLogs.setResultUrl(aiResult.getContent());
+        }else {
+            aiGenerationLogs.setResultUrl(aiResult.getImageUrl());
+        }
+        aiGenerationLogs.setCreatedAt(LocalDateTime.now());
+
+        try{
+            aiGenerationLogsMapper.save(aiGenerationLogs);
+        }catch (Exception e){
+            log.error("保存日志失败: {}", e.getMessage());
+        }
         // 构造响应
         String type = mode == AppMode.TEXT_CHAT ? "text" : "image";
 
 
-        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl());
+        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(), sessionId);
     }
 
 
@@ -120,9 +148,9 @@ public class AiGenerateImpl implements AiService {
             usage.setDate(today);
             usage.setTextChatCount(0);
             usage.setAiDrawingCount(0);
-            try{
+            try {
                 dailyUsageMapper.insert(usage);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("插入日用量失败: {}", e.getMessage());
             }
 
