@@ -51,7 +51,11 @@ public class PaymentController {
                 request.getDescription()
         );
 
-        return Result.success(new PaymentResponse());
+        if (!response.isSuccess()) {
+            return Result.error("创建支付订单失败");
+        }
+
+        return Result.success(response);
     }
 
 
@@ -80,10 +84,9 @@ public class PaymentController {
         try {
             paymentService.cancelPayment(orderId);
         } catch (Exception e) {
-            return Result.error(e.getMessage());
+            log.error("取消订单失败: ", e);
+            return Result.error("取消订单失败: " + e.getMessage());
         }
         return Result.success(true);
     }
-
-
 }

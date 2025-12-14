@@ -79,7 +79,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                 followee.setFollowers(followee.getFollowers() + 1);
                 userService.updateById(followee);
             }
-            
+
             response.setFollowerCount(getFollowerCount(followeeId));
             return response;
         }

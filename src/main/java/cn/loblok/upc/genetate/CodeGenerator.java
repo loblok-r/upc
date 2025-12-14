@@ -32,7 +32,7 @@ public class CodeGenerator {
                 )
                 .strategyConfig(builder -> builder
                         // 指定表名（只生成你需要的）
-                        .addInclude("ai_generation_logs"
+                        .addInclude("t_order"
                                 )
                         
                         // 实体策略配置
