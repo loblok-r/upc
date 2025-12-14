@@ -78,7 +78,12 @@ public class PaymentServiceImpl implements PaymentService {
         return response;
     }
 
+
+
+
     /**
+     *
+     *
      * 获取支付状态
      * 逻辑：查库 -> (如果是PENDING) -> 调第三方接口查 -> 更新库 -> 返回结果
      */
