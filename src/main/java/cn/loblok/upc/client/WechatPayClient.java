@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class WechatPayClient {
 
-    @Autowired
+    @Autowired(required = false)
     private NativePayService nativePayService;
 
     @Value("${wechat.pay.app-id}")

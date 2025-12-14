@@ -1,7 +1,7 @@
 package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.client.WechatPayClient;
-import cn.loblok.upc.config.WechatPayConfig;
+import cn.loblok.upc.config.MyWechatPayConfig;
 import cn.loblok.upc.dto.PayParamsResponse;
 import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.dto.WechatNativePayResponse;
@@ -209,7 +209,7 @@ public class MembershipOrderServiceImpl extends ServiceImpl<MembershipOrderMappe
         if (signFromWechat == null) return false;
 
         // 2. 重新计算签名（排除 sign 字段）
-        String signGenerated = WechatSignatureUtil.generateSign(params, WechatPayConfig.API_KEY);
+        String signGenerated = WechatSignatureUtil.generateSign(params, "");
 
         // 3. 比较
         return signGenerated.equals(signFromWechat);

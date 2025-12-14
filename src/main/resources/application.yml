@@ -11,9 +11,10 @@ mybatis-plus:
 wechat:
   pay:
     app-id: your-wechat-app-id
-    mch-id: your-merchant-id
-    private-key-path: classpath:cert/apiclient_key.pem
-    cert-path: classpath:cert/apiclient_cert.pem
+    mch-id: 1623456789
+    private-key-path: classpath:mock/apiclient_key.pem
+    cert-serial: 5157F9E17BD6E4C9D6C1E4F5A7B3C2D8E9F0A1B2
+    api-v3-key: mock-api-v3-key-for-test-1234567890
     notify-url: https://yourdomain.com/api/payment/notify/wechat
 
 # 支付宝配置

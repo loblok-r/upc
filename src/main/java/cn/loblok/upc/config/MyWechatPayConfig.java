@@ -1,18 +1,21 @@
 package cn.loblok.upc.config;
 
-import com.wechat.pay.java.core.Config;
-import com.wechat.pay.java.core.RSAAutoCertificateConfig;
-import com.wechat.pay.java.service.payments.nativepay.NativePayService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+// import com.wechat.pay.java.core.Config;
+// import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+// import com.wechat.pay.java.service.payments.nativepay.NativePayService;
+// import org.springframework.beans.factory.annotation.Value;
+// import org.springframework.context.annotation.Bean;
+// import org.springframework.context.annotation.Configuration;
 
 /**
  * 微信支付配置类
+ * 暂时注释掉所有内容，等需要时再启用
  */
-@Configuration
-public class WechatPayConfig {
+// @Configuration
+public class MyWechatPayConfig {
 
+    // 暂时不创建任何Bean
+    /*
     @Value("${wechat.pay.private-key-path}")
     private String privateKeyPath;
 
@@ -22,9 +25,6 @@ public class WechatPayConfig {
     @Value("${wechat.pay.mch-id}")
     private String merchantId;
 
-    /**
-     * 创建微信支付配置实例
-     */
     @Bean
     public Config wechatPayConfig() {
         return new RSAAutoCertificateConfig.Builder()
@@ -34,11 +34,9 @@ public class WechatPayConfig {
                 .build();
     }
 
-    /**
-     * 创建微信 Native 支付服务实例
-     */
     @Bean
     public NativePayService nativePayService(Config wechatPayConfig) {
         return new NativePayService.Builder().config(wechatPayConfig).build();
     }
+    */
 }
