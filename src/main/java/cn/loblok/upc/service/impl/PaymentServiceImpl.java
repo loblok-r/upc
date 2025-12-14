@@ -1,21 +1,20 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.client.AlipayClient;
+import cn.loblok.upc.client.AlipayAClient;
 import cn.loblok.upc.client.WechatPayClient;
 import cn.loblok.upc.dto.PaymentResponse;
 import cn.loblok.upc.dto.PaymentStatusResponse;
 import cn.loblok.upc.dto.WechatNativePayResponse;
 import cn.loblok.upc.dto.WechatUnifiedOrderRequest;
 import cn.loblok.upc.entity.TOrder;
+import cn.loblok.upc.enums.PayMethodEnum;
 import cn.loblok.upc.enums.TOrderStatus;
-import cn.loblok.upc.exception.BusinessException;
 import cn.loblok.upc.mapper.TOrderMapper;
 import cn.loblok.upc.service.AliPayService;
 import cn.loblok.upc.service.PaymentService;
 import cn.loblok.upc.service.WeChatPayService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,7 +30,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final WechatPayClient wechatPayClient;
     
 
-    private final AlipayClient alipayClient;
+    private final AlipayAClient alipayAClient;
 
 
     private final TOrderMapper orderMapper;
@@ -47,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
             // 根据支付方式处理不同逻辑
-            if ("wechat".equalsIgnoreCase(paymentMethod)) {
+            if (PayMethodEnum.WECHAT_PAY.getCode().equalsIgnoreCase(paymentMethod)) {
                 // 微信 Native 支付
                 WechatUnifiedOrderRequest request = WechatUnifiedOrderRequest.builder()
                         .outTradeNo(orderId)
@@ -61,9 +60,9 @@ public class PaymentServiceImpl implements PaymentService {
                 WechatNativePayResponse wechatResponse = wechatPayClient.unifiedOrderNative(request);
                 response.setQrCodeUrl(wechatResponse.getCodeUrl());
                 response.setSuccess(true);
-            } else if ("alipay".equalsIgnoreCase(paymentMethod)) {
+            } else if (PayMethodEnum.ALI_PAY.getCode().equalsIgnoreCase(paymentMethod)) {
                 // 支付宝支付
-                PaymentResponse alipayResponse = alipayClient.createAlipayOrder(orderId, price, description);
+                PaymentResponse alipayResponse = alipayAClient.createAlipayOrder(orderId, price, description);
                 response.setPaymentUrl(alipayResponse.getPaymentUrl());
                 response.setSuccess(true);
             } else {
@@ -124,11 +123,11 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private String queryThirdPartyStatus(TOrder order) {
         try {
-            if ("wechat".equals(order.getPaymentMethod())) {
+            if (PayMethodEnum.WECHAT_PAY.getCode().equals(order.getPaymentMethod())) {
                 // 调用微信查单 API
                 // 返回值通常映射为我们自己的状态: SUCCESS, PENDING, FAILED
                 return weChatPayService.queryOrderStatus(order.getOrderId());
-            } else if ("alipay".equals(order.getPaymentMethod())) {
+            } else if (PayMethodEnum.ALI_PAY.getCode().equals(order.getPaymentMethod())) {
                 // 调用支付宝查单 API
                 return aliPayService.queryOrderStatus(order.getOrderId());
             }
@@ -136,7 +135,7 @@ public class PaymentServiceImpl implements PaymentService {
             // 如果查单网络超时，不要报错，暂时维持 PENDING，等下一次轮询再试
             log.error("主动查单失败: {}", order.getOrderId(), e);
         }
-        return "PENDING"; // 默认保持原样
+        return TOrderStatus.PENDING.getCode(); // 默认保持原样
     }
 
     /**

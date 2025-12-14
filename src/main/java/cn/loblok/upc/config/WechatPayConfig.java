@@ -1,11 +1,44 @@
 package cn.loblok.upc.config;
 
+import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+import com.wechat.pay.java.service.payments.nativepay.NativePayService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 /**
- * 微信支付配置
+ * 微信支付配置类
  */
+@Configuration
 public class WechatPayConfig {
-    public static final String APP_ID = "wx1234567890abcdef";      // 公众号/开放平台 AppID
-    public static final String MCH_ID = "1900000109";              // 商户号
-    public static final String API_KEY = "your_api_key_32_chars";  // API 密钥（32位）
-    public static final String NOTIFY_URL = "https://yourdomain.com/api/membership/notify/wechat";
+
+    @Value("${wechat.pay.private-key-path}")
+    private String privateKeyPath;
+
+    @Value("${wechat.pay.cert-path}")
+    private String certPath;
+
+    @Value("${wechat.pay.mch-id}")
+    private String merchantId;
+
+    /**
+     * 创建微信支付配置实例
+     */
+    @Bean
+    public Config wechatPayConfig() {
+        return new RSAAutoCertificateConfig.Builder()
+                .merchantId(merchantId)
+                .privateKeyFromPath(privateKeyPath)
+                .merchantSerialNumber(certPath)
+                .build();
+    }
+
+    /**
+     * 创建微信 Native 支付服务实例
+     */
+    @Bean
+    public NativePayService nativePayService(Config wechatPayConfig) {
+        return new NativePayService.Builder().config(wechatPayConfig).build();
+    }
 }

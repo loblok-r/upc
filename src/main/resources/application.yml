@@ -1,16 +1,26 @@
-#敏感信息加密配置在nacos
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      id-type: auto
+      logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
-  mapper-locations: classpath*:mapper/xml/**/*.xml
 
-logging:
-  level:
-    cn.loblok.upc: debug
+# 微信支付配置
+wechat:
+  pay:
+    app-id: your-wechat-app-id
+    mch-id: your-merchant-id
+    private-key-path: classpath:cert/apiclient_key.pem
+    cert-path: classpath:cert/apiclient_cert.pem
+    notify-url: https://yourdomain.com/api/payment/notify/wechat
+
+# 支付宝配置
+alipay:
+  app-id: your-alipay-app-id
+  private-key: your-private-key
+  public-key: your-public-key
+  gateway-url: https://openapi.alipay.com/gateway.do
+  charset: UTF-8
+  sign-type: RSA2
