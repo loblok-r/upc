@@ -50,4 +50,34 @@ public class AiController {
 
     }
 
+
+    @PostMapping("/generateInvoiceSummary")
+    public Result<SummaryResponse> generateInvoiceSummary(
+            @RequestBody  @Valid InvoiceSummaryRequest request,
+            @CurrentUser Long userId) {
+
+        log.info("用户ID: {}, 创建发票摘要请求参数: {}", userId, request);
+
+
+        // 1. 获取数据
+        String userName = request.getFormData().getLastName() + request.getFormData().getFirstName();
+        String planName = request.getOrderDetails().getPlanName();
+
+
+        String summary = aiGenerateService.generateInvoiceSummary(userId, request);
+        // 模拟返回
+//        String mockSummary = String.format("尊贵的 %s，您正在订阅 %s，价格为 %s %s。",
+//                userName,
+//                planName,
+//                request.getOrderDetails().getPrice(),
+//                request.getOrderDetails().getCurrency());
+        SummaryResponse summaryResponse = new SummaryResponse();
+
+        summaryResponse.setSummary(summary);
+        return Result.success(summaryResponse);
+
+    }
+
+
+
 }

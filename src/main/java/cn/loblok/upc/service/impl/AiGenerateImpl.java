@@ -3,6 +3,7 @@ package cn.loblok.upc.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.dto.AiGenerateRequest;
 import cn.loblok.upc.dto.AiGenerateResponse;
+import cn.loblok.upc.dto.InvoiceSummaryRequest;
 import cn.loblok.upc.entity.AiGenerationLogs;
 import cn.loblok.upc.entity.DailyUsage;
 import cn.loblok.upc.entity.User;
@@ -108,6 +109,13 @@ public class AiGenerateImpl implements AiService {
 
 
         return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(), sessionId);
+    }
+
+    @Override
+    public String generateInvoiceSummary(Long userId, InvoiceSummaryRequest request) {
+
+
+        return "Invoice summary generated successfully";
     }
 
 
