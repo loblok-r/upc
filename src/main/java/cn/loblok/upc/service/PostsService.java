@@ -1,6 +1,8 @@
 package cn.loblok.upc.service;
 
+import cn.loblok.upc.dto.CreatePostRequest;
 import cn.loblok.upc.dto.PostResponse;
+import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.Posts;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -47,4 +49,13 @@ public interface PostsService extends IService<Posts> {
      * @return 我的帖子列表
      */
     List<PostResponse> getMyPosts(Long userId);
+
+    /**
+     * 发布帖子
+     *
+     * @param userId 用户ID
+     * @param createPostRequest 创建帖子请求
+     * @return 帖子
+     */
+    Result<Posts> createPost(Long userId, CreatePostRequest createPostRequest);
 }

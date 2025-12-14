@@ -36,27 +36,8 @@ public class PostsController {
     @PostMapping("/create")
     public Result<Posts> createPost(@CurrentUser Long userId, @RequestBody CreatePostRequest createPostRequest) {
         try {
+            return postsService.createPost(userId, createPostRequest);
 
-            Posts posts = new Posts();
-            // 设置帖子的基本信息
-            posts.setUserId(userId);
-            posts.setTitle(createPostRequest.getTitle());
-            posts.setContent(createPostRequest.getContent());
-            posts.setImageUrl(createPostRequest.getImageUrl());
-            posts.setCreatedAt(LocalDateTime.now());
-            posts.setUpdatedAt(LocalDateTime.now());
-            posts.setLikesCount(0);
-            posts.setCommentsCount(0);
-            posts.setIsDeleted(false);
-            
-            // 保存帖子
-            boolean saved = postsService.save(posts);
-            
-            if (saved) {
-                return Result.success(posts);
-            } else {
-                return Result.error(500, "发布失败", "帖子保存失败");
-            }
         } catch (Exception e) {
             return Result.error(500, "发布失败", e.getMessage());
         }

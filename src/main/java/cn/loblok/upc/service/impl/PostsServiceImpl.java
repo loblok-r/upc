@@ -1,7 +1,9 @@
 package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.Author;
+import cn.loblok.upc.dto.CreatePostRequest;
 import cn.loblok.upc.dto.PostResponse;
+import cn.loblok.upc.dto.Result;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.mapper.PostsMapper;
@@ -9,12 +11,14 @@ import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.PostsService;
 import cn.loblok.upc.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -175,6 +179,38 @@ public List<PostResponse> getMyPosts(Long userId) {
             .toList();
 }
 
+    @Override
+    public Result<Posts> createPost(Long userId, CreatePostRequest createPostRequest) {
+        Posts posts = new Posts();
+        // 设置帖子的基本信息
+        posts.setUserId(userId);
+        posts.setTitle(createPostRequest.getTitle());
+        posts.setContent(createPostRequest.getContent());
+        posts.setImageUrl(createPostRequest.getImageUrl());
+        posts.setCreatedAt(LocalDateTime.now());
+        posts.setUpdatedAt(LocalDateTime.now());
+        posts.setLikesCount(0);
+        posts.setCommentsCount(0);
+        posts.setIsDeleted(false);
+
+        // 保存帖子
+        boolean saved = this.save(posts);
+
+        //更新用户 user：works
+        userService.update(
+                null,
+                new UpdateWrapper<User>()
+                        .eq("id", userId)
+                        .apply("works = works + 1")
+        );
+
+
+        if (saved) {
+            return  Result.success(posts);
+        } else {
+            return  Result.error(500, "发布失败", "帖子保存失败");
+        }
+    }
 
 
 }

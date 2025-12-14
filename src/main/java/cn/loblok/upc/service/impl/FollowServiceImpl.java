@@ -53,6 +53,14 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             log.info("已关注, 取关");
             // 已经关注，执行取消关注操作
             this.remove(queryWrapper);
+            // 更新被关注者的粉丝数
+            User followee = userService.getById(followeeId);
+            if (followee != null) {
+                followee.setFollowers(Math.max(0, followee.getFollowers() - 1));
+                userService.updateById(followee);
+            }
+
+
             // 设置操作结果描述
             response.setFollowerCount(getFollowerCount(followeeId));
             return response;
@@ -65,6 +73,13 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             follow.setCreatedAt(java.time.LocalDateTime.now());
 //            follow.setTenantId("default");
             this.save(follow);
+            // 更新被关注者的粉丝数
+            User followee = userService.getById(followeeId);
+            if (followee != null) {
+                followee.setFollowers(followee.getFollowers() + 1);
+                userService.updateById(followee);
+            }
+            
             response.setFollowerCount(getFollowerCount(followeeId));
             return response;
         }

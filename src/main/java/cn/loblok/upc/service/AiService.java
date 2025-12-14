@@ -18,7 +18,7 @@ public interface AiService {
     /**
      * 创建发票摘要
      * @param userId 当前用户 ID（用于记录日志/配额）
-     * @param request 创建发票摘要请求
+     * @param request 创建发票摘要
      * @return 创建结果（Mock 创建假摘要）
      */
     String generateInvoiceSummary(Long userId, InvoiceSummaryRequest request);

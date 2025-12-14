@@ -27,11 +27,7 @@ public class CommunityServiceImpl implements CommunityService {
     private final UserService userService;
 
     private final FollowService followService;
-    /**
-     * 获取创作者排行榜
-     *
-     * @return
-     */
+
     @Override
     public List<CreatorLeaderboardResponse> getCreatorLeaderboard(Long userId) {
         // 获取所有用户
