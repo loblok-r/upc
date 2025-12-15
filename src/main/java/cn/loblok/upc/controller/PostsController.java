@@ -48,7 +48,7 @@ public class PostsController {
      * @return 我的帖子列表
      */
     @GetMapping("/mine")
-    public  Result<List<PostResponse>>  getMyPosts(@CurrentUser Long userId) {
+    public Result<List<PostResponse>> getMyPosts(@CurrentUser Long userId) {
         List<PostResponse> posts = postsService.getMyPosts(userId);
         return Result.success(posts);
     }
@@ -103,7 +103,7 @@ public class PostsController {
      */
     @GetMapping("/{postId}/comments")
     public Result<List<TComment>> getPostComments(@PathVariable("postId") Long postId,
-    @CurrentUser Long userId) {
+                                                  @CurrentUser Long userId) {
         List<TComment> comments = postsService.getPostComments(postId, userId);
         return Result.success(comments);
     }
@@ -111,9 +111,9 @@ public class PostsController {
     /**
      * 点赞/取消点赞帖子
      *
-     * @param postId 帖子ID
+     * @param postId  帖子ID
      * @param isLiked 是否点赞
-     * @param userId 当前用户ID
+     * @param userId  当前用户ID
      * @return 操作结果
      */
     @PostMapping("/{postId}/{isLiked}")
@@ -141,20 +141,37 @@ public class PostsController {
     /**
      * 添加评论
      *
-     * @param postId 帖子ID
+     * @param postId     帖子ID
      * @param payloadDTO 评论内容
-     * @param userId 当前用户ID
+     * @param userId     当前用户ID
      * @return 添加结果
      */
-@PostMapping("/{postId}/comments")
+    @PostMapping("/{postId}/comments")
     public Result<TComment> addComment(@PathVariable("postId") Long postId,
-                                     @RequestBody PayloadDTO payloadDTO,
-                                     @CurrentUser Long userId) {
+                                       @RequestBody PayloadDTO payloadDTO,
+                                       @CurrentUser Long userId) {
         try {
 
             return postsService.addComment(postId, payloadDTO, userId);
         } catch (Exception e) {
             return Result.error(500, "添加评论失败", e.getMessage());
+        }
+    }
+
+/**
+     * 删除帖子
+     *
+     * @param postId 帖子ID
+     * @param userId 当前用户ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/{postId}")
+    public Result<String> deletePost(@PathVariable("postId") Long postId, @CurrentUser Long userId) {
+        try {
+            postsService.deletePost(postId, userId);
+            return Result.success("删除成功");
+        } catch (Exception e) {
+            return Result.error(500, "删除失败", e.getMessage());
         }
     }
 

@@ -78,4 +78,13 @@ public interface PostsService extends IService<Posts> {
      * @return 评论
      */
     Result<TComment> addComment(Long postId, PayloadDTO payloadDTO, Long userId);
+
+    /**
+     * 删除帖子
+     *
+     * @param postId 帖子ID
+     * @param userId 用户ID
+     * @return 删除结果
+     */
+    void deletePost(Long postId, Long userId);
 }

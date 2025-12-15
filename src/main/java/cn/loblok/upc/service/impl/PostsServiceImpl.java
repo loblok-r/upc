@@ -375,4 +375,23 @@ public List<PostResponse> getMyPosts(Long userId) {
         
         return Result.success(tComment);
     }
+
+    @Override
+    public void deletePost(Long postId, Long userId) {
+        // 检查帖子是否存在
+        Posts post = this.getById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+
+        // 检查帖子是否属于当前用户
+        if (!post.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限删除他人的帖子");
+        }
+
+        // 逻辑删除帖子，将is_deleted设置为true
+        post.setIsDeleted(true);
+        post.setUpdatedAt(LocalDateTime.now());
+        this.updateById(post);
+    }
 }
