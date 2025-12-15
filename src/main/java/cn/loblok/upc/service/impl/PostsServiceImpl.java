@@ -13,6 +13,7 @@ import cn.loblok.upc.service.PostsService;
 import cn.loblok.upc.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -58,14 +60,16 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
      * @return 推荐帖子列表
      */
     @Override
-    public List<PostResponse> getRecommendPosts(Long userId) {
-
+    public List<PostResponse> getRecommendPosts(Long userId, int page, int pageSize) {
         // 简单实现：获取所有帖子按点赞数倒序排列
         QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_deleted", false);
         queryWrapper.orderByDesc("likes_count");
-        queryWrapper.last("LIMIT 20"); // 限制返回20条
-        return this.list(queryWrapper).stream()
+        
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        this.page(postsPage, queryWrapper);
+        
+        return postsPage.getRecords().stream()
                 .map(post -> {
                     Author author = new Author();
                     User user = userService.getById(post.getUserId());
@@ -86,11 +90,11 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setUpdatedAt(post.getUpdatedAt());
                     return response;
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<PostResponse> getFollowingPosts(Long userId) {
+    public List<PostResponse> getFollowingPosts(Long userId, int page, int pageSize) {
         // 先获取当前用户关注的所有用户ID
         List<Long> followingIds = followService.getFollowingList(userId).stream()
                 .map(user -> user.getId())
@@ -105,8 +109,11 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         queryWrapper.in("user_id", followingIds);
         queryWrapper.eq("is_deleted", false);
         queryWrapper.orderByDesc("created_at");
-        queryWrapper.last("LIMIT 20"); // 限制返回20条
-        return this.list(queryWrapper).stream()
+        
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        this.page(postsPage, queryWrapper);
+        
+        return postsPage.getRecords().stream()
                 .map(post -> {
                     Author author = new Author();
                     User user = userService.getById(post.getUserId());
@@ -127,16 +134,19 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setUpdatedAt(post.getUpdatedAt());
                     return response;
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<PostResponse> getLatestPosts(Long userId) {
+    public List<PostResponse> getLatestPosts(Long userId, int page, int pageSize) {
         QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_deleted", false);
         queryWrapper.orderByDesc("created_at");
-        queryWrapper.last("LIMIT 20"); // 限制返回20条
-        return this.list(queryWrapper).stream()
+        
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        this.page(postsPage, queryWrapper);
+        
+        return postsPage.getRecords().stream()
                 .map(post -> {
                     Author author = new Author();
                     User user = userService.getById(post.getUserId());
@@ -157,7 +167,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setUpdatedAt(post.getUpdatedAt());
                     return response;
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
 @Override

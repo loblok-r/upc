@@ -60,8 +60,10 @@ public class PostsController {
      * @return 推荐帖子列表
      */
     @GetMapping("/recommend")
-    public Result<List<PostResponse>> getRecommendPosts(@CurrentUser Long userId) {
-        List<PostResponse> posts = postsService.getRecommendPosts(userId);
+    public Result<List<PostResponse>> getRecommendPosts(@CurrentUser Long userId,
+                                                        @RequestParam(defaultValue = "1") int page,
+                                                        @RequestParam(defaultValue = "20") int pageSize) {
+        List<PostResponse> posts = postsService.getRecommendPosts(userId, page, pageSize);
         return Result.success(posts);
     }
 
@@ -72,8 +74,10 @@ public class PostsController {
      * @return 关注用户的帖子列表
      */
     @GetMapping("/following")
-    public Result<List<PostResponse>> getFollowingPosts(@CurrentUser Long userId) {
-        List<PostResponse> posts = postsService.getFollowingPosts(userId);
+    public Result<List<PostResponse>> getFollowingPosts(@CurrentUser Long userId,
+                                                        @RequestParam(defaultValue = "1") int page,
+                                                        @RequestParam(defaultValue = "20") int pageSize) {
+        List<PostResponse> posts = postsService.getFollowingPosts(userId, page, pageSize);
         return Result.success(posts);
     }
 
@@ -84,8 +88,10 @@ public class PostsController {
      * @return 最新帖子列表
      */
     @GetMapping("/latest")
-    public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId) {
-        List<PostResponse> posts = postsService.getLatestPosts(userId);
+    public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId,
+                                                     @RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "20") int pageSize) {
+        List<PostResponse> posts = postsService.getLatestPosts(userId, page, pageSize);
         return Result.success(posts);
     }
 

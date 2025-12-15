@@ -22,7 +22,7 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 推荐帖子列表
      */
-    List<PostResponse> getRecommendPosts(Long userId);
+    List<PostResponse> getRecommendPosts(Long userId, int page, int pageSize);
 
     /**
      * 获取关注用户的帖子
@@ -30,7 +30,7 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 关注用户的帖子列表
      */
-    List<PostResponse> getFollowingPosts(Long userId);
+    List<PostResponse> getFollowingPosts(Long userId, int page, int pageSize);
 
     /**
      * 获取最新帖子
@@ -38,7 +38,7 @@ public interface PostsService extends IService<Posts> {
      * @param userId 用户ID
      * @return 最新帖子列表
      */
-    List<PostResponse> getLatestPosts(Long userId);
+    List<PostResponse> getLatestPosts(Long userId, int page, int pageSize);
 
     /**
      * 获取我的帖子
