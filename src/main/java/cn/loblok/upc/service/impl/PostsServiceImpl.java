@@ -1,9 +1,6 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.dto.Author;
-import cn.loblok.upc.dto.CreatePostRequest;
-import cn.loblok.upc.dto.PostResponse;
-import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.*;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.mapper.PostsMapper;
@@ -210,6 +207,16 @@ public List<PostResponse> getMyPosts(Long userId) {
         } else {
             return  Result.error(500, "发布失败", "帖子保存失败");
         }
+    }
+
+    @Override
+    public List<TComment> getPostComments(Long postId, Long userId) {
+        return null;
+    }
+
+    @Override
+    public void likePost(Long postId, Boolean isLikedBool, Long userId) {
+
     }
 
 

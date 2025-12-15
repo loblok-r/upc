@@ -4,6 +4,7 @@ import cn.loblok.upc.annotation.CurrentUser;
 import cn.loblok.upc.dto.CreatePostRequest;
 import cn.loblok.upc.dto.PostResponse;
 import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.TComment;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.service.PostsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,49 @@ public class PostsController {
     public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId) {
         List<PostResponse> posts = postsService.getLatestPosts(userId);
         return Result.success(posts);
+    }
+
+    /**
+     * 获取帖子评论
+     *
+     * @param postId 帖子ID
+     * @return 评论列表
+     */
+    @GetMapping("/{postId}/comments")
+    public Result<List<TComment>> getPostComments(@PathVariable("postId") Long postId,
+    @CurrentUser Long userId) {
+        List<TComment> comments = postsService.getPostComments(postId, userId);
+        return Result.success(comments);
+    }
+
+    /**
+     * 点赞/取消点赞帖子
+     *
+     * @param postId 帖子ID
+     * @param isLiked 是否点赞
+     * @param userId 当前用户ID
+     * @return 操作结果
+     */
+@PostMapping("/{postId}/{isLiked}")
+    public Result<String> likePost(@PathVariable("postId") Long postId,
+                                   @PathVariable("isLiked") String isLiked,
+                                   @CurrentUser Long userId) {
+        Boolean isLikedBool = "like".equals(isLiked);
+        try {
+            postsService.likePost(postId, isLikedBool, userId);
+            if (isLikedBool) {
+                return Result.success("点赞成功");
+            } else {
+                return Result.success("取消点赞成功");
+            }
+        } catch (Exception e) {
+            if (isLikedBool) {
+                return Result.error(500, "点赞失败", e.getMessage());
+            } else {
+                return Result.error(500, "取消点赞失败", e.getMessage());
+            }
+        }
+
     }
 
 }

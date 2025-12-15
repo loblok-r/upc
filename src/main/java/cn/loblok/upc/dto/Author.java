@@ -18,4 +18,20 @@ public class Author {
     private String handle;
 
     private int followers;
+
+    private Boolean isVerified;
+
+    private Boolean isFollowed;
+
+    // 个人中心统计数据 (可选，视后端返回情况)
+    private StatsData stats;
+
+    private Integer computingPower;
+
+    private Integer maxcomputingPower;
+
+    private Boolean isMember; // 是否是 PRO 会员
+
+    private String bio; // 用户简介
+
 }

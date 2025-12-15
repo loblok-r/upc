@@ -1,5 +1,6 @@
 package cn.loblok.upc.service.impl;
 
+import cn.loblok.upc.dto.Author;
 import cn.loblok.upc.dto.CreatorLeaderboardResponse;
 import cn.loblok.upc.dto.LeaderboardAuthor;
 import cn.loblok.upc.entity.User;
@@ -51,6 +52,16 @@ public class CommunityServiceImpl implements CommunityService {
         List<CreatorLeaderboardResponse> result = getCreatorLeaderboardResponses(userId, recentUsers);
 
         return result;
+    }
+
+    @Override
+    public String likeOrUnlikeComment(Long userId, Long commentId) {
+        return null;
+    }
+
+    @Override
+    public Author getUserProfile(Long targetUserId, Long currentUserId) {
+        return null;
     }
 
     @NotNull

@@ -103,5 +103,41 @@ public class CommunityController {
         }
     }
 
+    /**
+     * 点赞或取消点赞评论
+     * 如果已经点赞则取消点赞，如果未点赞则进行点赞
+     *
+     * @param userId 当前用户ID
+     * @param commentId 评论ID
+     * @return 操作结果
+     */
+    @PostMapping("/comments/{commentId}/like")
+    public Result<String> likeOrUnlikeComment(@CurrentUser Long userId, @PathVariable Long commentId) {
+        try {
+            String response = communityService.likeOrUnlikeComment(userId, commentId);
+            return Result.success(response);
+        } catch (Exception e) {
+            return Result.error(500, "操作失败", e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户个人资料
+     *
+     * @param targetUserId 目标用户ID
+     * @param currentUserId 当前用户ID
+     * @return 用户个人资料
+     */
+    @GetMapping("/users/{targetUserId}/profile")
+    public Result<Author> getUserProfile(@PathVariable("targetUserId") Long targetUserId,
+                                               @CurrentUser Long currentUserId) {
+        try {
+            Author authorInfo = communityService.getUserProfile(targetUserId, currentUserId);
+            return Result.success(authorInfo);
+        } catch (Exception e) {
+            return Result.error(500, "获取用户资料失败", e.getMessage());
+        }
+    }
+
 
 }

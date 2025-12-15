@@ -3,6 +3,7 @@ package cn.loblok.upc.service;
 import cn.loblok.upc.dto.CreatePostRequest;
 import cn.loblok.upc.dto.PostResponse;
 import cn.loblok.upc.dto.Result;
+import cn.loblok.upc.dto.TComment;
 import cn.loblok.upc.entity.Posts;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -58,4 +59,15 @@ public interface PostsService extends IService<Posts> {
      * @return 帖子
      */
     Result<Posts> createPost(Long userId, CreatePostRequest createPostRequest);
+
+    /**
+     * 获取帖子评论
+     *
+     * @param postId 帖子ID
+     * @param userId 用户ID
+     * @return 帖子评论列表
+     */
+    List<TComment> getPostComments(Long postId, Long userId);
+
+    void likePost(Long postId, Boolean isLikedBool, Long userId);
 }
