@@ -139,5 +139,22 @@ public class CommunityController {
         }
     }
 
+/**
+     * 获取用户的作品列表
+     *
+     * @param targetUserId 目标用户ID
+     * @param currentUserId 当前用户ID
+     * @return 用户作品列表
+     */
+    @GetMapping("/users/{targetUserId}/works")
+    public Result<List<PostResponse>> getUserWorks(@PathVariable("targetUserId") Long targetUserId,
+                                           @CurrentUser Long currentUserId) {
+        try {
+            return communityService.getUserWorks(targetUserId, currentUserId);
+        } catch (Exception e) {
+            return Result.error(500, "获取用户作品失败", e.getMessage());
+        }
+    }
+
 
 }

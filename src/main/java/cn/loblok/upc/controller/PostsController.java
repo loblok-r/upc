@@ -1,10 +1,7 @@
 package cn.loblok.upc.controller;
 
 import cn.loblok.upc.annotation.CurrentUser;
-import cn.loblok.upc.dto.CreatePostRequest;
-import cn.loblok.upc.dto.PostResponse;
-import cn.loblok.upc.dto.Result;
-import cn.loblok.upc.dto.TComment;
+import cn.loblok.upc.dto.*;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.service.PostsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +110,7 @@ public class PostsController {
      * @param userId 当前用户ID
      * @return 操作结果
      */
-@PostMapping("/{postId}/{isLiked}")
+    @PostMapping("/{postId}/{isLiked}")
     public Result<String> likePost(@PathVariable("postId") Long postId,
                                    @PathVariable("isLiked") String isLiked,
                                    @CurrentUser Long userId) {
@@ -133,6 +130,26 @@ public class PostsController {
             }
         }
 
+    }
+
+    /**
+     * 添加评论
+     *
+     * @param postId 帖子ID
+     * @param payloadDTO 评论内容
+     * @param userId 当前用户ID
+     * @return 添加结果
+     */
+@PostMapping("/{postId}/comments")
+    public Result<TComment> addComment(@PathVariable("postId") Long postId,
+                                     @RequestBody PayloadDTO payloadDTO,
+                                     @CurrentUser Long userId) {
+        try {
+
+            return postsService.addComment(postId, payloadDTO, userId);
+        } catch (Exception e) {
+            return Result.error(500, "添加评论失败", e.getMessage());
+        }
     }
 
 }

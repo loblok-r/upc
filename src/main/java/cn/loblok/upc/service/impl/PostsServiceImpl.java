@@ -1,8 +1,12 @@
 package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.*;
+import cn.loblok.upc.entity.Comment;
+import cn.loblok.upc.entity.LikeRecord;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.entity.User;
+import cn.loblok.upc.mapper.CommentMapper;
+import cn.loblok.upc.mapper.LikeRecordMapper;
 import cn.loblok.upc.mapper.PostsMapper;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.PostsService;
@@ -10,7 +14,6 @@ import cn.loblok.upc.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,14 +31,25 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@AllArgsConstructor
 public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements PostsService {
 
 
-    private final  FollowService followService;
+    private final FollowService followService;
 
     private final UserService userService;
-
+    
+    private final CommentMapper commentMapper;
+    
+    private final LikeRecordMapper likeRecordMapper;
+    
+    @Autowired
+    public PostsServiceImpl(FollowService followService, UserService userService, 
+                           CommentMapper commentMapper, LikeRecordMapper likeRecordMapper) {
+        this.followService = followService;
+        this.userService = userService;
+        this.commentMapper = commentMapper;
+        this.likeRecordMapper = likeRecordMapper;
+    }
 
     /**
      * 获取推荐帖子
@@ -61,6 +75,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     author.setHandle(user.getUsername());
                     author.setFollowers(user.getFollowers());
                     PostResponse response = new PostResponse();
+                    response.setId(post.getId());
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
@@ -101,6 +116,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     author.setHandle(user.getUsername());
                     author.setFollowers(user.getFollowers());
                     PostResponse response = new PostResponse();
+                    response.setId(post.getId());
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
@@ -130,6 +146,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     author.setHandle(user.getUsername());
                     author.setFollowers(user.getFollowers());
                     PostResponse response = new PostResponse();
+                    response.setId(post.getId());
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
@@ -211,13 +228,141 @@ public List<PostResponse> getMyPosts(Long userId) {
 
     @Override
     public List<TComment> getPostComments(Long postId, Long userId) {
-        return null;
+        // 查询帖子的所有评论
+        QueryWrapper<Comment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("target_type", "post");
+        queryWrapper.eq("target_id", postId);
+        queryWrapper.eq("is_deleted", false);
+        queryWrapper.orderByAsc("created_at");
+        
+        List<Comment> comments = commentMapper.selectList(queryWrapper);
+        
+        // 转换为TComment对象
+        return comments.stream().map(comment -> {
+            TComment tComment = new TComment();
+            tComment.setId(String.valueOf(comment.getId()));
+            tComment.setUserId(String.valueOf(comment.getUserId()));
+            
+            // 获取用户信息
+            User user = userService.getById(comment.getUserId());
+            tComment.setUser(user);
+            
+            tComment.setText(comment.getContent());
+            tComment.setLikes(comment.getLikesCount());
+            
+            // 检查当前用户是否点赞了该评论
+            QueryWrapper<LikeRecord> likeQueryWrapper = new QueryWrapper<>();
+            likeQueryWrapper.eq("user_id", userId);
+            likeQueryWrapper.eq("target_type", "comment");
+            likeQueryWrapper.eq("target_id", comment.getId());
+            tComment.setIsLiked(likeRecordMapper.selectCount(likeQueryWrapper) > 0);
+            
+            tComment.setCreatedAt(comment.getCreatedAt().toString());
+            // 简化处理，实际项目中应该根据创建时间和当前时间计算
+            tComment.setTimeAgo("刚刚");
+            
+            // 这里简化处理，实际项目中可能需要查询回复评论
+            tComment.setReplies(new TComment[0]);
+            
+            return tComment;
+        }).toList();
     }
 
     @Override
-    public void likePost(Long postId, Boolean isLikedBool, Long userId) {
-
+    public void likePost(Long postId, Boolean isLiked, Long userId) {
+        // 检查帖子是否存在
+        Posts post = this.getById(postId);
+        if (post == null || post.getIsDeleted()) {
+            throw new RuntimeException("帖子不存在或已被删除");
+        }
+        
+        if (isLiked) {
+            // 点赞操作
+            // 检查是否已经点赞
+            QueryWrapper<LikeRecord> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId);
+            queryWrapper.eq("target_type", "post");
+            queryWrapper.eq("target_id", postId);
+            
+            if (likeRecordMapper.selectCount(queryWrapper) <= 0) {
+                // 未点赞，执行点赞操作
+                LikeRecord likeRecord = new LikeRecord();
+                likeRecord.setUserId(userId);
+                likeRecord.setTargetType("post");
+                likeRecord.setTargetId(postId);
+                likeRecord.setTenantId("default"); // 这里应该是从上下文中获取tenantId
+                likeRecord.setCreatedAt(LocalDateTime.now());
+                likeRecordMapper.insert(likeRecord);
+                
+                // 更新帖子的点赞数
+                post.setLikesCount(post.getLikesCount() + 1);
+                this.updateById(post);
+            }
+        } else {
+            // 取消点赞操作
+            QueryWrapper<LikeRecord> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId);
+            queryWrapper.eq("target_type", "post");
+            queryWrapper.eq("target_id", postId);
+            
+            // 删除点赞记录
+            likeRecordMapper.delete(queryWrapper);
+            
+            // 更新帖子的点赞数
+            if (post.getLikesCount() > 0) {
+                post.setLikesCount(post.getLikesCount() - 1);
+                this.updateById(post);
+            }
+        }
     }
 
+    @Override
+    public Result<TComment> addComment(Long postId, PayloadDTO payloadDTO, Long userId) {
+        // 检查帖子是否存在
+        Posts post = this.getById(postId);
+        if (post == null || post.getIsDeleted()) {
+            return Result.error(404, "帖子不存在或已被删除", null);
+        }
 
+        // 创建评论对象
+        Comment comment = new Comment();
+        comment.setUserId(userId);
+        comment.setTargetType("post");
+        comment.setTargetId(postId);
+        comment.setContent(payloadDTO.getContent());
+        comment.setLikesCount(0);
+        comment.setIsDeleted(false);
+        comment.setTenantId("default"); // 在实际应用中应该从上下文中获取
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
+
+        // 保存评论
+        boolean saved = commentMapper.insert(comment) > 0;
+        
+        if (!saved) {
+            return Result.error(500, "评论保存失败", null);
+        }
+
+        // 更新帖子的评论数
+        post.setCommentsCount(post.getCommentsCount() + 1);
+        this.updateById(post);
+
+        // 构造返回的TComment对象
+        TComment tComment = new TComment();
+        tComment.setId(String.valueOf(comment.getId()));
+        tComment.setUserId(String.valueOf(userId));
+        
+        // 获取用户信息
+        User user = userService.getById(userId);
+        tComment.setUser(user);
+        
+        tComment.setText(payloadDTO.getContent());
+        tComment.setLikes(0);
+        tComment.setIsLiked(false);
+        tComment.setCreatedAt(comment.getCreatedAt().toString());
+        tComment.setTimeAgo("刚刚");
+        tComment.setReplies(new TComment[0]);
+        
+        return Result.success(tComment);
+    }
 }

@@ -1,10 +1,13 @@
 package cn.loblok.upc.dto;
 
 import cn.loblok.upc.entity.User;
+import lombok.Data;
 
 /**
  * 评论响应
  */
+
+@Data
 public class TComment {
 
     // 评论ID
@@ -33,4 +36,5 @@ public class TComment {
 
     // 前端计算的时间
     private String timeAgo;
+
 }

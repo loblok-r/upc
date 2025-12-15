@@ -1,12 +1,18 @@
 package cn.loblok.upc.service.impl;
 
-import cn.loblok.upc.dto.Author;
-import cn.loblok.upc.dto.CreatorLeaderboardResponse;
-import cn.loblok.upc.dto.LeaderboardAuthor;
+import cn.loblok.upc.dto.*;
+import cn.loblok.upc.entity.Comment;
+import cn.loblok.upc.entity.LikeRecord;
+import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.entity.User;
+import cn.loblok.upc.mapper.CommentMapper;
+import cn.loblok.upc.mapper.LikeRecordMapper;
+import cn.loblok.upc.mapper.PostsMapper;
 import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.UserService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +34,12 @@ public class CommunityServiceImpl implements CommunityService {
     private final UserService userService;
 
     private final FollowService followService;
+    
+    private final CommentMapper commentMapper;
+    
+    private final LikeRecordMapper likeRecordMapper;
+    
+    private final PostsMapper postsMapper;
 
     @Override
     public List<CreatorLeaderboardResponse> getCreatorLeaderboard(Long userId) {
@@ -56,12 +68,131 @@ public class CommunityServiceImpl implements CommunityService {
 
     @Override
     public String likeOrUnlikeComment(Long userId, Long commentId) {
-        return null;
+        // 检查评论是否存在
+        Comment comment = commentMapper.selectById(commentId);
+        if (comment == null || comment.getIsDeleted()) {
+            throw new RuntimeException("评论不存在或已被删除");
+        }
+
+        // 检查是否已经点赞
+        QueryWrapper<LikeRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("target_type", "comment");
+        queryWrapper.eq("target_id", commentId);
+        
+        LikeRecord existingLike = likeRecordMapper.selectOne(queryWrapper);
+        
+        if (existingLike != null) {
+            // 已经点赞，执行取消点赞操作
+            likeRecordMapper.deleteById(existingLike.getId());
+            
+            // 减少评论的点赞数
+            comment.setLikesCount(Math.max(0, comment.getLikesCount() - 1));
+            commentMapper.updateById(comment);
+            
+            return "取消点赞成功";
+        } else {
+            // 未点赞，执行点赞操作
+            LikeRecord likeRecord = new LikeRecord();
+            likeRecord.setUserId(userId);
+            likeRecord.setTargetType("comment");
+            likeRecord.setTargetId(commentId);
+            likeRecord.setTenantId("default"); // 根据实际情况设置租户ID
+            likeRecord.setCreatedAt(LocalDateTime.now());
+            likeRecordMapper.insert(likeRecord);
+            
+            // 增加评论的点赞数
+            comment.setLikesCount(comment.getLikesCount() + 1);
+            commentMapper.updateById(comment);
+            
+            return "点赞成功";
+        }
     }
 
     @Override
     public Author getUserProfile(Long targetUserId, Long currentUserId) {
-        return null;
+        // 获取目标用户信息
+        User targetUser = userService.getById(targetUserId);
+        if (targetUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
+        // 构造Author对象
+        Author author = new Author();
+        author.setId(targetUser.getId());
+        author.setName(targetUser.getUsername());
+        author.setAvatar(targetUser.getAvatarUrl());
+        author.setHandle(targetUser.getUsername());
+        author.setFollowers(targetUser.getFollowers());
+        author.setIsVerified(false); // 根据实际业务设置
+        
+        // 检查当前用户是否关注了目标用户
+        boolean isFollowed = followService.isFollowed(currentUserId, targetUserId);
+        author.setIsFollowed(isFollowed);
+        
+        // 设置统计信息
+        StatsData stats = new StatsData();
+        stats.setWorks(targetUser.getWorks());
+        stats.setFollowers(targetUser.getFollowers());
+        stats.setLikes(targetUser.getLikes());
+        author.setStats(stats);
+        
+        // 设置其他信息
+        author.setComputingPower(targetUser.getComputingPower());
+        author.setMaxcomputingPower(1000); // 根据实际情况设置最大算力
+        author.setIsMember(userService.isMember(targetUserId));
+        author.setBio(""); // 根据实际情况设置用户简介
+        
+        return author;
+    }
+
+    @Override
+    public Result<List<PostResponse>> getUserWorks(Long targetUserId, Long currentUserId) {
+        // 检查目标用户是否存在
+        User targetUser = userService.getById(targetUserId);
+        if (targetUser == null) {
+            return Result.error(404, "用户不存在", null);
+        }
+        
+        // 查询目标用户的作品列表
+        LambdaQueryWrapper<Posts> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Posts::getUserId, targetUserId)
+                .eq(Posts::getIsDeleted, false)
+                .orderByDesc(Posts::getCreatedAt);
+        
+        List<Posts> postsList = postsMapper.selectList(queryWrapper);
+        
+        // 转换为PostResponse列表
+        List<PostResponse> postResponses = postsList.stream().map(post -> {
+            PostResponse response = new PostResponse();
+            response.setId(post.getId());
+            response.setTitle(post.getTitle());
+            response.setContent(post.getContent());
+            response.setLikesCount(post.getLikesCount());
+            response.setCommentsCount(post.getCommentsCount());
+            response.setImageUrl(post.getImageUrl());
+            response.setIsDeleted(post.getIsDeleted());
+            response.setCreatedAt(post.getCreatedAt());
+            response.setUpdatedAt(post.getUpdatedAt());
+            
+            // 设置作者信息
+            Author author = new Author();
+            author.setId(targetUser.getId());
+            author.setName(targetUser.getUsername());
+            author.setAvatar(targetUser.getAvatarUrl());
+            author.setHandle(targetUser.getUsername());
+            author.setFollowers(targetUser.getFollowers());
+            author.setIsVerified(false); // 根据实际业务设置
+            
+            // 检查当前用户是否关注了目标用户
+            boolean isFollowed = followService.isFollowed(currentUserId, targetUserId);
+            author.setIsFollowed(isFollowed);
+            
+            response.setAuthor(author);
+            return response;
+        }).collect(Collectors.toList());
+        
+        return Result.success(postResponses);
     }
 
     @NotNull
