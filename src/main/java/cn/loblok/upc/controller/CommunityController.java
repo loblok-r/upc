@@ -8,6 +8,7 @@ import cn.loblok.upc.service.FollowService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -153,6 +154,29 @@ public class CommunityController {
             return communityService.getUserWorks(targetUserId, currentUserId);
         } catch (Exception e) {
             return Result.error(500, "获取用户作品失败", e.getMessage());
+        }
+    }
+
+
+/**
+     * 搜索用户
+     *
+     * @param userId 当前用户ID
+     * @param keyword 搜索关键词
+     * @return 搜索结果列表
+     */
+    @GetMapping("/users/search")
+    public Result<List<Author>> searchUsers(@CurrentUser Long userId,  @RequestParam("q") String keyword) {
+
+        // 1. 参数校验
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+        try {
+            List<Author> searchResults = communityService.searchUsers(keyword, userId);
+            return Result.success(searchResults);
+        } catch (Exception e) {
+            return Result.error(500, "搜索失败", e.getMessage());
         }
     }
 

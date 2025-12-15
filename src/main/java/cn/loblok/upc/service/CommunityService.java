@@ -46,4 +46,12 @@ public interface CommunityService {
      * @return 用户作品列表
      */
     Result<List<PostResponse>> getUserWorks(Long targetUserId, Long currentUserId);
+    
+    /**
+     * 搜索用户
+     * @param keyword 搜索关键词
+     * @param currentUserId 当前用户ID
+     * @return 搜索结果列表
+     */
+    List<Author> searchUsers(String keyword, Long currentUserId);
 }

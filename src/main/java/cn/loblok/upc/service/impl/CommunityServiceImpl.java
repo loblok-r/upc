@@ -5,9 +5,11 @@ import cn.loblok.upc.entity.Comment;
 import cn.loblok.upc.entity.LikeRecord;
 import cn.loblok.upc.entity.Posts;
 import cn.loblok.upc.entity.User;
+import cn.loblok.upc.entity.UserSearchResult;
 import cn.loblok.upc.mapper.CommentMapper;
 import cn.loblok.upc.mapper.LikeRecordMapper;
 import cn.loblok.upc.mapper.PostsMapper;
+import cn.loblok.upc.mapper.UserMapper;
 import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.UserService;
@@ -32,6 +34,8 @@ public class CommunityServiceImpl implements CommunityService {
 
 
     private final UserService userService;
+    
+    private final UserMapper userMapper;
 
     private final FollowService followService;
     
@@ -193,6 +197,25 @@ public class CommunityServiceImpl implements CommunityService {
         }).collect(Collectors.toList());
         
         return Result.success(postResponses);
+    }
+
+    @Override
+    public List<Author> searchUsers(String keyword, Long currentUserId) {
+        // 使用自定义SQL搜索用户并获取关注状态
+        List<UserSearchResult> userSearchResults = userMapper.searchUsersByKeyword(keyword, currentUserId);
+        
+        // 转换为Author对象列表
+        return userSearchResults.stream().map(userSearchResult -> {
+            Author author = new Author();
+            author.setId(userSearchResult.getId());
+            author.setName(userSearchResult.getUsername());
+            author.setAvatar(userSearchResult.getAvatarUrl());
+            author.setHandle(userSearchResult.getUsername());
+            author.setFollowers(userSearchResult.getFollowers());
+            author.setIsVerified(false); // 根据实际业务设置
+            author.setIsFollowed(userSearchResult.getIsFollowed() != null && userSearchResult.getIsFollowed() == 1);
+            return author;
+        }).collect(Collectors.toList());
     }
 
     @NotNull
