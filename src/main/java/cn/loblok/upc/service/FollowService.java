@@ -34,6 +34,13 @@ public interface FollowService extends IService<Follow> {
     List<Author> getFollowingList(Long userId);
 
     /**
+     * 获取用户粉丝列表
+     * @param userId 用户ID
+     * @return 粉丝列表
+     */
+    List<Author> getFollowerList(Long userId);
+
+    /**
      * 获取推荐关注列表
      * @return 推荐关注列表
      */
@@ -46,4 +53,6 @@ public interface FollowService extends IService<Follow> {
      * @return 是否已关注
      */
     boolean isFollowed(Long userId, Long targetId);
+
+
 }

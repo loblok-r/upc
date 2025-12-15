@@ -2,6 +2,7 @@ package cn.loblok.upc.service.impl;
 
 import cn.loblok.upc.dto.Author;
 import cn.loblok.upc.dto.FollowUserResponse;
+import cn.loblok.upc.dto.StatsData;
 import cn.loblok.upc.entity.Follow;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.mapper.FollowMapper;
@@ -55,6 +56,12 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             this.remove(queryWrapper);
             // 更新被关注者的粉丝数
             User followee = userService.getById(followeeId);
+
+            //更新当前用户的关注数
+            User follower = userService.getById(followerId);
+            if(follower != null){
+                follower.setFollowings(Math.max(0, follower.getFollowings() - 1));
+            }
             if (followee != null) {
                 followee.setFollowers(Math.max(0, followee.getFollowers() - 1));
                 userService.updateById(followee);
@@ -75,6 +82,11 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             this.save(follow);
             // 更新被关注者的粉丝数
             User followee = userService.getById(followeeId);
+            // 更新当前用户的关注数
+            User follower = userService.getById(followerId);
+            if(follower != null){
+                follower.setFollowings(follower.getFollowings() + 1);
+            }
             if (followee != null) {
                 followee.setFollowers(followee.getFollowers() + 1);
                 userService.updateById(followee);
@@ -131,6 +143,34 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
     }
 
     @Override
+    public List<Author> getFollowerList(Long userId) {
+        // 查询关注指定用户的所有粉丝ID
+        QueryWrapper<Follow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("followee_id", userId);
+
+        List<Follow> followerRelations = this.list(queryWrapper);
+
+        // 提取粉丝的ID列表
+        List<Long> followerIds = followerRelations.stream()
+                .map(Follow::getFollowerId)
+                .collect(Collectors.toList());
+
+        // 根据ID列表查询用户信息
+        if (followerIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<User> users = userService.listByIds(followerIds);
+        return users.stream()
+                .map(user -> {
+                    // 将User对象转换为Author对象
+                    return convertToAuthor(user);
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
     public List<Author> getRecommendFollowList(Long userId) {
         log.info("开始获取 推荐的用户 {}", userId);
         // 获取所有用户
@@ -185,6 +225,12 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         author.setAvatar(user.getAvatarUrl());
         author.setHandle(user.getUsername());
         author.setFollowers(user.getFollowers());
+        StatsData statsData = new StatsData();
+        statsData.setWorks(user.getWorks());
+        statsData.setFollowers(user.getFollowers());
+        statsData.setFollowing(user.getFollowings());
+        statsData.setLikes(user.getLikes());
+        author.setStats(statsData);
         return author;
     }
 

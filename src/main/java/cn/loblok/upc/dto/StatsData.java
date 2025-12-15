@@ -13,5 +13,7 @@ public class StatsData {
 
     private int followers;
 
+    private int following;
+
     private int likes;
 }

@@ -190,6 +190,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserProfileDTO userProfileDTO = new UserProfileDTO();
 
         StatsData statsData = new StatsData();
+        statsData.setFollowing(user.getFollowings());
         statsData.setWorks(user.getWorks());
         statsData.setFollowers(user.getFollowers());
         statsData.setLikes(user.getLikes());

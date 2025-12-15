@@ -41,21 +41,31 @@ public class CommunityController {
         }
     }
     
-    /**
-     * 查询当前用户关注的用户列表
-     *
-     * @param userId 当前用户ID
-     * @return 关注的用户列表
-     */
-    @GetMapping("/following")
-    public Result<List<Author>> getFollowingList(@CurrentUser Long userId) {
-        try {
-            List<Author> followingUsers = followService.getFollowingList(userId);
-            return Result.success(followingUsers);
-        } catch (Exception e) {
-            return Result.error(500, "查询失败", e.getMessage());
+  /**
+ * 查询用户关注列表或粉丝列表
+ *
+ * @param userId 用户ID
+ * @param type 类型: "following"表示关注列表, "followers"表示粉丝列表
+ * @return 用户列表
+ */
+@GetMapping("/users/{userId}/{type}")
+public Result<List<Author>> getFollowingList(@PathVariable("userId") Long userId,
+                                           @PathVariable("type") String type) {
+    List<Author> userList = null;
+    try {
+        if(type.equals("following")){
+            userList = followService.getFollowingList(userId);
+        } else if(type.equals("followers")){  // 注意这里是复数形式
+            userList = followService.getFollowerList(userId);
         }
+
+        return Result.success(userList);
+    } catch (Exception e) {
+        return Result.error(500, "查询失败", e.getMessage());
     }
+}
+
+
 
     /**
      *

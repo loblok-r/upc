@@ -68,6 +68,10 @@ public class User implements Serializable {
     @TableField("followers")
     private Integer followers;
 
+
+    @TableField("followings")
+    private Integer followings;
+
     @TableField("lottery_counts")
     private Integer lotteryCounts;
 

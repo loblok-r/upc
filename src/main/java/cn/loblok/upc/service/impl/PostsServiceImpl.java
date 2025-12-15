@@ -122,6 +122,12 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     author.setAvatar(user.getAvatarUrl());
                     author.setHandle(user.getUsername());
                     author.setFollowers(user.getFollowers());
+                    StatsData statsData = new StatsData();
+                    statsData.setFollowers(user.getFollowers());
+                    statsData.setFollowing(user.getFollowings());
+                    statsData.setWorks(user.getWorks());
+                    statsData.setLikes(user.getLikes());
+                    author.setStats(statsData);
                     PostResponse response = new PostResponse();
                     response.setId(post.getId());
                     response.setTitle(post.getTitle());
@@ -155,6 +161,12 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     author.setAvatar(user.getAvatarUrl());
                     author.setHandle(user.getUsername());
                     author.setFollowers(user.getFollowers());
+                    StatsData statsData = new StatsData();
+                    statsData.setFollowers(user.getFollowers());
+                    statsData.setFollowing(user.getFollowings());
+                    statsData.setWorks(user.getWorks());
+                    statsData.setLikes(user.getLikes());
+                    author.setStats(statsData);
                     PostResponse response = new PostResponse();
                     response.setId(post.getId());
                     response.setTitle(post.getTitle());
@@ -187,7 +199,12 @@ public List<PostResponse> getMyPosts(Long userId) {
                 author.setAvatar(user.getAvatarUrl());
                 author.setHandle(user.getUsername());
                 author.setFollowers(user.getFollowers());
-
+                StatsData statsData = new StatsData();
+                statsData.setFollowers(user.getFollowers());
+                statsData.setFollowing(user.getFollowings());
+                statsData.setWorks(user.getWorks());
+                statsData.setLikes(user.getLikes());
+                author.setStats(statsData);
                 PostResponse response = new PostResponse();
                 response.setId(post.getId());
                 response.setTitle(post.getTitle());
