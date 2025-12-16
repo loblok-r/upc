@@ -7,6 +7,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: upc
       TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:3306:3306"
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
@@ -72,6 +74,16 @@ services:
     restart: always
     environment:
       TZ: Asia/Shanghai
+
+      # 1. 激活 pro 环境
+      SPRING_PROFILES_ACTIVE: pro
+
+      # 2. 传入 Nacos 密码 (对应 bootstrap.yml 里的 ${NACOS_PASSWORD})
+      NACOS_PASSWORD: ${NACOS_PASSWORD}
+
+      # 3. 传入 Pro 的 Namespace ID (如果就是 "pro" 可以写死，或者也在 .env 里配)
+      NACOS_NAMESPACE_ID: proId
+
       SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       SPRING_CLOUD_NACOS_USERNAME: nacos

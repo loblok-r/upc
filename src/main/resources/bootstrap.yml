@@ -2,12 +2,11 @@
 spring:
   application:
     name: upc-core
-  # 核心：设置默认环境。
-  # 本地没设置环境变量时默认走 dev
+  # 默认激活 dev，这样你在本地跑 IDEA 不用改任何配置
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
-# Jasypt 配置
+# Jasypt 配置 (保持不变)
 jasypt:
   encryptor:
     algorithm: PBEWITHHMACSHA512ANDAES_256
@@ -16,8 +15,7 @@ jasypt:
     string-output-type: base64
 
 ---
-# ========= 第二部分：仅 Dev 环境生效 =========
-# 只有当 active profile 是 dev 时，才会加载 Nacos 配置
+# ========= 第二部分：Dev 环境 (本地开发) =========
 spring:
   config:
     activate:
@@ -26,7 +24,29 @@ spring:
     nacos:
       config:
         server-addr: 127.0.0.1:8848
-        namespace: devId
+        namespace: devId  # 你本地的 Namespace ID
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+        # 本地开发通常不需要用户名密码，或者配置在这里
+
+---
+# ========= 第三部分：Pro 环境 (服务器部署) =========
+spring:
+  config:
+    activate:
+      on-profile: pro
+  cloud:
+    nacos:
+      username: nacos
+      # 密码尽量不要写死在代码里，而是通过 Docker 环境变量传入
+      password: ${NACOS_PASSWORD}
+      config:
+        # 【重点】在 Docker 内部互联，必须用服务名 nacos，不能用 IP
+        server-addr: nacos:8848
+        # 【重点】去 Nacos 控制台确认 pro 的 Namespace ID！
+        # 如果你创建时 ID 填了 "pro"，这里就是 "pro"；如果是自动生成的 UUID，这里要填 UUID
+        namespace: ${NACOS_NAMESPACE_ID:proId}
         group: DEFAULT_GROUP
         file-extension: yaml
         refresh-enabled: true
