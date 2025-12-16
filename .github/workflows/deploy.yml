@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 这一步只为了触发 Action，实际上我们不需要在 GitHub 环境做任何事
-      # 我们只需要通过 SSH 命令指挥服务器干活
+      # 为了触发 Action，实际上不需要在 GitHub 环境做任何事
+      # 只需要通过 SSH 命令指挥服务器干活
 
       - name: Execute Server Commands
         uses: appleboy/ssh-action@v1.0.3
@@ -32,27 +32,32 @@ jobs:
             
             # 如果目录存在但不是 Git 仓库，清理
             if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-              echo "⚠️ Removing non-Git directory: $PROJECT_DIR"
+              echo "Removing non-Git directory: $PROJECT_DIR"
               rm -rf "$PROJECT_DIR"
             fi
             
             # 如果目录不存在，克隆 Gitee
             if [ ! -d "$PROJECT_DIR" ]; then
-              echo "🔄 Cloning from Gitee..."
+              echo "Cloning from Gitee..."
               git clone "$GITEE_URL" "$PROJECT_DIR"
             fi
             
             cd "$PROJECT_DIR"
             
-            # 👇 关键：强制设置 remote origin 为 Gitee！
+            # 清理本地所有修改
+            echo "Discarding all local changes..."
+            git reset --hard HEAD
+            git clean -fd
+            
+            # 强制设置 remote origin 为 Gitee！
             echo "🔧 Ensuring remote origin points to Gitee..."
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
             
             # 现在安全地 pull
-            echo "📥 Pulling latest code from Gitee..."
+            echo "Pulling latest code from Gitee..."
             git pull origin main
             
-            # 后续步骤...
+          
             mvn clean package -DskipTests
             docker build -t upc-backend:latest .
             sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
