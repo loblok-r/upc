@@ -39,7 +39,7 @@ services:
           memory: 256M
 
   nacos:
-    image: registry.cn-hangzhou.aliyuncs.com/nacos/nacos-server:v2.2.3
+    image: ${NACOS_IMAGE:-nacos/nacos-server:v2.2.3}
     container_name: upc-nacos
     restart: always
     environment:
