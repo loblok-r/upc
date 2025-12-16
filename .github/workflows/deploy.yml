@@ -28,7 +28,7 @@ jobs:
             # 确保你之前已经手动把代码 clone 到了这里，或者用下面的命令
             if [ ! -d "/opt/projects/upc-backend/.git" ]; then
               mkdir -p /opt/projects/upc-backend
-              git clone https://github.com/你的用户名/upc.git /opt/projects/upc-backend
+              git clone https://github.com/loblok-r/upc.git /opt/projects/upc-backend
             fi
             
             cd /opt/projects/upc-backend/
