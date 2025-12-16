@@ -14,9 +14,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 为了触发 Action，实际上不需要在 GitHub 环境做任何事
-      # 只需要通过 SSH 命令指挥服务器干活
+      # 1. 检出代码 (必须设置 fetch-depth: 0 以保证有完整提交历史用于推送)
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # 2. 【核心修改】配置 SSH 并推送到 Gitee
+      - name: Sync to Gitee (SSH)
+        env:
+          # 引用你在 GitHub 设置的 Secret
+          SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+        run: |
+          # A. 配置 SSH 目录和私钥文件
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # B. 将 Gitee 加入已知主机列表 (防止因为指纹验证失败而报错)
+          ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts
+          
+          # C. 配置 Git 推送
+          # 注意：这里必须用 SSH 格式的地址 (git@gitee.com:...)
+          # 请确认你的用户名和仓库名是否正确
+          git remote add gitee git@gitee.com:barondd/upc.git
+          
+          # D. 强行推送
+          echo "🚀 Pushing to Gitee..."
+          git push gitee HEAD:main -f
+
+      # 3. 服务器执行部署 (这部分保持不变)
       - name: Execute Server Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -26,41 +53,36 @@ jobs:
           script_stop: true
           script: |
             set -e
-  
+            
             PROJECT_DIR="/opt/projects/upc-backend"
+            # 服务器端拉取依然可以使用 HTTPS (只要服务器能免密拉取或公开仓库)，或者你也配了SSH
+            # 只要 GitHub Action 推送成功，服务器就能拉到最新的
             GITEE_URL="https://gitee.com/barondd/upc.git"
             
-            # 如果目录存在但不是 Git 仓库，清理
             if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-              echo "Removing non-Git directory: $PROJECT_DIR"
               rm -rf "$PROJECT_DIR"
             fi
             
-            # 如果目录不存在，克隆 Gitee
             if [ ! -d "$PROJECT_DIR" ]; then
-              echo "Cloning from Gitee..."
               git clone "$GITEE_URL" "$PROJECT_DIR"
             fi
             
             cd "$PROJECT_DIR"
             
-            # 清理本地所有修改
             echo "Discarding all local changes..."
             git reset --hard HEAD
             git clean -fd -e .env
             
-            # 强制设置 remote origin 为 Gitee！
             echo "🔧 Ensuring remote origin points to Gitee..."
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
             
             git fetch origin
             
-            # 精准检出 GitHub 触发本次 Action 的 commit
+            # 此时 Gitee 上已经有最新的 commit 了，所以这步不会再报错
             COMMIT_SHA="${{ github.sha }}"
             echo "🔍 Checking out commit: $COMMIT_SHA"
             git checkout -q "$COMMIT_SHA"
             
-          
             mvn clean package -DskipTests
             docker build -t upc-backend:latest .
             sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
