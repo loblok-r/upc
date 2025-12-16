@@ -26,25 +26,32 @@ jobs:
           script_stop: true
           script: |
             set -e
-
+  
             PROJECT_DIR="/opt/projects/upc-backend"
-
-            # 如果目录存在但不是 Git 仓库，就删掉它（避免 git clone 失败）
+            GITEE_URL="https://gitee.com/barondd/upc.git"
+            
+            # 如果目录存在但不是 Git 仓库，清理
             if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-              echo "⚠️ $PROJECT_DIR exists but is not a Git repo. Removing it..."
-              rm -rf "$PROJECT_DIR"
+          echo "⚠️ Removing non-Git directory: $PROJECT_DIR"
+            rm -rf "$PROJECT_DIR"
             fi
-
-            # 如果目录不存在，就克隆
+            
+            # 如果目录不存在，克隆 Gitee
             if [ ! -d "$PROJECT_DIR" ]; then
-              echo "🔄 Cloning repository..."
-              git clone https://gitee.com/barondd/upc.git "$PROJECT_DIR"
+            echo "🔄 Cloning from Gitee..."
+            git clone "$GITEE_URL" "$PROJECT_DIR"
             fi
-
+            
             cd "$PROJECT_DIR"
-            echo "📥 Pulling latest code..."
+            
+            # 👇 关键：强制设置 remote origin 为 Gitee！
+            echo "🔧 Ensuring remote origin points to Gitee..."
+            git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
+            
+            # 现在安全地 pull
+            echo "📥 Pulling latest code from Gitee..."
             git pull origin main
-
+            
             # 后续步骤...
             mvn clean package -DskipTests
             docker build -t upc-backend:latest .
