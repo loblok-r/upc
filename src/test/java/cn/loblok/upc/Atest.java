@@ -31,6 +31,7 @@ public class Atest {
         config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator");
         config.setStringOutputType("base64");
         encryptor.setConfig(config);
+        System.out.println("test gitee 镜像仓库 ");
 
         String encrypted = encryptor.encrypt(plainText);
         System.out.println("加密结果（复制到 Nacos）:");
