@@ -32,14 +32,14 @@ jobs:
             
             # 如果目录存在但不是 Git 仓库，清理
             if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-          echo "⚠️ Removing non-Git directory: $PROJECT_DIR"
-            rm -rf "$PROJECT_DIR"
+              echo "⚠️ Removing non-Git directory: $PROJECT_DIR"
+              rm -rf "$PROJECT_DIR"
             fi
             
             # 如果目录不存在，克隆 Gitee
             if [ ! -d "$PROJECT_DIR" ]; then
-            echo "🔄 Cloning from Gitee..."
-            git clone "$GITEE_URL" "$PROJECT_DIR"
+              echo "🔄 Cloning from Gitee..."
+              git clone "$GITEE_URL" "$PROJECT_DIR"
             fi
             
             cd "$PROJECT_DIR"
