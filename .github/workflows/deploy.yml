@@ -53,9 +53,12 @@ jobs:
             echo "🔧 Ensuring remote origin points to Gitee..."
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
             
-            # 现在安全地 pull
-            echo "Pulling latest code from Gitee..."
-            git pull origin main
+            git fetch origin
+            
+            # 精准检出 GitHub 触发本次 Action 的 commit
+            COMMIT_SHA="${{ github.sha }}"
+            echo "🔍 Checking out commit: $COMMIT_SHA"
+            git checkout -q "$COMMIT_SHA"
             
           
             mvn clean package -DskipTests
