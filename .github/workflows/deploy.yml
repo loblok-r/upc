@@ -1,4 +1,4 @@
-name: Deploy Backend (Server Build)
+name: Deploy Backend (Git Pull Mode)
 
 on:
   push:
@@ -8,61 +8,44 @@ on:
 env:
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: root
-  # 这一版不需要 IMAGE_NAME 了，因为是本地构建
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # 1. 这一步只为了触发 Action，实际上我们不需要在 GitHub 环境做任何事
+      # 我们只需要通过 SSH 命令指挥服务器干活
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-
-      # --- 关键改变：直接把 Jar 包和 Dockerfile 传到服务器 ---
-      - name: Copy Jar and Dockerfile to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ env.SERVER_IP }}
-          username: ${{ env.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          #要把本地的 target/xxx.jar 和 Dockerfile 拷贝过去
-          source: "target/*.jar,Dockerfile"
-          target: "/opt/projects/upc-backend/"
-          # 去掉目录层级，直接把文件平铺到目标目录
-          strip_components: 0
-
-      # --- 关键改变：在服务器上执行构建 ---
-      - name: Build and Restart on Server
+      - name: Execute Server Commands
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            # 1. 进入项目目录
+            # 确保你之前已经手动把代码 clone 到了这里，或者用下面的命令
+            if [ ! -d "/opt/projects/upc-backend/.git" ]; then
+              mkdir -p /opt/projects/upc-backend
+              git clone https://github.com/你的用户名/upc.git /opt/projects/upc-backend
+            fi
+            
             cd /opt/projects/upc-backend/
             
-            # 1. 既然是上传过来的，把 jar 包移动到跟 Dockerfile 同级 (如果 scp 传过来带了 target 目录)
-            # 如果 scp 保持了目录结构，可能需要 mv target/*.jar app.jar 或者调整 Dockerfile
-            # 为了保险，我们简单粗暴一点，假设 Dockerfile 里写的是 COPY target/*.jar
+            # 2. 拉取最新代码 (只传输几 KB 的文本，秒级完成！)
+            git pull origin main
             
-            # 2. 直接在服务器上构建镜像 (本地构建，速度飞快)
-            # 这里的镜像名我们就叫 upc-backend:latest，不用推送到腾讯云了，本地直接用
+            # 3. 在服务器本地打包 (第一次慢，后面因为有缓存会飞快)
+            # 你的服务器在国内，为了加速 Maven 下载，建议配置阿里云镜像(可选)
+            mvn clean package -DskipTests
+            
+            # 4. 构建 Docker 镜像 (本地构建，秒级)
             docker build -t upc-backend:latest .
             
-            # 3. 修改 .env 里的镜像名 (指向本地刚构建的镜像)
+            # 5. 修改 .env 指向本地镜像
             sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|g" .env
             
-            # 4. 重启容器
-            docker-compose up -d --force-recreate --build backend
-            
-            # 5. 清理虚悬镜像
+            # 6. 重启
+            docker-compose up -d --force-recreate --no-deps backend
             docker image prune -f
