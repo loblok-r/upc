@@ -1,51 +1,37 @@
-name: Deploy Backend (Git Pull Mode)
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-env:
-  SERVER_IP: ${{ secrets.SERVER_IP }}
-  SERVER_USER: root
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1. 这一步只为了触发 Action，实际上我们不需要在 GitHub 环境做任何事
-      # 我们只需要通过 SSH 命令指挥服务器干活
-
-      - name: Execute Server Commands
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.SERVER_IP }}
-          username: ${{ env.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            # 1. 进入项目目录
-            # 确保你之前已经手动把代码 clone 到了这里，或者用下面的命令
-            if [ ! -d "/opt/projects/upc-backend/.git" ]; then
-              mkdir -p /opt/projects/upc-backend
-              git clone https://github.com/loblok-r/upc.git /opt/projects/upc-backend
-            fi
-            
-            cd /opt/projects/upc-backend/
-            
-            # 2. 拉取最新代码 (只传输几 KB 的文本，秒级完成！)
-            git pull origin main
-            
-            # 3. 在服务器本地打包 (第一次慢，后面因为有缓存会飞快)
-            # 你的服务器在国内，为了加速 Maven 下载，建议配置阿里云镜像(可选)
-            mvn clean package -DskipTests
-            
-            # 4. 构建 Docker 镜像 (本地构建，秒级)
-            docker build -t upc-backend:latest .
-            
-            # 5. 修改 .env 指向本地镜像
-            sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|g" .env
-            
-            # 6. 重启
-            docker-compose up -d --force-recreate --no-deps backend
-            docker image prune -f
+- name: Execute Server Commands
+  uses: appleboy/ssh-action@master
+  with:
+    host: ${{ env.SERVER_IP }}
+    username: ${{ env.SERVER_USER }}
+    password: ${{ secrets.SERVER_PASSWORD }}
+    script_stop: true  # 👈 关键！SSH 脚本出错就让 Action 失败
+    script: |
+      set -e  # 👈 关键！任何命令失败立即退出
+      
+      PROJECT_DIR="/opt/projects/upc-backend"
+      
+      if [ ! -d "$PROJECT_DIR/.git" ]; then
+        echo "🔄 Cloning repository for the first time..."
+        rm -rf "$PROJECT_DIR"
+        git clone https://github.com/loblok-r/upc.git "$PROJECT_DIR"
+      fi
+      
+      cd "$PROJECT_DIR"
+      echo "📥 Pulling latest code..."
+      git pull origin main
+      
+      echo "🧱 Building JAR (skipping tests)..."
+      mvn clean package -DskipTests
+      
+      echo "📦 Building Docker image..."
+      docker build -t upc-backend:latest .
+      
+      echo "🔧 Updating .env to use local image..."
+      sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
+      
+      echo "🚀 Restarting backend service..."
+      docker compose down backend 2>/dev/null || true
+      docker compose up -d --force-recreate backend
+      
+      echo "✅ Deployment completed!"
+      docker compose ps
