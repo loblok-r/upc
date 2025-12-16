@@ -47,7 +47,7 @@ jobs:
             # 清理本地所有修改
             echo "Discarding all local changes..."
             git reset --hard HEAD
-            git clean -fd
+            git clean -fd -e .env
             
             # 强制设置 remote origin 为 Gitee！
             echo "🔧 Ensuring remote origin points to Gitee..."
