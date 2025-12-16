@@ -1,0 +1,90 @@
+name: Deploy Backend to Server
+
+on:
+  push:
+    branches: [ "main" ]  # 当推送到 main 分支时触发
+  workflow_dispatch:      # 允许手动在 GitHub 网页上点按钮触发
+
+env:
+  # 1. 这里填写你的腾讯云镜像仓库的基础地址
+  # 格式: ccr.ccs.tencentyun.com/你的命名空间/你的仓库名
+  # 注意：不包含 :tag 部分
+  IMAGE_NAME: ccr.ccs.tencentyun.com/upc-loblok-one/upc-back-system
+
+  # 2. 你的服务器 IP 和 用户名
+  SERVER_IP:  ${{ secrets.SERVER_IP }}
+  SERVER_USER: root
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --- 第一步：拉取代码 ---
+      - uses: actions/checkout@v3
+
+      # --- 第二步：设置 JDK 17 ---
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # --- 第三步：Maven 打包 (跳过测试以加快速度，因为需要连数据库) ---
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      # --- 第四步：登录腾讯云 Docker 仓库 ---
+      - name: Login to Tencent Cloud Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ccr.ccs.tencentyun.com
+          # 这里引用你在 GitHub 设置的 Secrets
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --- 第五步：构建并推送 Docker 镜像 ---
+      - name: Build and Push Docker Image
+        run: |
+          # 使用当前时间的秒数作为 tag，保证每次镜像名不一样，强制更新
+          IMAGE_TAG=$(date +%s)
+          
+          # 构建镜像
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          
+          # 推送镜像
+          docker push $IMAGE_NAME:$IMAGE_TAG
+          
+          # 将本次的 Tag 保存到环境变量，给下一步使用
+          echo "NEW_IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      # --- 第六步：SSH 连接服务器并部署 ---
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          # 你需要在 GitHub Secrets 里再加一个 SERVER_PASSWORD 或者 SERVER_SSH_KEY
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            # 进入服务器上的项目目录
+            cd /opt/projects/upc-backend/
+            
+            # 修改 .env 文件中的镜像名为最新版
+            # 这里用 sed 命令替换 .env 文件里 DOCKER_IMAGE_NAME=... 那一行
+            sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=${{ env.IMAGE_NAME }}:${{ env.NEW_IMAGE_TAG }}|g" .env
+             
+            grep "DOCKER_IMAGE_NAME" .env
+            
+            # 登录腾讯云 (防止服务器上 token 过期)
+            docker login ccr.ccs.tencentyun.com --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+            
+            # 拉取新镜像
+            docker-compose pull backend
+            
+            # 重启后端容器 (其他 mysql/redis/nacos 不会受影响)
+            docker-compose up -d backend
+            
+            # 清理掉旧的无用镜像 (可选，节省服务器空间)
+            docker image prune -f

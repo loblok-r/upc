@@ -12,8 +12,9 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000")
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:5173", "http://localhost:3000",
+                        "https://loblok-r.github.io")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")  // 允许的请求头
                 .allowCredentials(true)  // 允许携带凭证（如 cookies）

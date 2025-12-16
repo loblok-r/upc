@@ -1,15 +1,11 @@
+# ========= 第一部分：公共配置 =========
 spring:
   application:
     name: upc-core
-
-  cloud:
-    nacos:
-      config:
-        server-addr: 127.0.0.1:8848
-        namespace: devId
-        group: DEFAULT_GROUP
-        file-extension: yaml
-        refresh-enabled: true
+  # 核心：设置默认环境。
+  # 本地没设置环境变量时默认走 dev
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 # Jasypt 配置
 jasypt:
@@ -19,4 +15,18 @@ jasypt:
     salt-generator-classname: org.jasypt.salt.RandomSaltGenerator
     string-output-type: base64
 
-#upc-core-dev.yaml
+---
+# ========= 第二部分：仅 Dev 环境生效 =========
+# 只有当 active profile 是 dev 时，才会加载 Nacos 配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: devId
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
