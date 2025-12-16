@@ -18,7 +18,7 @@ jobs:
       # 我们只需要通过 SSH 命令指挥服务器干活
 
       - name: Execute Server Commands
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
@@ -38,7 +38,7 @@ jobs:
             # 如果目录不存在，就克隆
             if [ ! -d "$PROJECT_DIR" ]; then
               echo "🔄 Cloning repository..."
-              git clone https://github.com/loblok-r/upc.git "$PROJECT_DIR"
+              git clone https://gitee.com/barondd/upc.git "$PROJECT_DIR"
             fi
 
             cd "$PROJECT_DIR"
