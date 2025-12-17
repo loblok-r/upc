@@ -30,7 +30,12 @@ services:
     image: ${REDIS_IMAGE:-redis:6.2}
     container_name: upc-redis
     restart: always
-    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --save ""                    # ← 禁用所有 RDB 快照
+      --stop-writes-on-bgsave-error no   # ← 关键！避免因 bgsave 失败拒绝写入
     volumes:
       - ./redis/data:/data
     networks:
