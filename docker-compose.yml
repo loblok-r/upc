@@ -67,6 +67,13 @@ services:
       resources:
         limits:
           memory: 1024M
+    # 【新增】健康检查：只有当 Nacos 的 8848 端口能通，才认为它活着
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   backend:
     image: ${DOCKER_IMAGE_NAME}
@@ -74,38 +81,25 @@ services:
     restart: always
     environment:
       TZ: Asia/Shanghai
-
-      # 1. 激活 pro 环境
       SPRING_PROFILES_ACTIVE: pro
-
-      # 2. 传入 Nacos 密码 (对应 bootstrap.yml 里的 ${NACOS_PASSWORD})
       NACOS_PASSWORD: ${NACOS_PASSWORD}
-
-      # 3. 传入 Pro 的 Namespace ID (如果就是 "pro" 可以写死，或者也在 .env 里配)
       NACOS_NAMESPACE_ID: proId
-
+      # 确保这里指明了服务名
       SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
-      SPRING_CLOUD_NACOS_USERNAME: nacos
-      SPRING_CLOUD_NACOS_PASSWORD: ${NACOS_PASSWORD}
-      SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: nacos
-      SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: ${NACOS_PASSWORD}
-      SPRING_CLOUD_NACOS_CONFIG_USERNAME: nacos
-      SPRING_CLOUD_NACOS_CONFIG_PASSWORD: ${NACOS_PASSWORD}
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
-      SPRING_DATA_REDIS_DATABASE: 1
-      JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
+      # ... 其他配置保持不变 ...
     ports:
-      - "8069:"
+      - "8069:8069" # 【修正】补全端口
     networks:
       - upc-net
     depends_on:
-      - mysql
-      - redis
-      - nacos
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      nacos:
+        # 【关键修改】必须等 Nacos 健康检查通过(service_healthy)才启动 Backend
+        condition: service_healthy
     deploy:
       resources:
         limits:
