@@ -43,7 +43,7 @@ spring:
       password: ${NACOS_PASSWORD}
       config:
         # 【重点】在 Docker 内部互联，必须用服务名 nacos，不能用 IP
-        server-addr: nacos:8848
+        server-addr: upc-nacos:8848
         # 【重点】去 Nacos 控制台确认 pro 的 Namespace ID！
         # 如果你创建时 ID 填了 "pro"，这里就是 "pro"；如果是自动生成的 UUID，这里要填 UUID
         namespace: ${NACOS_NAMESPACE_ID:proId}
