@@ -82,12 +82,32 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: pro
+
+      # Nacos 认证信息
+      NACOS_USERNAME: nacos
       NACOS_PASSWORD: ${NACOS_PASSWORD}
       NACOS_NAMESPACE_ID: proId
-      # 确保这里指明了服务名
-      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
-      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
-      # ... 其他配置保持不变 ...
+
+      # 【核心修改 1】必须用 upc-nacos (容器名)，否则连不上配置中心
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: upc-nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: upc-nacos:8848
+
+      # Nacos 客户端认证（如果需要）
+      SPRING_CLOUD_NACOS_CONFIG_USERNAME: nacos
+      SPRING_CLOUD_NACOS_CONFIG_PASSWORD: ${NACOS_PASSWORD}
+      SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: nacos
+      SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: ${NACOS_PASSWORD}
+
+      # 【核心修改 2】即使这里删掉，靠 Nacos 拉取，前提也是上面的 upc-nacos 能通
+      # 建议先保留这行兜底，但必须改成 upc-mysql
+      SPRING_DATASOURCE_URL: jdbc:mysql://upc-mysql:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+      # 【核心修改 3】必须用 upc-redis
+      SPRING_DATA_REDIS_HOST: upc-redis
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SPRING_DATA_REDIS_DATABASE: 1
+      JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
     ports:
       - "8069:8069" # 【修正】补全端口
     networks:
