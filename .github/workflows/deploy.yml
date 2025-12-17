@@ -84,7 +84,10 @@ jobs:
             git checkout -q "$COMMIT_SHA"
             
             mvn clean package -DskipTests
-            docker build -t upc-backend:latest .
+            
+            echo "🐳 Building Docker image with legacy builder..."
+            DOCKER_BUILDKIT=0 docker build -t upc-backend:latest .
+            
             sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
             docker compose down backend 2>/dev/null || true
             docker compose up -d --force-recreate backend
