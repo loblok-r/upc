@@ -32,10 +32,10 @@ services:
     restart: always
     command: >
       redis-server
-      --requirepass ${REDIS_PASSWORD}
+#      --requirepass ${REDIS_PASSWORD}
       --appendonly yes
       --save ""                    
-      --stop-writes-on-bgsave-error no  
+      --stop-writes-on-bgsave-error no
     volumes:
       - ./redis/data:/data
     networks:

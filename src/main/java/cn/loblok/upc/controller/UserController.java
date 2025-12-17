@@ -109,6 +109,7 @@ public class UserController {
                 VerificationCodeType.login.getType())) {
             return Result.error(CommonStatusEnum.VERIFICATION_CODE_ERROR.getCode(),CommonStatusEnum.VERIFICATION_CODE_ERROR.getMessage());
         }
+        log.info("登录验证码校验通过..");
 
         try {
             return userService.login(
