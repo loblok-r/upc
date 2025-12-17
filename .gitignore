@@ -58,3 +58,5 @@ build/
 .DS_Store
 
 .env
+
+upc-core-pro.yml

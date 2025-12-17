@@ -79,6 +79,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
         String key = RedisUtils.buildVerificationCodeKey(email, type);
 
+        log.info("checkcode取出的验证码key为："+key);
         String redisCode = stringRedisTemplate.opsForValue().get(key);
 
         log.info("varificationCode"+varificationCode);
