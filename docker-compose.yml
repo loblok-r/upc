@@ -99,7 +99,7 @@ services:
       SPRING_DATA_REDIS_DATABASE: 1
       JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
     ports:
-      - "8069:8069"
+      - "8069:"
     networks:
       - upc-net
     depends_on:
