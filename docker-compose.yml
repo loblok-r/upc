@@ -60,16 +60,12 @@ services:
       - JVM_XMS=512m
       - JVM_XMX=512m
       - JVM_XMN=256m
-      #================== 新增配置开始 ==================
+      # --- 数据库配置精简版 ---
       - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=upc-mysql
-      - MYSQL_SERVICE_PORT=3306
-      # 这里建议新建一个 nacos_config 库，不要和业务库 upc 混在一起
-      - MYSQL_SERVICE_DB_NAME=nacos_config
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
-      # ================== 新增配置结束 ==================
+      - DB_NUM=1
+      - DB_URL_0=jdbc:mysql://upc-mysql:3306/nacos_config?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
     ports:
       - "8848:8848"
       - "9848:9848"
@@ -78,17 +74,13 @@ services:
       - ./nacos/data:/home/nacos/data
     networks:
       - upc-net
-    deploy:
-      resources:
-        limits:
-          memory: 1024M
-    # 【新增】健康检查：只有当 Nacos 的 8848 端口能通，才认为它活着
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      # 改用更稳妥的检测方式，避开鉴权 403 干扰
+      test: [ "CMD-SHELL", "curl -f http://localhost:8848/nacos/index.html || exit 1" ]
       interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
+      timeout: 5s
+      retries: 20       # 建议调多几次，Nacos 启动确实慢
+      start_period: 60s # 给 Nacos 充足的冷启动时间
 
   backend:
     image: ${DOCKER_IMAGE_NAME}
