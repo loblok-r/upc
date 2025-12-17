@@ -34,8 +34,8 @@ services:
       redis-server
       --requirepass ${REDIS_PASSWORD}
       --appendonly yes
-      --save ""                    # ← 禁用所有 RDB 快照
-      --stop-writes-on-bgsave-error no   # ← 关键！避免因 bgsave 失败拒绝写入
+      --save ""                    
+      --stop-writes-on-bgsave-error no  
     volumes:
       - ./redis/data:/data
     networks:
