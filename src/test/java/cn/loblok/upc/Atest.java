@@ -18,10 +18,12 @@ import java.util.concurrent.Executors;
 public class Atest {
 
     public static void main(String[] args) {
-        String password = "THISISUPCAPPLICATION";
-        String plainText = "THISISREDISPASSWORD7./";
+        String password = "THISISUPCAPPLICATION"; // ← 这是你自己定的密钥（不是数据库密码！）
+        String plainText = "HLjPHYx2A7mjNHfB"; // ← 要加密的真实密码
 
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+
+        System.out.println("test CICD");
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
         config.setPassword(password);
         config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
