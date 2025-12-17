@@ -31,7 +31,7 @@ public interface UserService extends IService<User> {
      * @param password 密码
      * @return 认证响应对象
      */
-    Result register(String username, String password, String email);
+    Result<RegisterResponse> register(String username, String password, String email);
 
     /**
      * 用户登录

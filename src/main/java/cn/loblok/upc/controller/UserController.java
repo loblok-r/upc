@@ -48,7 +48,7 @@ public class UserController {
      * @return 认证响应对象
      */
     @PostMapping("/register")
-    public Result register( @Validated(CheckVerificationCodeGroup.class)
+    public Result<RegisterResponse> register( @Validated(CheckVerificationCodeGroup.class)
                                                  @RequestBody RegisterRequestDTO registerRequest) {
 
         log.info("用户注册: {}", registerRequest);
@@ -77,6 +77,8 @@ public class UserController {
 
         }
     }
+
+
 
     /**
      * 获取用户资源接口

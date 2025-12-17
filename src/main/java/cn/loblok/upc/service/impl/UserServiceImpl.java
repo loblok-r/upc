@@ -79,7 +79,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result register(String username, String password, String email) {
+    public Result<RegisterResponse> register(String username, String password, String email) {
 
 
         // 检查用户名是否已存在
@@ -106,6 +106,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setCreatedAt(LocalDateTime.now());
 
         userMapper.insert(user);
+        RegisterResponse registerResponse = new RegisterResponse();
+        registerResponse.setMsg("注册成功");
 
         log.info("用户注册成功：{}", username);
 
@@ -113,8 +115,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        UserRegisteredEvent event = new UserRegisteredEvent(this, user.getId(), username);
 //        eventPublisher.publishEvent(event);
 
-        return Result.success(null);
+        return Result.success(registerResponse);
     }
+
 
     @Override
     public Result login(String email, String password) {
