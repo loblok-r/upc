@@ -59,4 +59,5 @@ build/
 
 .env
 
-upc-core-pro.yml
+application-dev.yml
+

@@ -44,43 +44,43 @@ services:
       resources:
         limits:
           memory: 256M
-
-  nacos:
-    image: nacos/nacos-server:v2.2.3
-    container_name: upc-nacos
-    restart: always
-    environment:
-      - PREFER_HOST_MODE=hostname
-      - MODE=standalone
-      - NACOS_AUTH_ENABLE=true
-      - NACOS_AUTH_TOKEN_EXPIRE_SECONDS=86400
-      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN}
-      - NACOS_AUTH_IDENTITY_KEY=nacos
-      - NACOS_AUTH_IDENTITY_VALUE=nacos
-      - JVM_XMS=512m
-      - JVM_XMX=512m
-      - JVM_XMN=256m
-      # --- 数据库配置精简版 ---
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - DB_NUM=1
-      - DB_URL_0=jdbc:mysql://upc-mysql:3306/nacos_config?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
-      - DB_USER=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "8848:8848"
-      - "9848:9848"
-    volumes:
-      - ./nacos/logs:/home/nacos/logs
-      - ./nacos/data:/home/nacos/data
-    networks:
-      - upc-net
-    healthcheck:
-      # 改用更稳妥的检测方式，避开鉴权 403 干扰
-      test: [ "CMD-SHELL", "curl -f http://localhost:8848/nacos/index.html || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 20       # 建议调多几次，Nacos 启动确实慢
-      start_period: 60s # 给 Nacos 充足的冷启动时间
+# 使用外部yaml代替
+#  nacos:
+#    image: nacos/nacos-server:v2.2.3
+#    container_name: upc-nacos
+#    restart: always
+#    environment:
+#      - PREFER_HOST_MODE=hostname
+#      - MODE=standalone
+#      - NACOS_AUTH_ENABLE=true
+#      - NACOS_AUTH_TOKEN_EXPIRE_SECONDS=86400
+#      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN}
+#      - NACOS_AUTH_IDENTITY_KEY=nacos
+#      - NACOS_AUTH_IDENTITY_VALUE=nacos
+#      - JVM_XMS=512m
+#      - JVM_XMX=512m
+#      - JVM_XMN=256m
+#      # --- 数据库配置精简版 ---
+#      - SPRING_DATASOURCE_PLATFORM=mysql
+#      - DB_NUM=1
+#      - DB_URL_0=jdbc:mysql://upc-mysql:3306/nacos_config?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+#      - DB_USER=root
+#      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#    ports:
+#      - "8848:8848"
+#      - "9848:9848"
+#    volumes:
+#      - ./nacos/logs:/home/nacos/logs
+#      - ./nacos/data:/home/nacos/data
+#    networks:
+#      - upc-net
+#    healthcheck:
+#      # 改用更稳妥的检测方式，避开鉴权 403 干扰
+#      test: [ "CMD-SHELL", "curl -f http://localhost:8848/nacos/index.html || exit 1" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 20       # 建议调多几次，Nacos 启动确实慢
+#      start_period: 60s # 给 Nacos 充足的冷启动时间
 
   backend:
     image: ${DOCKER_IMAGE_NAME}
@@ -89,21 +89,25 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: pro
-
-      # Nacos 认证信息
-      NACOS_USERNAME: nacos
-      NACOS_PASSWORD: ${NACOS_PASSWORD}
-      NACOS_NAMESPACE_ID: proId
-
-      # 【核心修改 1】必须用 upc-nacos (容器名)，否则连不上配置中心
-      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: upc-nacos:8848
-      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: upc-nacos:8848
-
-      # Nacos 客户端认证（如果需要）
-      SPRING_CLOUD_NACOS_CONFIG_USERNAME: nacos
-      SPRING_CLOUD_NACOS_CONFIG_PASSWORD: ${NACOS_PASSWORD}
-      SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: nacos
-      SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: ${NACOS_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JASYPT_PASSWORD: ${JASYPT_PASSWORD}
+#      # Nacos 认证信息
+#      NACOS_USERNAME: nacos
+#      NACOS_PASSWORD: ${NACOS_PASSWORD}
+#      NACOS_NAMESPACE_ID: proId
+#
+#      # 【核心修改 1】必须用 upc-nacos (容器名)，否则连不上配置中心
+#      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: upc-nacos:8848
+#      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: upc-nacos:8848
+#
+#      # Nacos 客户端认证（如果需要）
+#      SPRING_CLOUD_NACOS_CONFIG_USERNAME: nacos
+#      SPRING_CLOUD_NACOS_CONFIG_PASSWORD: ${NACOS_PASSWORD}
+#      SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: nacos
+#      SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: ${NACOS_PASSWORD}
 
       # 【核心修改 2】即使这里删掉，靠 Nacos 拉取，前提也是上面的 upc-nacos 能通
       # 建议先保留这行兜底，但必须改成 upc-mysql
@@ -115,6 +119,9 @@ services:
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       SPRING_DATA_REDIS_DATABASE: 1
       JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
+    volumes:
+      # 【关键添加】假设你的外部 yaml 放在服务器的 config 目录下
+      - ./config:/config
     ports:
       - "8069:8069" # 【修正】补全端口
     networks:
@@ -124,14 +131,13 @@ services:
         condition: service_started
       redis:
         condition: service_started
-      nacos:
-        # 【关键修改】必须等 Nacos 健康检查通过(service_healthy)才启动 Backend
-        condition: service_healthy
+#      nacos:
+#        # 【关键修改】必须等 Nacos 健康检查通过(service_healthy)才启动 Backend
+#        condition: service_healthy
     deploy:
       resources:
         limits:
           memory: 1024M
-
 networks:
   upc-net:
     driver: bridge

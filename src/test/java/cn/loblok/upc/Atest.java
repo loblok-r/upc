@@ -18,12 +18,11 @@ import java.util.concurrent.Executors;
 public class Atest {
 
     public static void main(String[] args) {
-        String password = "THISISUPCAPPLICATION"; // ← 这是你自己定的密钥（不是数据库密码！）
-        String plainText = "HLjPHYx2A7mjNHfB"; // ← 要加密的真实密码
+        String password = "111"; // ← 这是你自己定的密钥（不是数据库密码！）
+        String plainText = "123456"; // ← 要加密的真实密码
 
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
 
-        System.out.println("test CICD");
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
         config.setPassword(password);
         config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
@@ -33,10 +32,9 @@ public class Atest {
         config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator");
         config.setStringOutputType("base64");
         encryptor.setConfig(config);
-        System.out.println("test deploy 1   ");
 
         String encrypted = encryptor.encrypt(plainText);
-        System.out.println("加密结果（复制到 Nacos）:");
+        System.out.println("加密结果:");
         System.out.println("ENC(" + encrypted + ")");
     }
 

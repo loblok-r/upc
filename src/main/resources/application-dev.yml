@@ -1,0 +1,80 @@
+server:
+  port: ${PORT:8069}
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 1
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: cjz0329@163.com
+    password: ENC(b8FKn4DRisQB2i0nWVlJxrmzFhvl78LG/Z4CDDsIF3twUX6jVdSm9NWl3nldvHmkxyXHmsvrkK+rmIT7dcHQDQ==)
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            required: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          starttls:
+            enable: false
+            required: false
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: ENC(kosxdPPvD/dhBMIyvSKtYTNdxWze6nmNH4wFBVjMQ5WPy9ySyy101g4MdsHuj1TN)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 16
+      minimum-idle: 4
+      connection-timeout: 30000
+
+deepseek:
+  api-key: "ENC(OJsDeB/szzAje5NrjVCfjKUWCtu6IOx4qr1ZSWiyoswi7GtDF4dN6h/LyS4ynFfSK5kCZhkgAkc8wJHW2jynQdzRM9PGAv2sPYRzEUTxhxs=)"
+  model: "deepseek-chat"
+  base-url: "https://api.deepseek.com/v1/chat/completions"
+
+knowledge:
+  file-path: "classpath:site_knowledge.json"
+
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 微信支付配置
+wechat:
+  pay:
+    app-id: your-wechat-app-id
+    mch-id: 1623456789
+    private-key-path: classpath:mock/apiclient_key.pem
+    cert-serial: 5157F9E17BD6E4C9D6C1E4F5A7B3C2D8E9F0A1B2
+    api-v3-key: mock-api-v3-key-for-test-1234567890
+    notify-url: https://yourdomain.com/api/payment/notify/wechat
+
+# 支付宝配置
+alipay:
+  app-id: your-alipay-app-id
+  private-key: your-private-key
+  public-key: your-public-key
+  gateway-url: https://openapi.alipay.com/gateway.do
+  charset: UTF-8
+  sign-type: RSA2

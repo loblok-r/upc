@@ -71,7 +71,8 @@ jobs:
             
             echo "Discarding all local changes..."
             git reset --hard HEAD
-            git clean -fd -e .env -e mysql/ -e redis/ -e nacos/
+#            git clean -fd -e .env -e mysql/ -e redis/ -e nacos/
+            git clean -fd -e .env -e mysql/ -e redis/ -e config/
             
             echo "🔧 Ensuring remote origin points to Gitee..."
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
