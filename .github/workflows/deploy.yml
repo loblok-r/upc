@@ -14,36 +14,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码 (必须设置 fetch-depth: 0 以保证有完整提交历史用于推送)
+      # 1. 检出代码
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. 【核心修改】配置 SSH 并推送到 Gitee
+      # 2. 同步到 Gitee
       - name: Sync to Gitee (SSH)
         env:
-          # 引用你在 GitHub 设置的 Secret
           SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
         run: |
-          # A. 配置 SSH 目录和私钥文件
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          
-          # B. 将 Gitee 加入已知主机列表 (防止因为指纹验证失败而报错)
           ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts
-          
-          # C. 配置 Git 推送
-          # 注意：这里必须用 SSH 格式的地址 (git@gitee.com:...)
-          # 请确认你的用户名和仓库名是否正确
           git remote add gitee git@gitee.com:barondd/upc.git
-          
-          # D. 强行推送
-          echo "🚀 Pushing to Gitee..."
+          echo "Pushing to Gitee..."
           git push gitee HEAD:main -f
 
-      # 3. 服务器执行部署 (这部分保持不变)
+      # 3. 服务器执行部署
       - name: Execute Server Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,48 +43,56 @@ jobs:
           script_stop: true
           script: |
             set -e
-            
             PROJECT_DIR="/opt/projects/upc-backend"
-            # 服务器端拉取依然可以使用 HTTPS (只要服务器能免密拉取或公开仓库)，或者你也配了SSH
-            # 只要 GitHub Action 推送成功，服务器就能拉到最新的
             GITEE_URL="https://gitee.com/barondd/upc.git"
             
+            # --- 1. 代码拉取与准备 ---
             if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-              rm -rf "$PROJECT_DIR"
+              rm -rf "$PROJECT_PATH"
             fi
-            
             if [ ! -d "$PROJECT_DIR" ]; then
               git clone "$GITEE_URL" "$PROJECT_DIR"
             fi
             
             cd "$PROJECT_DIR"
             echo "Discarding all local changes..."
-            
             git reset --hard HEAD
             git clean -fd -e .env -e mysql/ -e redis/ -e config/
             
-            echo "🔧 Ensuring remote origin points to Gitee..."
+            echo "🔧 Fetching latest code..."
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
-            
             git fetch origin
-           
-            COMMIT_SHA="${{ github.sha }}"
-            echo "Checking out commit: $COMMIT_SHA"
-            git checkout -q "$COMMIT_SHA"
+            git checkout -q "${{ github.sha }}"
+            
+            # --- 2. 构建镜像 ---
+            echo "Packaging jar..."
             mvn clean package -DskipTests
             
-            echo "Building Docker image with legacy builder..."
+            echo "Building Docker image..."
             DOCKER_BUILDKIT=0 docker build -t upc-backend:latest .
             
-            sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
-            docker compose down backend 2>/dev/null || true
-            
-            echo "Restarting services..."
-            # 停止并清理掉旧的残留容器（包括被注释掉的 nacos）
+            # --- 3. 阶梯式启动 (解决网络解析问题) ---
+            echo "Cleaning old containers and network..."
+            # 停止当前服务并清理孤儿容器 (如 nacos)
             docker compose down --remove-orphans
-            
-            # 清理可能挂死的网络，防止 network not found 错误
+            # 强制清理网络残留，确保 DNS 缓存刷新
             docker network prune -f
             
+            echo "基础组件启动中 (MySQL/Redis)..."
+            docker compose up -d mysql redis
+            
+            # 关键：给 Redis 15秒时间完成启动并在 Docker DNS 中注册
+            echo "Waiting 15s for Redis DNS to stabilize..."
+            sleep 15
+            
+            echo "Launching Backend instances (Rolling update)..."
+            # 使用 --no-deps 确保不再动已经起好的基础组件
             docker compose up -d --no-deps --force-recreate backend
+            
+            echo "Launching Frontend..."
+            docker compose up -d --no-deps --force-recreate frontend
+            
+            # --- 4. 清理 ---
+            echo "Cleaning up..."
             docker image prune -f
+            echo "Deployment completed!"

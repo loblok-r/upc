@@ -39,7 +39,9 @@ services:
     volumes:
       - ./redis/data:/data
     networks:
-      - upc-net
+      upc-net:
+        aliases:
+          - upc-redis
     deploy:
       resources:
         limits:
@@ -126,7 +128,9 @@ services:
 #    ports:
 #      - "8069:8069" # 补全端口
     networks:
-      - upc-net
+        upc-net:
+          aliases:
+            - upc-backend # 明确给后端一个网络别名
     depends_on:
       mysql:
         condition: service_started
