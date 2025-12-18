@@ -42,54 +42,50 @@ jobs:
           # D. 强行推送
           echo "🚀 Pushing to Gitee..."
           git push gitee HEAD:main -f
-          
-          # 3. 服务器执行部署
-          - name: Execute Server Commands
-            uses: appleboy/ssh-action@v1.0.3
-            with:
-              host: ${{ env.SERVER_IP }}
-              username: ${{ env.SERVER_USER }}
-              password: ${{ secrets.SERVER_PASSWORD }}
-              script_stop: true
-              # 【关键修改 1】通过 envs 传递变量
-              envs: GITHUB_SHA
-              script: |
-                set -e
-                PROJECT_DIR="/opt/projects/upc-backend"
-                GITEE_URL="https://gitee.com/barondd/upc.git"
-          
-                if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
-                  rm -rf "$PROJECT_DIR"
-                fi
-          
-                if [ ! -d "$PROJECT_DIR" ]; then
-                  git clone "$GITEE_URL" "$PROJECT_DIR"
-                fi
-          
-                cd "$PROJECT_DIR"
-          
-                echo "Discarding all local changes..."
-                git reset --hard HEAD
-                git clean -fd -e .env -e mysql/ -e redis/ -e config/
-          
-                echo "🔧 Ensuring remote origin points to Gitee..."
-                git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
-          
-                git fetch origin
-          
-                # 【关键修改 2】直接使用变量名，不再需要 ${{ }}
-                echo "🔍 Checking out commit: $GITHUB_SHA"
-                git checkout -q "$GITHUB_SHA"
-          
-                mvn clean package -DskipTests
-          
-                echo "🐳 Building Docker image..."
-                DOCKER_BUILDKIT=0 docker build -t upc-backend:latest .
-          
-                sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
-                docker compose down backend 2>/dev/null || true
-                docker compose up -d --force-recreate backend
-                docker image prune -f
-            env:
-              # 【关键修改 3】在这里定义要传递给 action 的环境变量
-              GITHUB_SHA: ${{ github.sha }}
+
+      # 3. 服务器执行部署 (这部分保持不变)
+      - name: Execute Server Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script_stop: true
+          script: |
+            set -e
+            
+            PROJECT_DIR="/opt/projects/upc-backend"
+            # 服务器端拉取依然可以使用 HTTPS (只要服务器能免密拉取或公开仓库)，或者你也配了SSH
+            # 只要 GitHub Action 推送成功，服务器就能拉到最新的
+            GITEE_URL="https://gitee.com/barondd/upc.git"
+            
+            if [ -d "$PROJECT_DIR" ] && [ ! -d "$PROJECT_DIR/.git" ]; then
+              rm -rf "$PROJECT_DIR"
+            fi
+            
+            if [ ! -d "$PROJECT_DIR" ]; then
+              git clone "$GITEE_URL" "$PROJECT_DIR"
+            fi
+            
+            cd "$PROJECT_DIR"
+            echo "Discarding all local changes..."
+            
+            git reset --hard HEAD
+            git clean -fd -e .env -e mysql/ -e redis/ -e config/
+            
+            echo "🔧 Ensuring remote origin points to Gitee..."
+            git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
+            
+            git fetch origin
+            # 此时 Gitee 上已经有最新的 commit 了，所以这步不会再报错
+            COMMIT_SHA="${{ github.sha }}"
+            echo "🔍 Checking out commit: $COMMIT_SHA"
+            git checkout -q "$COMMIT_SHA"
+            mvn clean package -DskipTests
+            echo "🐳 Building Docker image with legacy builder..."
+            DOCKER_BUILDKIT=0 docker build -t upc-backend:latest .
+            
+            sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
+            docker compose down backend 2>/dev/null || true
+            docker compose up -d --force-recreate backend
+            docker image prune -f
