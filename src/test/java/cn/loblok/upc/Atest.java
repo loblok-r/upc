@@ -18,8 +18,8 @@ import java.util.concurrent.Executors;
 public class Atest {
 
     public static void main(String[] args) {
-        String password = "111"; // ← 这是你自己定的密钥（不是数据库密码！）
-        String plainText = "123456"; // ← 要加密的真实密码
+        String password = ""; // ← 这是你自己定的密钥（不是数据库密码！）
+        String plainText = ""; // ← 要加密的真实密码
 
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
 

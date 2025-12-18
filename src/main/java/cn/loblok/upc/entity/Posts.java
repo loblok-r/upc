@@ -1,5 +1,6 @@
 package cn.loblok.upc.entity;
 
+import cn.loblok.upc.util.TencentCOSUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -74,4 +75,5 @@ public class Posts implements Serializable {
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
 }

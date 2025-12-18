@@ -42,10 +42,31 @@ spring:
       minimum-idle: 4
       connection-timeout: 30000
 
-deepseek:
-  api-key: "ENC(OJsDeB/szzAje5NrjVCfjKUWCtu6IOx4qr1ZSWiyoswi7GtDF4dN6h/LyS4ynFfSK5kCZhkgAkc8wJHW2jynQdzRM9PGAv2sPYRzEUTxhxs=)"
-  model: "deepseek-chat"
-  base-url: "https://api.deepseek.com/v1/chat/completions"
+
+
+ai:
+  qwen:
+    api-key: "ENC(FLNogfSydIHf03kFnClGuKRCB9/55uWEbsHYK7yAUqu+cMNBTllom0xNO/bUJbW0ksIJBfwMFpbfr0bihUGg5HbRSNqlWqugLzHck4vR6n0=)"
+    text-model: "qwen-turbo"
+    image-model: "wanx-v1"
+    base-url: "https://dashscope.aliyuncs.com/api/v1"
+  silicon:
+    api-key: "ENC(vnxgOI/U/UcSeeL6etyiZt7VV34LPESGSpwfY63RX1QMIL6z/8LTln/ftzelEhzMbJO9wRxppopbHFTxDWXd9zIxbnit5dJidR2fiVWsmjGgbD9Osd4UtSnu4HhCexTi)"
+    image-model: "black-forest-labs/FLUX.1-schnell" # 高性价比推荐
+    base-url: "https://api.siliconflow.cn/v1"
+  deepseek:
+    api-key: "ENC(OJsDeB/szzAje5NrjVCfjKUWCtu6IOx4qr1ZSWiyoswi7GtDF4dN6h/LyS4ynFfSK5kCZhkgAkc8wJHW2jynQdzRM9PGAv2sPYRzEUTxhxs=)"
+    model: "deepseek-chat"
+    base-url: "https://api.deepseek.com/v1/chat/completions"
+
+
+tencent:
+  cos:
+    secret-id: ENC(7vd0FyUmn6FTIPV9a3U7UUuWI10BBkGw6GGmh3cXeYW2kYSFdR4WETQ8LNE84F/pZ+qqvd9avbvEGX4e/ER5qYDcmCEeewvp79IiuY1FC9Q=)
+    secret-key: ENC(dCyBY8z2E5wE6NrfJ+T4aFVxNXh5GBWMB5laXo8yOBsCjJeisLJAb2DleidKC9Wfm7J81D+FXs28gbEEV2jcWwk73VzIaQwvycwIIAPGYi4=)
+    bucket-name: upc-useraiimage-1317785564
+    region: ap-shanghai
+
 
 knowledge:
   file-path: "classpath:site_knowledge.json"
@@ -78,3 +99,6 @@ alipay:
   gateway-url: https://openapi.alipay.com/gateway.do
   charset: UTF-8
   sign-type: RSA2
+
+
+

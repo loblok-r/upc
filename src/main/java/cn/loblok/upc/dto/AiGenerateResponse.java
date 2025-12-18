@@ -18,10 +18,16 @@ public class AiGenerateResponse {
      *
      */
     private String content;
+
     /**
-     * 响应内容,图片模式有值
+     * 响应内容,图片模式临时路径
      */
     private String imageUrl;
+    /**
+     * 响应内容,图片的真实路径
+     */
+
+    private String cosPath;
 
     /*
      * 会话ID

@@ -13,6 +13,7 @@ import cn.loblok.upc.mapper.UserMapper;
 import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.util.TencentCOSUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,8 @@ public class CommunityServiceImpl implements CommunityService {
     private final LikeRecordMapper likeRecordMapper;
     
     private final PostsMapper postsMapper;
+
+    private final TencentCOSUtil tencentCOSUtil;
 
     @Override
     public List<CreatorLeaderboardResponse> getCreatorLeaderboard(Long userId) {
@@ -174,7 +177,8 @@ public class CommunityServiceImpl implements CommunityService {
             response.setContent(post.getContent());
             response.setLikesCount(post.getLikesCount());
             response.setCommentsCount(post.getCommentsCount());
-            response.setImageUrl(post.getImageUrl());
+            String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+            response.setImageUrl(tmpImageUrl);
             response.setIsDeleted(post.getIsDeleted());
             response.setCreatedAt(post.getCreatedAt());
             response.setUpdatedAt(post.getUpdatedAt());

@@ -12,13 +12,13 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class DeepSeekClient {
 
-    @Value("${deepseek.api-key}")
+    @Value("${ai.deepseek.api-key}")
     private String apiKey;
 
-    @Value("${deepseek.model}")
+    @Value("${ai.deepseek.model}")
     private String model;
 
-    @Value("${deepseek.base-url}")
+    @Value("${ai.deepseek.base-url}")
     private String baseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

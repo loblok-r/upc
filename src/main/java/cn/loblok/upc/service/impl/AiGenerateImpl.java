@@ -1,13 +1,17 @@
 package cn.loblok.upc.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.upc.client.QwenClient;
+import cn.loblok.upc.client.SilionClient;
 import cn.loblok.upc.dto.AiGenerateRequest;
 import cn.loblok.upc.dto.AiGenerateResponse;
+import cn.loblok.upc.dto.AiResult;
 import cn.loblok.upc.dto.InvoiceSummaryRequest;
 import cn.loblok.upc.entity.AiGenerationLogs;
 import cn.loblok.upc.entity.DailyUsage;
 import cn.loblok.upc.entity.User;
 import cn.loblok.upc.enums.AppMode;
+import cn.loblok.upc.enums.DailyLimitEnum;
 import cn.loblok.upc.enums.MessageContentType;
 import cn.loblok.upc.exception.DailyLimitExceededException;
 import cn.loblok.upc.exception.InsufficientComputingPowerException;
@@ -16,12 +20,11 @@ import cn.loblok.upc.mapper.UserMapper;
 import cn.loblok.upc.service.AiGenerationLogsService;
 import cn.loblok.upc.service.AiService;
 import cn.loblok.upc.service.UserService;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,7 +34,7 @@ import java.time.LocalDateTime;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(rollbackFor = Exception.class)
+//@Transactional(rollbackFor = Exception.class)
 @Slf4j
 public class AiGenerateImpl implements AiService {
 
@@ -40,6 +43,8 @@ public class AiGenerateImpl implements AiService {
     private final DailyUsageMapper dailyUsageMapper;
     // private final UsageLogMapper usageLogMapper; // 可选
     private final AiGenerationLogsService aiGenerationLogsMapper;
+    private final QwenClient qwenClient;
+    private final SilionClient silionClient;
 
 
     @Override
@@ -69,8 +74,15 @@ public class AiGenerateImpl implements AiService {
         checkAndIncrementDailyUsage(userId, mode);
 
         log.info("开始调用 AI 模型...");
-        // 调用 AI 模型
-        AiResult aiResult = callAiModel(mode, prompt, refImage);
+//         调用 AI 模型
+        AiResult aiResult = null;
+        try {
+            aiResult = callAiModel(mode, prompt, refImage,userId);
+        } catch (NoApiKeyException e) {
+            throw new RuntimeException(e);
+        } catch (InputRequiredException e) {
+            throw new RuntimeException(e);
+        }
 
         log.info("生成完成，结果: {}", aiResult);
         // 扣减算力（事务内）
@@ -95,7 +107,7 @@ public class AiGenerateImpl implements AiService {
         if(mode == AppMode.TEXT_CHAT){
             aiGenerationLogs.setResultUrl(aiResult.getContent());
         }else {
-            aiGenerationLogs.setResultUrl(aiResult.getImageUrl());
+            aiGenerationLogs.setResultUrl(aiResult.getCosPath());
         }
         aiGenerationLogs.setCreatedAt(LocalDateTime.now());
 
@@ -108,7 +120,7 @@ public class AiGenerateImpl implements AiService {
         String type = mode == AppMode.TEXT_CHAT ? "text" : "image";
 
 
-        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(), sessionId);
+        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(),aiResult.getCosPath(),sessionId);
     }
 
     @Override
@@ -185,9 +197,9 @@ public class AiGenerateImpl implements AiService {
 
     private int getDailyLimit(AppMode mode) {
         return switch (mode) {
-            case TEXT_CHAT -> 20;
-            case AI_DRAWING -> 5;
-            default -> 10;
+            case TEXT_CHAT -> DailyLimitEnum.TEXT_CHAT.getLimit();
+            case AI_DRAWING -> DailyLimitEnum.AI_DRAWING.getLimit();
+            default -> DailyLimitEnum.Default.getLimit();
         };
     }
 
@@ -195,20 +207,16 @@ public class AiGenerateImpl implements AiService {
         dailyUsageMapper.incrementUsage(String.valueOf(userId), LocalDate.now(), mode.name());
     }
 
-    // 模拟 AI 调用
-    private AiResult callAiModel(AppMode mode, String prompt, String refImage) {
+
+    private AiResult callAiModel(AppMode mode, String prompt, String refImage, Long userID) throws NoApiKeyException, InputRequiredException {
         if (mode == AppMode.TEXT_CHAT) {
-            return new AiResult("这是由 UPC AI 生成的回答：" + prompt, null);
+            String text =  qwenClient.generateText(prompt);
+            return new AiResult("这是由 UPC AI 生成的回答：" + text, null,null);
         } else {
-            // 返回一个示例图片 URL（实际应调用 Stable Diffusion / DALL·E 等）
-            return new AiResult(null, "https://images.unsplash.com/photo-1506905925346-21bda4d32df4");
+            AiResult result = silionClient.generateImage(userID, prompt, refImage);
+            return result;
         }
     }
 
-    @Data
-    @AllArgsConstructor
-    private static class AiResult {
-        private String content;
-        private String imageUrl;
-    }
+
 }

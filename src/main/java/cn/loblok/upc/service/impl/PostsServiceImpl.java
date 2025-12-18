@@ -11,10 +11,12 @@ import cn.loblok.upc.mapper.PostsMapper;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.PostsService;
 import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.util.TencentCOSUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,9 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
     private final CommentMapper commentMapper;
     
     private final LikeRecordMapper likeRecordMapper;
+
+    @Autowired
+    private TencentCOSUtil tencentCOSUtil;
     
     @Autowired
     public PostsServiceImpl(FollowService followService, UserService userService, 
@@ -84,7 +89,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setContent(post.getContent());
                     response.setAuthor(author);
                     response.setCommentsCount(post.getCommentsCount());
-                    response.setImageUrl(post.getImageUrl());
+                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(tmpImageUrl);
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -134,7 +140,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setContent(post.getContent());
                     response.setAuthor(author);
                     response.setCommentsCount(post.getCommentsCount());
-                    response.setImageUrl(post.getImageUrl());
+                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(tmpImageUrl);
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -173,7 +180,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setContent(post.getContent());
                     response.setAuthor(author);
                     response.setCommentsCount(post.getCommentsCount());
-                    response.setImageUrl(post.getImageUrl());
+                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(tmpImageUrl);
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -211,7 +219,8 @@ public List<PostResponse> getMyPosts(Long userId) {
                 response.setContent(post.getContent());
                 response.setAuthor(author);
                 response.setCommentsCount(post.getCommentsCount());
-                response.setImageUrl(post.getImageUrl());
+                String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                response.setImageUrl(tmpImageUrl);
                 response.setLikesCount(post.getLikesCount());
                 response.setCreatedAt(post.getCreatedAt());
                 response.setUpdatedAt(post.getUpdatedAt());
@@ -227,7 +236,7 @@ public List<PostResponse> getMyPosts(Long userId) {
         posts.setUserId(userId);
         posts.setTitle(createPostRequest.getTitle());
         posts.setContent(createPostRequest.getContent());
-        posts.setImageUrl(createPostRequest.getImageUrl());
+        posts.setImageUrl(createPostRequest.getImageUrl()); //实际是cosPath
         posts.setCreatedAt(LocalDateTime.now());
         posts.setUpdatedAt(LocalDateTime.now());
         posts.setLikesCount(0);
@@ -242,7 +251,7 @@ public List<PostResponse> getMyPosts(Long userId) {
                 null,
                 new UpdateWrapper<User>()
                         .eq("id", userId)
-                        .apply("works = works + 1")
+                        .setSql("works = works + 1")
         );
 
 
