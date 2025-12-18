@@ -96,5 +96,5 @@ jobs:
             # 清理可能挂死的网络，防止 network not found 错误
             docker network prune -f
             
-            docker compose up -d --force-recreate backend
+            docker compose up -d --no-deps --force-recreate backend
             docker image prune -f

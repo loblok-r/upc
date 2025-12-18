@@ -1,7 +1,7 @@
-# 1. 基础镜像改为 eclipse-temurin
+# 基础镜像改为 eclipse-temurin
 FROM eclipse-temurin:17-jre-jammy
 
-# 2. 设置时区为上海
+# 置时区为上海
 ENV TZ=Asia/Shanghai
 # eclipse-temurin 基于 Ubuntu，设置时区命令稍有不同，用下面这行最稳：
 RUN apt-get update && apt-get install -y tzdata && \
@@ -10,11 +10,11 @@ RUN apt-get update && apt-get install -y tzdata && \
 
 WORKDIR /app
 
-# 3. 复制 jar 包 (这行不用动)
+# 复制 jar 包 (这行不用动)
 COPY target/upc-1.0-SNAPSHOT.jar app.jar
 
-# 4. 暴露端口
+# 暴露端口
 EXPOSE 8069
 
-# 5. 启动命令 (这行不用动)
+# 启动命令
 ENTRYPOINT ["java", "-Xms512m", "-Xmx512m", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

@@ -24,7 +24,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 1.5G
 
   redis:
     image: ${REDIS_IMAGE:-redis:6.2}
@@ -84,7 +84,7 @@ services:
 
   backend:
     image: ${DOCKER_IMAGE_NAME}
-    container_name: upc-backend
+#    container_name: upc-backend
     restart: always
     environment:
       TZ: Asia/Shanghai
@@ -100,7 +100,7 @@ services:
 #      NACOS_PASSWORD: ${NACOS_PASSWORD}
 #      NACOS_NAMESPACE_ID: proId
 #
-#      # 【核心修改 1】必须用 upc-nacos (容器名)，否则连不上配置中心
+#      # 必须用 upc-nacos (容器名)，否则连不上配置中心
 #      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: upc-nacos:8848
 #      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: upc-nacos:8848
 #
@@ -110,21 +110,21 @@ services:
 #      SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: nacos
 #      SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: ${NACOS_PASSWORD}
 
-      # 【核心修改 2】即使这里删掉，靠 Nacos 拉取，前提也是上面的 upc-nacos 能通
+      # 即使这里删掉，靠 Nacos 拉取，前提也是上面的 upc-nacos 能通
       # 建议先保留这行兜底，但必须改成 upc-mysql
       SPRING_DATASOURCE_URL: jdbc:mysql://upc-mysql:3306/upc?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
-      # 【核心修改 3】必须用 upc-redis
+      # 必须用 upc-redis
       SPRING_DATA_REDIS_HOST: upc-redis
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       SPRING_DATA_REDIS_DATABASE: 1
       JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
+      JAVA_OPTS: "-Xms1024m -Xmx1024m"
     volumes:
-      # 【关键添加】假设你的外部 yaml 放在服务器的 config 目录下
       - ./config:/config
-    ports:
-      - "8069:8069" # 【修正】补全端口
+#    ports:
+#      - "8069:8069" # 补全端口
     networks:
       - upc-net
     depends_on:
@@ -133,12 +133,29 @@ services:
       redis:
         condition: service_started
 #      nacos:
-#        # 【关键修改】必须等 Nacos 健康检查通过(service_healthy)才启动 Backend
+#        # 必须等 Nacos 健康检查通过(service_healthy)才启动 Backend
 #        condition: service_healthy
+    #启动 2 个副本
     deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1        # 一次只更新一个实例
+        delay: 10s            # 实例 1 启动 10s 后再更新实例 2
+        order: start-first    # 先启新容器，再停旧容器
       resources:
         limits:
-          memory: 1024M
+          memory: 1280M
+
+  frontend:
+    image: upc-frontend:latest
+    container_name: upc-frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - upc-net
+    depends_on:
+      - backend
 networks:
   upc-net:
     driver: bridge
