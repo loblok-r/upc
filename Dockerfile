@@ -17,4 +17,4 @@ COPY target/upc-1.0-SNAPSHOT.jar app.jar
 EXPOSE 8069
 
 # 启动命令
-ENTRYPOINT ["java", "-Xms512m", "-Xmx512m", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar app.jar"]

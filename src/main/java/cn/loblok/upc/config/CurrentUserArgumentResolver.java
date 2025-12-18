@@ -1,6 +1,7 @@
 package cn.loblok.upc.config;
 
 import cn.loblok.upc.annotation.CurrentUser;
+import cn.loblok.upc.exception.UnauthorizedException;
 import cn.loblok.upc.util.JwtUtil;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -36,18 +37,15 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory) {
 
-        // 从 Header 中获取 Token
         String authHeader = webRequest.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // 去掉 "Bearer "
             String token = authHeader.substring(7);
-            // 解析 Token 获取 userId
             Long userId = JwtUtil.getUserIdFromToken(token);
             if (userId == null) {
-                throw new RuntimeException("无效用户凭证");
+                throw new UnauthorizedException("无效用户凭证");
             }
             return userId;
         }
-        throw new RuntimeException("请先登录");
+        throw new UnauthorizedException("请先登录");
     }
 }
