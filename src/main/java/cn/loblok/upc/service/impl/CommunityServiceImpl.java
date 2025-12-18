@@ -177,6 +177,8 @@ public class CommunityServiceImpl implements CommunityService {
             response.setContent(post.getContent());
             response.setLikesCount(post.getLikesCount());
             response.setCommentsCount(post.getCommentsCount());
+            response.setWidth(post.getWidth());
+            response.setHeight(post.getHeight());
             String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
             response.setImageUrl(tmpImageUrl);
             response.setIsDeleted(post.getIsDeleted());

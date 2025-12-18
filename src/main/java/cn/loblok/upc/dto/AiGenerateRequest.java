@@ -20,4 +20,15 @@ public class AiGenerateRequest {
 
     @NotBlank(message = "session不能为空")
     private String sessionId;
+
+    private int width;
+
+    private int height;
+    public String getSize(){
+        if(mode.equals("AI_DRAWING")){
+            return width + "x" + height;
+        }else{
+            return null;
+        }
+    }
 }

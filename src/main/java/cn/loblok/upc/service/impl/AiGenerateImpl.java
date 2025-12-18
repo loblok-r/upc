@@ -77,7 +77,8 @@ public class AiGenerateImpl implements AiService {
 //         调用 AI 模型
         AiResult aiResult = null;
         try {
-            aiResult = callAiModel(mode, prompt, refImage,userId);
+
+            aiResult = callAiModel(mode, prompt,req.getSize(), refImage,userId);
         } catch (NoApiKeyException e) {
             throw new RuntimeException(e);
         } catch (InputRequiredException e) {
@@ -120,7 +121,7 @@ public class AiGenerateImpl implements AiService {
         String type = mode == AppMode.TEXT_CHAT ? "text" : "image";
 
 
-        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(),aiResult.getCosPath(),sessionId);
+        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(),aiResult.getCosPath(),sessionId,req.getWidth(),req.getHeight());
     }
 
     @Override
@@ -208,12 +209,12 @@ public class AiGenerateImpl implements AiService {
     }
 
 
-    private AiResult callAiModel(AppMode mode, String prompt, String refImage, Long userID) throws NoApiKeyException, InputRequiredException {
+    private AiResult callAiModel(AppMode mode, String prompt,String size, String refImage, Long userID) throws NoApiKeyException, InputRequiredException {
         if (mode == AppMode.TEXT_CHAT) {
             String text =  qwenClient.generateText(prompt);
             return new AiResult("这是由 UPC AI 生成的回答：" + text, null,null);
         } else {
-            AiResult result = silionClient.generateImage(userID, prompt, refImage);
+            AiResult result = silionClient.generateImage(userID, prompt, size,refImage);
             return result;
         }
     }

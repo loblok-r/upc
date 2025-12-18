@@ -37,7 +37,7 @@ public class SilionClient {
     /**
      * 使用 SiliconFlow 生成图像
      */
-    public AiResult generateImage(Long userId, String prompt, String refImage) {
+    public AiResult generateImage(Long userId, String prompt, String size,String refImage) {
         log.info("开始调用 SiliconFlow 图像生成接口, 模型: {}", imageModel);
 
         try {
@@ -46,7 +46,7 @@ public class SilionClient {
             requestBody.put("model", imageModel);
             requestBody.put("prompt", prompt);
             requestBody.put("batch_size", 1); // 相当于之前的 n(1)
-            requestBody.put("image_size", "1024x1024");
+            requestBody.put("image_size", size);
 
             String jsonPayload = objectMapper.writeValueAsString(requestBody);
 

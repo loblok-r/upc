@@ -88,6 +88,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
+                    response.setWidth(post.getWidth());
+                    response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
                     String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
                     response.setImageUrl(tmpImageUrl);
@@ -139,6 +141,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
+                    response.setWidth(post.getWidth());
+                    response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
                     String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
                     response.setImageUrl(tmpImageUrl);
@@ -179,12 +183,15 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
                     response.setAuthor(author);
+                    response.setWidth(post.getWidth());
+                    response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
                     String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
                     response.setImageUrl(tmpImageUrl);
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
+
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -216,6 +223,8 @@ public List<PostResponse> getMyPosts(Long userId) {
                 PostResponse response = new PostResponse();
                 response.setId(post.getId());
                 response.setTitle(post.getTitle());
+                response.setWidth(post.getWidth());
+                response.setHeight(post.getHeight());
                 response.setContent(post.getContent());
                 response.setAuthor(author);
                 response.setCommentsCount(post.getCommentsCount());
@@ -240,6 +249,9 @@ public List<PostResponse> getMyPosts(Long userId) {
         posts.setCreatedAt(LocalDateTime.now());
         posts.setUpdatedAt(LocalDateTime.now());
         posts.setLikesCount(0);
+        posts.setSize(createPostRequest.getSize());
+        posts.setWidth(createPostRequest.getWidth());
+        posts.setHeight(createPostRequest.getHeight());
         posts.setCommentsCount(0);
         posts.setIsDeleted(false);
 

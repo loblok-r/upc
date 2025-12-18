@@ -34,4 +34,8 @@ public class AiGenerateResponse {
      */
     private String sessionId;
 
+    private int width;
+
+    private int height;
+
 }

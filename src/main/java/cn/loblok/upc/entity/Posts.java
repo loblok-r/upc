@@ -76,4 +76,13 @@ public class Posts implements Serializable {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
+    @TableField("size")
+    private String size;
+
+    @TableField("width")
+    private int width;
+
+    @TableField("height")
+    private int height;
+
 }
