@@ -89,6 +89,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: pro
+      SPRING_CONFIG_IMPORT: "optional:file:/config/application-pro.yml"
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
