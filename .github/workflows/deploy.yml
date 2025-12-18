@@ -77,15 +77,24 @@ jobs:
             git remote set-url origin "$GITEE_URL" || git remote add origin "$GITEE_URL"
             
             git fetch origin
-            # 此时 Gitee 上已经有最新的 commit 了，所以这步不会再报错
+           
             COMMIT_SHA="${{ github.sha }}"
-            echo "🔍 Checking out commit: $COMMIT_SHA"
+            echo "Checking out commit: $COMMIT_SHA"
             git checkout -q "$COMMIT_SHA"
             mvn clean package -DskipTests
-            echo "🐳 Building Docker image with legacy builder..."
+            
+            echo "Building Docker image with legacy builder..."
             DOCKER_BUILDKIT=0 docker build -t upc-backend:latest .
             
             sed -i "s|^DOCKER_IMAGE_NAME=.*|DOCKER_IMAGE_NAME=upc-backend:latest|" .env
             docker compose down backend 2>/dev/null || true
+            
+            echo "Restarting services..."
+            # 停止并清理掉旧的残留容器（包括被注释掉的 nacos）
+            docker compose down --remove-orphans
+            
+            # 清理可能挂死的网络，防止 network not found 错误
+            docker network prune -f
+            
             docker compose up -d --force-recreate backend
             docker image prune -f
