@@ -13,6 +13,7 @@ import cn.loblok.upc.mapper.UserMapper;
 import cn.loblok.upc.service.CommunityService;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.util.ImageUtil;
 import cn.loblok.upc.util.TencentCOSUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -179,8 +180,8 @@ public class CommunityServiceImpl implements CommunityService {
             response.setCommentsCount(post.getCommentsCount());
             response.setWidth(post.getWidth());
             response.setHeight(post.getHeight());
-            String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-            response.setImageUrl(tmpImageUrl);
+//            String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+            response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(),false));
             response.setIsDeleted(post.getIsDeleted());
             response.setCreatedAt(post.getCreatedAt());
             response.setUpdatedAt(post.getUpdatedAt());

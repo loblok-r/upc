@@ -11,6 +11,7 @@ import cn.loblok.upc.mapper.PostsMapper;
 import cn.loblok.upc.service.FollowService;
 import cn.loblok.upc.service.PostsService;
 import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.util.ImageUtil;
 import cn.loblok.upc.util.TencentCOSUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -92,7 +93,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
 //                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(post.getImageUrl());
+                    response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(),false));
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -145,7 +146,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
 //                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(post.getImageUrl());
+                    response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(),false));
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -187,7 +188,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
 //                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(post.getImageUrl());
+                    response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(),false));
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -229,7 +230,7 @@ public List<PostResponse> getMyPosts(Long userId) {
                 response.setAuthor(author);
                 response.setCommentsCount(post.getCommentsCount());
 //                String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                response.setImageUrl(post.getImageUrl());
+                response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(),false));
                 response.setLikesCount(post.getLikesCount());
                 response.setCreatedAt(post.getCreatedAt());
                 response.setUpdatedAt(post.getUpdatedAt());
