@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.FlashSales;
+import cn.loblok.upc.modules.mall.entity.FlashSales;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

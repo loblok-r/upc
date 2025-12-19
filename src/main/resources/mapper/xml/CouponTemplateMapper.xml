@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.CouponTemplateMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.CouponTemplate">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.modules.mall.entity.CouponTemplate">
         <id column="id" property="id" />
         <result column="template_code" property="templateCode" />
         <result column="name" property="name" />

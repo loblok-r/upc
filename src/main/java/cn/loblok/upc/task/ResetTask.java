@@ -1,13 +1,12 @@
 package cn.loblok.upc.task;
 
-import cn.loblok.upc.entity.DailyUsage;
-import cn.loblok.upc.entity.User;
+import cn.loblok.upc.modules.member.entity.DailyUsage;
+import cn.loblok.upc.modules.auth.entity.User;
 import cn.loblok.upc.mapper.DailyUsageMapper;
 import cn.loblok.upc.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

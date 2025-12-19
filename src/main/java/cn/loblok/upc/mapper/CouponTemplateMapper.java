@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.CouponTemplate;
+import cn.loblok.upc.modules.mall.entity.CouponTemplate;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

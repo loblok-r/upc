@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.DailyUsage;
+import cn.loblok.upc.modules.member.entity.DailyUsage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

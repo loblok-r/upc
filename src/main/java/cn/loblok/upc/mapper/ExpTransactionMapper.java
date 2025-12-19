@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.ExpTransaction;
+import cn.loblok.upc.modules.checkin.entity.ExpTransaction;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

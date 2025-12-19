@@ -1,7 +1,7 @@
 package cn.loblok.upc.task;
 
 
-import cn.loblok.upc.service.UserService;
+import cn.loblok.upc.modules.auth.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

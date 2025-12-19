@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.ExchangeOrdersMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.ExchangeOrders">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.modules.mall.entity.ExchangeOrders">
         <id column="id" property="id" />
         <result column="user_id" property="userId" />
         <result column="product_id" property="productId" />

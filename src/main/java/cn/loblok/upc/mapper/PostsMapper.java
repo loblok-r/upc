@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.Posts;
+import cn.loblok.upc.modules.community.entity.Posts;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

@@ -1,6 +1,6 @@
 package cn.loblok.upc;
 
-import cn.loblok.upc.service.impl.CheckinRecordServiceImpl;
+import cn.loblok.upc.modules.checkin.service.impl.CheckinRecordServiceImpl;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 import org.junit.jupiter.api.Test;

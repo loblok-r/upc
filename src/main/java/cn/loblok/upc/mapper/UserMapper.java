@@ -1,7 +1,7 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.User;
-import cn.loblok.upc.entity.UserSearchResult;
+import cn.loblok.upc.modules.auth.entity.User;
+import cn.loblok.upc.modules.community.dto.UserSearchResult;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

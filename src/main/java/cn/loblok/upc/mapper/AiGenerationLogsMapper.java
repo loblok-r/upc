@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.AiGenerationLogs;
+import cn.loblok.upc.modules.ai.entity.AiGenerationLogs;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

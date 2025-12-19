@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.TOrder;
+import cn.loblok.upc.modules.member.entity.TOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

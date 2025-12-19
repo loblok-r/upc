@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.MembershipOrderMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.MembershipOrder">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.modules.member.entity.MembershipOrder">
         <id column="id" property="id" />
         <result column="order_no" property="orderNo" />
         <result column="user_id" property="userId" />
@@ -26,7 +26,7 @@
     </sql>
 
     <!-- 查询超时未支付订单 -->
-    <select id="selectExpiredUnpaidOrders" resultType="cn.loblok.upc.entity.MembershipOrder">
+    <select id="selectExpiredUnpaidOrders" resultType="cn.loblok.upc.modules.member.entity.MembershipOrder">
         SELECT * FROM membership_order
         WHERE created_at &lt;= #{expireTime}
           AND status IN ('CREATED', 'PAYING')

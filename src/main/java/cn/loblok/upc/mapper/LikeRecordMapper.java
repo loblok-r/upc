@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.LikeRecord;
+import cn.loblok.upc.modules.community.entity.LikeRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

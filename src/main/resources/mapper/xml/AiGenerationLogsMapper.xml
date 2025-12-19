@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.AiGenerationLogsMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.AiGenerationLogs">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.modules.ai.entity.AiGenerationLogs">
         <id column="id" property="id" />
         <result column="user_id" property="userId" />
         <result column="session_id" property="sessionId" />

@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.Follow;
+import cn.loblok.upc.modules.community.entity.Follow;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

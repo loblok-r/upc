@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.UserPoints;
+import cn.loblok.upc.modules.mall.entity.UserPoints;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

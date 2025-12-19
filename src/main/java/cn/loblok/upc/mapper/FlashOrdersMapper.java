@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.Orders;
+import cn.loblok.upc.modules.mall.entity.FlashSaleOrders;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author loblok
  * @since 2025-12-09
  */
-public interface FlashOrdersMapper extends BaseMapper<Orders> {
+public interface FlashOrdersMapper extends BaseMapper<FlashSaleOrders> {
 
 }

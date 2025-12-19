@@ -1,6 +1,6 @@
 package cn.loblok.upc.mapper;
 
-import cn.loblok.upc.entity.UserItems;
+import cn.loblok.upc.modules.mall.entity.UserItems;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.springframework.data.repository.query.Param;
 

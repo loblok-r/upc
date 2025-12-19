@@ -3,7 +3,7 @@
 <mapper namespace="cn.loblok.upc.mapper.UserItemsMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.loblok.upc.entity.UserItems">
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.modules.mall.entity.UserItems">
         <id column="id" property="id" />
         <result column="user_id" property="userId" />
         <result column="item_type" property="itemType" />
