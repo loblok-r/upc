@@ -18,6 +18,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 
+import static cn.hutool.poi.excel.sax.ElementName.f;
+
 
 @Service
 @Slf4j
@@ -56,6 +58,8 @@ public class TencentCOSUtil {
 
             String objectKey = buildCosKey(userId, originalFilename);
 
+            String public_url = buildPublicUrl(bucketName, region,objectKey);
+
             log.info("上传对象");
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectKey, inputStream, null);
             cosClient.putObject(putObjectRequest);
@@ -66,13 +70,17 @@ public class TencentCOSUtil {
 
             String tmpImgUrl = signedUrl.toString();
             log.info("临时图片URL：{}", tmpImgUrl);
-            return new AiResult(null, tmpImgUrl,objectKey);
+            return new AiResult(null, public_url,public_url);
 
         } catch (CosClientException e) {
             throw new RuntimeException("COS 上传失败: " + e.getMessage(), e);
         } finally {
             cosClient.shutdown(); // 关闭客户端
         }
+    }
+
+    private String buildPublicUrl(String bucketName, String region, String objectKey) {
+        return "https://"+bucketName+".cos."+region+".myqcloud.com/"+objectKey;
     }
 
     public String getTmpImageUrl(String objectKey, int expireMinutes) {

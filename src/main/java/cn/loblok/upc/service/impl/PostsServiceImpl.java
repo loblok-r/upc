@@ -91,8 +91,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setWidth(post.getWidth());
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
-                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(tmpImageUrl);
+//                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(post.getImageUrl());
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -144,8 +144,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setWidth(post.getWidth());
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
-                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(tmpImageUrl);
+//                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(post.getImageUrl());
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -186,8 +186,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setWidth(post.getWidth());
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
-                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(tmpImageUrl);
+//                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                    response.setImageUrl(post.getImageUrl());
                     response.setLikesCount(post.getLikesCount());
                     response.setCreatedAt(post.getCreatedAt());
                     response.setUpdatedAt(post.getUpdatedAt());
@@ -228,8 +228,8 @@ public List<PostResponse> getMyPosts(Long userId) {
                 response.setContent(post.getContent());
                 response.setAuthor(author);
                 response.setCommentsCount(post.getCommentsCount());
-                String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                response.setImageUrl(tmpImageUrl);
+//                String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
+                response.setImageUrl(post.getImageUrl());
                 response.setLikesCount(post.getLikesCount());
                 response.setCreatedAt(post.getCreatedAt());
                 response.setUpdatedAt(post.getUpdatedAt());
@@ -245,7 +245,7 @@ public List<PostResponse> getMyPosts(Long userId) {
         posts.setUserId(userId);
         posts.setTitle(createPostRequest.getTitle());
         posts.setContent(createPostRequest.getContent());
-        posts.setImageUrl(createPostRequest.getImageUrl()); //实际是cosPath
+        posts.setImageUrl(createPostRequest.getImageUrl());
         posts.setCreatedAt(LocalDateTime.now());
         posts.setUpdatedAt(LocalDateTime.now());
         posts.setLikesCount(0);
