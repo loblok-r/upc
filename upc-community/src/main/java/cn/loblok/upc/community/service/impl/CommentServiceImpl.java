@@ -118,6 +118,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             List<Comment> comments = commentMapper.selectList(queryWrapper);
             List<Long> ulist = comments.stream().map(Comment::getUserId).collect(Collectors.toList());
 
+
+            if (ulist.isEmpty()) {
+                return List.of();
+            }
+
             Result<Map<Long, UserPublicInfoDTO>> useMap= userFeignClient.getUserPublicInfoBatch(ulist);
 
             List<Long> followedIds = followService.findFollowedIds(userId, ulist);

@@ -124,14 +124,16 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                 followedIds = new ArrayList<>();
             }
         }
+        log.info("查询结果{},用户IdList.size:{},folledIds.size:{}", postsTab.getDescription(), IdList.size(), followedIds.size());
 
         return getPostResponses(IdList, postsPage, followedIds);
     }
 
 
     private List<PostResponse> getPostResponses(List<Long> IdList, Page<Posts> postsPage, List<Long> followedIds) {
-        Result<Map<Long, UserPublicInfoDTO>> useMap = userFeignClient.getUserPublicInfoBatch(IdList);
 
+        Result<Map<Long, UserPublicInfoDTO>> useMap = userFeignClient.getUserPublicInfoBatch(IdList);
+        if (useMap != null && useMap.getData() != null) {
         return postsPage.getRecords().stream()
                 .map(post -> {
                     CommunityUserVO vo = new CommunityUserVO();
@@ -142,7 +144,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     response.setId(post.getId());
                     response.setTitle(post.getTitle());
                     response.setContent(post.getContent());
-                    response.setUser(vo);
+                    response.setAuthor(vo);
                     response.setWidth(post.getWidth());
                     response.setHeight(post.getHeight());
                     response.setCommentsCount(post.getCommentsCount());
@@ -155,6 +157,9 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                     return response;
                 })
                 .collect(Collectors.toList());
+         }else{
+            return List.of();
+        }
     }
 
 

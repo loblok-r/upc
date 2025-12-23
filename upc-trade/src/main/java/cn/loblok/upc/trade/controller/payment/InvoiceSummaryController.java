@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/api/payment")
 @AllArgsConstructor
 @Slf4j
 public class InvoiceSummaryController {

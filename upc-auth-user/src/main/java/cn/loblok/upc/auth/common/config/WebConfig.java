@@ -30,10 +30,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(levelAuthInterceptor)
-                // 拦截所有路径
                 .addPathPatterns("/api/**")
-                // 放行登录注册
-                .excludePathPatterns("/user/**", "/public/**");
+                // 修正排除路径，必须和 Controller 的 RequestMapping 路径一致
+                .excludePathPatterns(
+                        "/api/user/login",
+                        "/api/user/register",
+                        "/api/user/resetPassword",
+                        "/api/public/**"
+                );
     }
 
 

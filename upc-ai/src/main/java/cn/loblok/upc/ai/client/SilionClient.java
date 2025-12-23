@@ -1,7 +1,7 @@
 package cn.loblok.upc.ai.client;
 
 import cn.loblok.upc.ai.dto.AiResult;
-import cn.loblok.upc.ai.utils.TencentCOSUtil;
+import cn.loblok.upc.ai.service.FileStorageService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class SilionClient {
     private String baseUrl;
 
     @Autowired
-    private TencentCOSUtil tencentCOSUtil;
+    private FileStorageService storageService;
 
     private final OkHttpClient httpClient = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -69,7 +69,7 @@ public class SilionClient {
 
                 log.info("生成成功，正在转存至腾讯云 COS...");
                 try (InputStream in = new URL(remoteImageUrl).openStream()) {
-                    return tencentCOSUtil.uploadAndGenerateSignedUrl(userId, in, "sf_generated.jpg", 30);
+                    return storageService.uploadImage(userId, in, "sf_generated.jpg", 30);
                 }
             }
         } catch (Exception e) {

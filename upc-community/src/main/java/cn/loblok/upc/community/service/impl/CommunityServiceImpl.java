@@ -170,7 +170,9 @@ public class CommunityServiceImpl implements CommunityService {
             throw new RuntimeException("用户不存在");
         }
 
+
         CommunityUserVO vo = new CommunityUserVO();
+        BeanUtils.copyProperties(userInfo.getData(), vo);
 
         // 检查当前用户是否关注了目标用户
         boolean isFollowed = followService.isFollowed(currentUserId, targetUserId);

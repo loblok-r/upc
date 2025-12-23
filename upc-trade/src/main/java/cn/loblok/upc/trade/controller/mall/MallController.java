@@ -36,8 +36,8 @@ public class MallController {
      */
     @GetMapping("/products")
     public Result<PageResult<ProductDTO>> getProductList(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(value = "page",defaultValue = "1") int page,
+            @RequestParam(value="size", defaultValue = "20") int size) {
 
         return productsService.getProductList(page, size);
 

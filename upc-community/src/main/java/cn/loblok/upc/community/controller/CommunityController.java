@@ -10,7 +10,6 @@ import cn.loblok.upc.community.service.CommunityService;
 import cn.loblok.upc.community.service.FollowService;
 import cn.loblok.upc.community.dto.FollowUserRequest;
 import cn.loblok.upc.community.dto.FollowUserResponse;
-import cn.loblok.upc.community.dto.PostResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -130,7 +129,7 @@ public class CommunityController {
      * @return 操作结果
      */
     @PostMapping("/comments/{commentId}/like")
-    public Result<String> likeOrUnlikeComment(@CurrentUser Long userId, @PathVariable Long commentId) {
+    public Result<String> likeOrUnlikeComment(@CurrentUser Long userId, @PathVariable("commentId") Long commentId) {
         try {
             String response = communityService.likeOrUnlikeComment(userId, commentId);
             return Result.success(response);

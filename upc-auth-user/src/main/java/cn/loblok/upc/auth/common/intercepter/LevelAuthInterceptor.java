@@ -33,51 +33,33 @@ public class LevelAuthInterceptor implements HandlerInterceptor {
     /**
      * 请求处理之前执行
      */
+    // 在 LevelAuthInterceptor.java 中
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 只拦截带 @RequireLevel 注解的方法
-        if (!(handler instanceof HandlerMethod)) {
-            return true;
-        }
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+        // 1. 依然只拦截带 @RequireLevel 注解的方法
+        if (!(handler instanceof HandlerMethod)) return true;
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         RequireLevel requireLevel = handlerMethod.getMethodAnnotation(RequireLevel.class);
-        if (requireLevel == null) {
-            return true; // 无需权限校验
-        }
+        if (requireLevel == null) return true;
 
-        //从 Header 获取 Token
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            writeErrorResponse(response, "Missing or invalid token", 401);
+        // 2. 【关键】不再解析 Token，直接取网关传来的 X-User-Id
+        String userIdStr = request.getHeader("X-User-Id");
+        if (userIdStr == null) {
+            writeErrorResponse(response, "Access denied: identity not verified by gateway", 401);
             return false;
         }
-        String token = authHeader.substring(7);
+        Long userId = Long.parseLong(userIdStr);
 
-        // 验证 Token 并获取 userId
-        try {
-            Long userId = getUserIdFromToken(token);
-            if (userId == null) {
-                writeErrorResponse(response, "Invalid token", 401);
-                return false;
-            }
+        // 3. 只做等级校验
+        String userLevel = caculateUtils.getUserLevel(userId);
+        String requiredLevel = requireLevel.value();
 
-            // 【核心】获取用户等级并校验
-            String userLevel = caculateUtils.getUserLevel(userId);
-            String requiredLevel = requireLevel.value();
-
-            if (!isLevelSufficient(userLevel, requiredLevel)) {
-                writeErrorResponse(response, "Insufficient permission: required " + requiredLevel, 403);
-                return false;
-            }
-
-            // 权限通过，继续执行
-            return true;
-
-        } catch (Exception e) {
-            log.error("Permission check failed", e);
-            writeErrorResponse(response, "Authentication error", 500);
+        if (!isLevelSufficient(userLevel, requiredLevel)) {
+            writeErrorResponse(response, "Insufficient level: required " + requiredLevel, 403);
             return false;
         }
+
+        return true;
     }
 
     /**

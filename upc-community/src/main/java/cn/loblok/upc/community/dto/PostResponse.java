@@ -13,7 +13,7 @@ public class PostResponse {
 
     private Long id;
 
-    private CommunityUserVO user;
+    private CommunityUserVO author;
 
     private String title;
 

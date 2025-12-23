@@ -2,7 +2,7 @@ package cn.loblok.upc.auth.mapper;
 
 import cn.loblok.upc.auth.entity.UserItems;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.data.repository.query.Param;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>

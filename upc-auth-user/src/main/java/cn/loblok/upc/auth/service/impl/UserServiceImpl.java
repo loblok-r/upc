@@ -36,7 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -277,7 +279,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result<UserPublicInfoDTO> getUserPublicInfo(Long userId) {
-        return null;
+                User user = userMapper.selectById(userId);
+        UserPublicInfoDTO userPublicInfoDTO = convertToDTO(user);
+        return Result.success(userPublicInfoDTO);
     }
 
     @Override
@@ -512,6 +516,17 @@ public Result<Void> extendVipDays(Long userId, Integer days) {
     }
 
     @Override
+    public Result<Map<Long, UserPublicInfoDTO>> getUserPublicInfoBatch(List<Long> userIds) {
+        log.info("批量获取用户信息...");
+        List<User> userlist = userMapper.selectBatchIds(userIds);
+        Map<Long, UserPublicInfoDTO> userPublicInfoMap = userlist.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toMap(UserPublicInfoDTO::getId, userPublicInfoDTO -> userPublicInfoDTO));
+
+        return Result.success(userPublicInfoMap);
+    }
+
+    @Override
     public Result<Void> consumeComputerPower(Long userId, Integer amount) {
 
         try {
@@ -623,8 +638,7 @@ public Result<Void> extendVipDays(Long userId, Integer days) {
         userPublicInfoDTO.setAvatar(user.getAvatarUrl());
         userPublicInfoDTO.setHandle(user.getUsername());
         userPublicInfoDTO.setFollowers(user.getFollowers());
-        userPublicInfoDTO.setIsMember(user.getIsPermanentMember() ||
-                (user.getMemberExpireAt() != null && user.getMemberExpireAt().isAfter(LocalDateTime.now())));
+        userPublicInfoDTO.setIsMember(isMember(user.getId()));
         UserStatsDTO userStatsDTO = new UserStatsDTO();
 
         userStatsDTO.setWorks(user.getWorks());

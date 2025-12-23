@@ -1,4 +1,4 @@
-package cn.loblok.upc.auth.controller.checkin;
+package cn.loblok.upc.auth.controller;
 
 import cn.loblok.upc.auth.common.util.PageConverter;
 import cn.loblok.upc.auth.dto.chickin.ExpTransactionDTO;
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.*;
  * @since 2025-12-02
  */
 @RestController
-@RequestMapping("/api/exp-transactions")
-public class ExpTransactionController {
+@RequestMapping("/api/exp")
+public class ExpController {
 
     @Autowired
     private ExpTransactionService expTransactionService;
@@ -33,7 +33,7 @@ public class ExpTransactionController {
      * @param bizType 业务类型（可选）
      * @return 经验流水列表
      */
-    @GetMapping
+    @GetMapping("/transactions")
     public Result<PageResult<ExpTransactionDTO>> getUserTransactions(
             @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(value = "userId", required = true) Long userId,

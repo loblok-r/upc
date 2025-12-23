@@ -9,6 +9,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -31,11 +32,13 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Autowired
     private IgnoreUrlsConfig ignoreUrlsConfig;
+
     /**
      * 判断请求是否在白名单（登录、注册、公开接口）。
      * 从 Header 获取 Token。
      * 调用 upc-common 里的 JwtUtil 验证 Token。
      * 关键点：解析出 userId 后，将其放入 Header 传给下游微服务。
+     *
      * @param exchange
      * @param chain
      * @return
@@ -43,6 +46,12 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+
+        // --- 如果是 OPTIONS 请求，直接放行 ---
+        if (request.getMethod() == HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
+
         String path = request.getURI().getPath();
 
         // 1. 白名单放行 (登录、注册、公开图片等)
@@ -60,6 +69,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         // 3. 校验 Token 并提取 UserId
         try {
+            log.info("token:"+token);
             Long userId = JwtUtil.getUserIdFromToken(token);
             if (userId == null) {
                 return unAuthorized(exchange, "凭证无效");

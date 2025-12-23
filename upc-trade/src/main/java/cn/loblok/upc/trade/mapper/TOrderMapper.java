@@ -3,6 +3,7 @@ package cn.loblok.upc.trade.mapper;
 
 import cn.loblok.upc.trade.entity.TOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -26,13 +27,13 @@ public interface TOrderMapper extends BaseMapper<TOrder> {
      * @return 过期未支付的订单列表
      */
     @Select("SELECT * FROM t_order WHERE status = 'PAYING' AND create_time < #{expireTime}")
-    List<TOrder> selectExpiredUnpaidOrders(LocalDateTime expireTime);
+    List<TOrder> selectExpiredUnpaidOrders(@Param("expireTime") LocalDateTime expireTime);
 
     /**
      * 关闭未支付的订单
-     * @param orderId 订单ID
+     * @param
      * @return 更新影响的行数
      */
     @Update("UPDATE t_order SET status = 'CLOSED', update_time = NOW() WHERE id = #{orderId} AND status = 'PAYING'")
-    int closeOrderIfUnpaid(String orderId);
+    int closeOrderIfUnpaid(@Param("orderId") String orderId);
 }

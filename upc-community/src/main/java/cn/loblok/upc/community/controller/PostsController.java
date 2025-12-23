@@ -58,8 +58,8 @@ public class PostsController {
      */
     @GetMapping("/mine")
     public Result<List<PostResponse>> getMyPosts(@CurrentUser Long userId,
-                                                 @RequestParam(defaultValue = "1") int page,
-                                                 @RequestParam(defaultValue = "20") int pageSize) {
+                                                 @RequestParam(value = "page",defaultValue = "1") int page,
+                                                 @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
         List<PostResponse> posts = postsService.getPostsTab(userId, page, pageSize, PostsTab.MINE);
         return Result.success(posts);
     }
@@ -72,8 +72,8 @@ public class PostsController {
      */
     @GetMapping("/recommend")
     public Result<List<PostResponse>> getRecommendPosts(@CurrentUser Long userId,
-                                                        @RequestParam(defaultValue = "1") int page,
-                                                        @RequestParam(defaultValue = "20") int pageSize) {
+                                                        @RequestParam(value = "page",defaultValue = "1") int page,
+                                                        @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
         List<PostResponse> result = postsService.getPostsTab(userId, page, pageSize, PostsTab.RECOMMEND);
         return Result.success(result);
     }
@@ -86,8 +86,8 @@ public class PostsController {
      */
     @GetMapping("/following")
     public Result<List<PostResponse>> getFollowingPosts(@CurrentUser Long userId,
-                                                        @RequestParam(defaultValue = "1") int page,
-                                                        @RequestParam(defaultValue = "20") int pageSize) {
+                                                        @RequestParam(value = "page",defaultValue = "1") int page,
+                                                        @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
         List<PostResponse> result = postsService.getPostsTab(userId, page, pageSize, PostsTab.FOLLOW);
         return Result.success(result);
     }
@@ -100,8 +100,8 @@ public class PostsController {
      */
     @GetMapping("/latest")
     public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId,
-                                                     @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "20") int pageSize) {
+                                                     @RequestParam(value = "page",defaultValue = "1") int page,
+                                                     @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
         List<PostResponse> result = postsService.getPostsTab(userId, page, pageSize, PostsTab.LATEST);
         return Result.success(result);
     }
@@ -115,17 +115,17 @@ public class PostsController {
      */
     @GetMapping("/users/{targetUserId}/works")
     public Result<List<PostResponse>> getUserPosts(@PathVariable("targetUserId") Long targetUserId,
-                                                   @RequestParam(defaultValue = "1") int page,
-                                                   @RequestParam(defaultValue = "20") int pageSize,
+                                                   @RequestParam(value = "page",defaultValue = "1") int page,
+                                                   @RequestParam(value = "pageSize",defaultValue = "20") int pageSize,
                                                    @CurrentUser Long currentUserId) {
         try {
             List<PostResponse> postsTab = postsService.getPostsTab(targetUserId, page, pageSize, PostsTab.SOMEONTE);
 
 
             postsTab.forEach(post -> {
-                CommunityUserVO author = post.getUser();
+                CommunityUserVO author = post.getAuthor();
                 author.setIsFollowed(followService.isFollowed(currentUserId, targetUserId));
-                post.setUser(author);
+                post.setAuthor(author);
             });
             return Result.success(postsTab);
         } catch (Exception e) {

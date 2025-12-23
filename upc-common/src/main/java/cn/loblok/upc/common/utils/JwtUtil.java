@@ -3,7 +3,10 @@ package cn.loblok.upc.common.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +15,9 @@ import java.util.function.Function;
 public class JwtUtil {
     
     // 密钥
-    private static final String SECRET_KEY = "upc_secret_key";
-    
+    private static final String SECRET_STRING = "upc_secret_key_1234567890_upc_secret_key_1234567890_upc_secret_key_1234567890_123456";
+
+    private static final Key KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes(StandardCharsets.UTF_8));
     // Token有效时间（1天）
     private static final long JWT_TOKEN_VALIDITY = 24 * 60 * 60;
     
@@ -21,7 +25,7 @@ public class JwtUtil {
     public static String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
-    
+
     // 从token中获取过期时间
     public static Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
@@ -31,7 +35,6 @@ public class JwtUtil {
     public static Long getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> ((Number) claims.get("userId")).longValue());
     }
-    
     public static <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
@@ -39,7 +42,12 @@ public class JwtUtil {
     
     // 解析token中的所有声明
     private static Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        // 修正后的解析写法
+        return Jwts.parserBuilder()
+                .setSigningKey(KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
     
     // 检查token是否过期
@@ -52,7 +60,13 @@ public class JwtUtil {
     public static String generateToken(Long userId, String username) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        return doGenerateToken(claims, username);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+                .signWith(KEY, SignatureAlgorithm.HS512) // 使用安全 Key
+                .compact();
     }
     
     // 创建token
@@ -62,7 +76,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .signWith(KEY, SignatureAlgorithm.HS512) // 使用安全 Key
                 .compact();
     }
     

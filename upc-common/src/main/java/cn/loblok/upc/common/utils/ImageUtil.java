@@ -1,26 +1,49 @@
 package cn.loblok.upc.common.utils;
 
+import cn.loblok.upc.common.config.StorageProperties;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+
+@Component
 public class ImageUtil {
 
-    // 基础缩略图：256宽，webp格式（用于列表页）
+    @Autowired
+    private StorageProperties storageProperties;
+
+    private static ImageUtil instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    // 基础缩略图：256宽，webp格式
     private static final String THUMBNAIL_SUFFIX = "?imageMogr2/thumbnail/256x/format/webp";
-    // 详情图：原尺寸，webp格式（用于详情页，省流量）
     private static final String DETAIL_SUFFIX = "?imageMogr2/format/webp";
 
-    /**
-     * 获取优化后的图片URL
-     * @param originalUrl 原始COS地址
-     * @param isThumbnail 是否是缩略图
-     * @return 拼接后的URL
-     */
     public static String getOptimizedUrl(String originalUrl, boolean isThumbnail) {
         if (originalUrl == null || originalUrl.isEmpty()) {
             return "";
         }
-        // 如果已经有参数了，避免重复拼接
-        if (originalUrl.contains("?")) {
-            return originalUrl;
+
+        String finalUrl = originalUrl;
+
+        // 如果在本地环境切换到了 MinIO
+        if (instance != null && "minio".equalsIgnoreCase(instance.storageProperties.getType())) {
+            String cosPrefix = instance.storageProperties.getCosPrefix();
+            String minioPrefix = instance.storageProperties.getMinioPrefix();
+
+            // 如果库里存的是 COS 地址，动态替换为 MinIO 地址
+            if (cosPrefix != null && finalUrl.startsWith(cosPrefix)) {
+                finalUrl = finalUrl.replace(cosPrefix, minioPrefix);
+            }
         }
-        return originalUrl + (isThumbnail ? THUMBNAIL_SUFFIX : DETAIL_SUFFIX);
+
+        if (finalUrl.contains("?")) {
+            return finalUrl;
+        }
+        return finalUrl + (isThumbnail ? THUMBNAIL_SUFFIX : DETAIL_SUFFIX);
     }
 }

@@ -62,6 +62,9 @@
             <optional>true</optional> <!--默认不向下传递-->
             <scope>runtime</scope>
         </dependency>
+
+
+
         <!-- Lettuce -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

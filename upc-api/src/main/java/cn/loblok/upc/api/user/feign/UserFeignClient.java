@@ -16,8 +16,8 @@ import java.util.Map;
 @FeignClient(value = ServiceNameConstants.AUTH_SERVICE, path = "/api/user/internal")
 public interface UserFeignClient {
 
-    @GetMapping("/info/{userId}")
-    Result<UserPublicInfoDTO> getUserInfo(@PathVariable("userId") Long userId);
+    @PostMapping("/info/user")
+    Result<UserPublicInfoDTO> getUserInfo(@RequestParam(value = "userId") Long userId);
     /**
      * 检查用户是否是会员
      *

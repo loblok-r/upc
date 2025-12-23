@@ -107,11 +107,27 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JWT -->
+        <!-- JWT 相关依赖 -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+            <optional>true</optional> <!--默认不向下传递-->
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <optional>true</optional> <!--默认不向下传递-->
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 使用 Jackson 处理 JSON -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <optional>true</optional> <!--默认不向下传递-->
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Java 17 兼容性处理 -->

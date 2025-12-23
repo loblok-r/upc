@@ -27,13 +27,8 @@ import org.springframework.web.bind.annotation.*;
 public class FlashController {
 
 
-    private final FOrdersService ordersService;
-
     private final FlashSalesService flashSalesService;
 
-    private final ProductsService productsService;
-
-    private final UserFeignClient userFeignClient;
 
     /**
      * 获取秒杀活动列表
@@ -44,9 +39,9 @@ public class FlashController {
      */
     @GetMapping("/list")
     public Result<PageResult<FlashSaleDTO>> getFlashSales(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String date) {  // 添加日期参数
+            @RequestParam(value = "page",defaultValue = "1") int page,
+            @RequestParam(value = "size",defaultValue = "10") int size,
+            @RequestParam(value ="date",required = false) String date) {  // 添加日期参数
 
          return flashSalesService.getFlashSales(page, size, date);
     }

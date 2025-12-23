@@ -10,6 +10,7 @@ import cn.loblok.upc.common.enums.AppMode;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -173,4 +174,7 @@ public interface UserService extends IService<User> {
 
 
     Result<Integer> consumeLotteryTicket(Long userId);
+
+    Result<Map<Long, UserPublicInfoDTO>> getUserPublicInfoBatch(List<Long> userIds);
+
 }

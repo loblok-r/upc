@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 2025-12-12
  */
 @RestController
-@RequestMapping("/api/history")
+@RequestMapping("/api/ai-history")
 @AllArgsConstructor
 @Slf4j
 public class AiGenerationHistoryController {
@@ -36,8 +36,8 @@ public class AiGenerationHistoryController {
      */
     @GetMapping("/list")
     public Result<PageResult<AiHistoryResponse>> getHistoryList(@CurrentUser Long userId,
-                                                                @RequestParam Integer page,
-                                                                @RequestParam Integer pageSize){
+                                                                @RequestParam(value = "page",defaultValue = "1") Integer page,
+                                                                @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize){
 
 
         log.info("获取用户历史记录");

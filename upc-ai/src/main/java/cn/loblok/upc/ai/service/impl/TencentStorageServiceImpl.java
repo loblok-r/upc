@@ -1,6 +1,7 @@
-package cn.loblok.upc.ai.utils;
+package cn.loblok.upc.ai.service.impl;
 
 import cn.loblok.upc.ai.dto.AiResult;
+import cn.loblok.upc.ai.service.FileStorageService;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -11,6 +12,7 @@ import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -18,34 +20,26 @@ import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 
-
 @Service
 @Slf4j
-public class TencentCOSUtil {
-
+// 只有当配置为 cos 时才加载此 Bean，默认也是它
+@ConditionalOnProperty(name = "upc.storage.type", havingValue = "cos", matchIfMissing = true)
+public class TencentStorageServiceImpl implements FileStorageService {
 
     // 替换为你的实际配置
     @Value("${tencent.cos.secret-id}")
     private String secretId;
-    
+
     @Value("${tencent.cos.secret-key}")
     private  String secretKey;
-    
+
     @Value("${tencent.cos.bucket-name}")
     private  String bucketName;
-    
+
     @Value("${tencent.cos.region}")
     private  String region;
-
-    /**
-     * 上传图片并返回临时可访问的签名 URL
-     *
-     * @param inputStream 图片数据流
-     * @param originalFilename 原始文件名（用于扩展名，如 "cat.png"）
-     * @param expireMinutes 签名 URL 有效时间（分钟）
-     * @return 临时可访问的 HTTPS URL
-     */
-    public AiResult uploadAndGenerateSignedUrl(Long userId, InputStream inputStream, String originalFilename, int expireMinutes) {
+    @Override
+    public AiResult uploadImage(Long userId, InputStream inputStream, String originalFilename, int expireMinutes) {
         log.info("uploadAndGenerateSignedUrl 开始执行：");
         COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
         ClientConfig clientConfig = new ClientConfig(new Region(region));
@@ -76,7 +70,6 @@ public class TencentCOSUtil {
             cosClient.shutdown(); // 关闭客户端
         }
     }
-
     private String buildPublicUrl(String bucketName, String region, String objectKey) {
         return "https://"+bucketName+".cos."+region+".myqcloud.com/"+objectKey;
     }

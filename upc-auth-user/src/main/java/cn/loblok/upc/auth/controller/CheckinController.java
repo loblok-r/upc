@@ -1,4 +1,4 @@
-package cn.loblok.upc.auth.controller.checkin;
+package cn.loblok.upc.auth.controller;
 
 import cn.loblok.upc.common.annotation.CurrentUser;
 import cn.loblok.upc.auth.dto.chickin.CheckinHistoryResponse;
@@ -25,7 +25,7 @@ import java.time.LocalDate;
 @RequestMapping("/api/checkin")
 @AllArgsConstructor
 @Slf4j
-public class CheckinRecordController {
+public class CheckinController {
     
 
     private final CheckinRecordService checkinRecordService;

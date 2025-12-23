@@ -29,14 +29,14 @@ public class InternalUserController {
 
     private final UserItemsService userItemsService;
 
-    @GetMapping("/info/{userId}")
-    public Result<UserPublicInfoDTO> getUserInfo(@PathVariable Long userId) {
+    @PostMapping("/info/user")
+    public Result<UserPublicInfoDTO> getUserInfo(@RequestParam(value = "userId")  Long userId) {
 
         return userService.getUserPublicInfo(userId);
     }
 
     @PostMapping("/points/update")
-    public Result<Boolean> updatePoints(@RequestParam Long userId, @RequestParam Integer delta) {
+    public Result<Boolean> updatePoints(@RequestParam("userId") Long userId, @RequestParam("delta") Integer delta) {
         // todo 修改积分逻辑
         return null;
     }
@@ -49,7 +49,7 @@ public class InternalUserController {
      */
 
     @PostMapping("/member/check")
-    Result<Boolean> checkMemberStatus(@RequestParam Long userId) {
+    Result<Boolean> checkMemberStatus(@RequestParam("userId") Long userId) {
 
         Boolean result = userService.isMember(userId);
         return Result.success(result);
@@ -63,8 +63,9 @@ public class InternalUserController {
      */
     @PostMapping("/public/list")
     Result<Map<Long, UserPublicInfoDTO>> getUserPublicInfoBatch(@RequestBody List<Long> userIds) {
-        //todo 给社区服务用的：批量获取用户信息，用于展示帖子列表
-        return null;
+
+
+        return userService.getUserPublicInfoBatch(userIds);
     }
 
 
@@ -76,7 +77,7 @@ public class InternalUserController {
     }
 
     @PostMapping("/followersCounts/update")
-    void updateFollowersCounts(Long userId, Integer delta) {
+    void updateFollowersCounts(@RequestParam("userId") Long userId, @RequestParam("delta") Integer delta) {
         userService.updateFollowersCounts(userId, delta);
 
         log.info("更新用户作品数成功");
@@ -89,7 +90,7 @@ public class InternalUserController {
      * @param delta
      */
     @PostMapping("/workCounts/update")
-    void updateUserWorkCounts(Long userId, Integer delta) {
+    void updateUserWorkCounts(@RequestParam("userId") Long userId,@RequestParam("delta") Integer delta) {
         userService.updateUserWorkCounts(userId, delta);
 
         log.info("更新用户作品数成功");
@@ -102,7 +103,7 @@ public class InternalUserController {
      * @param delta
      */
     @PostMapping("/likeCounts/update")
-    void updateLikeCounts(Long userId, Integer delta){
+    void updateLikeCounts(@RequestParam("userId") Long userId, @RequestParam("delta") Integer delta){
         userService.updateLikeCounts(userId, delta);
         log.info("更新用户点赞数成功");
     }
@@ -114,7 +115,7 @@ public class InternalUserController {
      * @return
      */
     @PostMapping("/recommend")
-    public Result<List<UserPublicInfoDTO>> getRecommendedUsers(@RequestParam Integer limit, @RequestBody List<Long> excludeIds) {
+    public Result<List<UserPublicInfoDTO>> getRecommendedUsers(@RequestParam("limit") Integer limit, @RequestBody List<Long> excludeIds) {
 
 
         return userService.getRecommendedUsers(limit, excludeIds);
