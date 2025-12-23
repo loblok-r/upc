@@ -1,0 +1,68 @@
+package cn.loblok.upc.auth.event.handler;
+
+import cn.loblok.upc.auth.entity.IssueContext;
+import cn.loblok.upc.auth.enums.CouponTemplateType;
+import cn.loblok.upc.auth.service.CouponIssueLogService;
+import cn.loblok.upc.common.enums.BizType;
+import cn.loblok.upc.auth.common.util.PrefixUtil;
+import cn.loblok.upc.auth.event.UserLevelUpgradedEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+/**
+ * 用户等级升级事件处理器
+ */
+@Component
+@Slf4j
+public class UserLevelUpgradedCouponHandler {
+    @Autowired
+    private CouponIssueLogService couponIssueService;
+
+    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    public void handleUserLevelUpgraded(UserLevelUpgradedEvent event) {
+        Long userId = event.getUserId();
+        int oldLevel = event.getOldLevel();
+        int newLevel = event.getNewLevel();
+
+        // 根据升级目标等级，发放不同优惠券
+        if (newLevel == 3) {
+            issueLevel3EliteCoupon(userId, event);
+        } else if (newLevel == 5) {
+            issueLevel5EliteCoupon(userId, event);
+        }
+        // 其他等级...
+    }
+
+    private void issueLevel3EliteCoupon(Long userId, UserLevelUpgradedEvent event) {
+        IssueContext context = IssueContext.builder()
+                .bizType(BizType.UPGRADE_PACKAGE)
+                .bizId(PrefixUtil.buildLevelUpgradeCouponKey(userId, event.getNewLevel()))
+                .build();
+
+//        couponIssueService.issueCoupon(
+//                userId,
+//                CouponTemplateType.MEMBER_ONE_DAY.getTemplateCode(),
+//                context
+//        );
+    }
+    private void issueLevel5EliteCoupon(Long userId, UserLevelUpgradedEvent event) {
+        IssueContext context = IssueContext.builder()
+                .bizType(BizType.UPGRADE_PACKAGE)
+                .bizId(PrefixUtil.buildLevelUpgradeCouponKey(userId, event.getNewLevel()))
+                .build();
+
+        couponIssueService.issueCoupon(
+                userId,
+                CouponTemplateType.MEMBER_ONE_DAY.getTemplateCode(),
+                context
+        );
+    }
+
+}

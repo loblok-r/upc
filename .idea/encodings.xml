@@ -3,5 +3,21 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-ai/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-ai/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-auth-user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-auth-user/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-community/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-community/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-trade/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-trade/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-worker/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/upc-worker/src/main/resources" charset="UTF-8" />
   </component>
 </project>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.worker.mapper.AiGenerationLogsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.worker.entity.AiGenerationLogs">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="session_id" property="sessionId" />
+        <result column="prompt" property="prompt" />
+        <result column="params" property="params" />
+        <result column="cost" property="cost" />
+        <result column="status" property="status" />
+        <result column="result_url" property="resultUrl" />
+        <result column="error_msg" property="errorMsg" />
+        <result column="created_at" property="createdAt" />
+        <result column="is_deleted" property="isDeleted" />
+        <result column="is_pinned" property="isPinned" />
+        <result column="content_type" property="contentType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, session_id, prompt, params,content_type
+          is_deleted,is_pinned
+          cost, status, result_url, error_msg, created_at
+    </sql>
+
+</mapper>

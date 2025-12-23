@@ -1,0 +1,40 @@
+package cn.loblok.upc.community.dto;
+
+import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+/**
+ * 帖子响应体
+ */
+@Data
+public class PostResponse {
+
+    private Long id;
+
+    private CommunityUserVO user;
+
+    private String title;
+
+    private String content;
+
+    private Integer likesCount;
+
+    private Integer commentsCount;
+
+    private String imageUrl;
+
+    private Boolean isDeleted;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private int width;
+
+    private int height;
+}
+
+
+

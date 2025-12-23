@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.loblok.upc.trade.mapper.ProductsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.loblok.upc.trade.entity.Products">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="description" property="description" />
+        <result column="category" property="category" />
+        <result column="points_required" property="pointsRequired" />
+        <result column="original_price" property="originalPrice" />
+        <result column="stock" property="stock" />
+        <result column="limit_per_user" property="limitPerUser" />
+        <result column="tag" property="tag" />
+        <result column="image_url" property="imageUrl" />
+        <result column="status" property="status" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="created_at" property="createdAt" />
+        <result column="lottery_eligible" property="lotteryEligible" />
+        <result column="icon_name" property="iconName" />
+        <result column="display_color" property= "displayColor" />
+        <result column="delivery_config" property="deliveryConfig" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, description, category, points_required, original_price,
+          lottery_eligible, icon_name, display_color,
+          delivery_config,
+          stock, limit_per_user, tag, image_url, status, sort_order, created_at
+    </sql>
+
+</mapper>
