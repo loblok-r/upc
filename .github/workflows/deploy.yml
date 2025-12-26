@@ -18,10 +18,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 1. 同步到 Gitee
+      # 1. 同步到 Gitee (解决国内服务器拉取源码的带宽问题)
       - name: Sync to Gitee
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -30,7 +30,7 @@ jobs:
           git remote add gitee git@gitee.com:barondd/upc.git
           git push gitee HEAD:main -f
 
-      # 2. 部署 腾讯云 (TXY)
+      # 2. 部署 腾讯云 (TXY) - 运行核心业务: Auth, Trade, Worker, Community
       - name: Deploy to TXY (4C4G)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -39,36 +39,40 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # 1. 进入目录，如果目录不存在则创建
+            # 环境准备：下发临时私钥用于拉取 Gitee 源码
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_deploy
+            chmod 600 ~/.ssh/id_rsa_deploy
+            export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no"
+
+            # 进入目录并初始化 Git
             mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 2. 检查当前目录是否为 Git 仓库
             if [ ! -d ".git" ]; then
-              echo "Initializing git repository..."
               git init
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            mkdir -p ~/.ssh
-            ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts 2>/dev/null
-            
-            # 3. 更新并拉取代码
+            # 更新并拉取代码
             git remote set-url origin ${{ env.GITEE_URL }}
-            git fetch origin main
-            git reset --hard FETCH_HEAD
+            $GIT_SSH_COMMAND git fetch origin main
+            $GIT_SSH_COMMAND git reset --hard FETCH_HEAD
             
-            # 4. 执行构建
+            # 执行构建
             echo "Building TXY Modules..."
             export MAVEN_OPTS="-Xmx1024m"
             mvn clean package -DskipTests -pl upc-auth-user,upc-trade,upc-worker,upc-community -am
             
-            # 5. 重启容器
+            # 重启容器
             echo "Restarting TXY Services..."
             docker compose -f docker-compose-txy.yml up -d --build --remove-orphans
+            
+            # 清理临时私钥与镜像垃圾
+            rm -f ~/.ssh/id_rsa_deploy
             docker image prune -f
 
-      # 3. 部署 火山云 (HSY)
+      # 3. 部署 火山云 (HSY) - 运行流量入口与AI: Gateway, AI
       - name: Deploy to HSY (2C2G)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -77,31 +81,35 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # 1. 进入目录
+            # 环境准备：下发临时私钥
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_deploy
+            chmod 600 ~/.ssh/id_rsa_deploy
+            export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no"
+
+            # 进入目录并初始化 Git
             mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 2. 初始化 Git
             if [ ! -d ".git" ]; then
-              echo "Initializing git repository on HSY..."
               git init
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            mkdir -p ~/.ssh
-            ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts 2>/dev/null
-            
-            # 3. 强制对齐源码
+            # 强制对齐源码
             git remote set-url origin ${{ env.GITEE_URL }}
-            git fetch origin main
-            git reset --hard FETCH_HEAD
+            $GIT_SSH_COMMAND git fetch origin main
+            $GIT_SSH_COMMAND git reset --hard FETCH_HEAD
             
-            # 4. 构建 HSY 模块
+            # 构建 HSY 模块 (Gateway, AI)
             echo "Building HSY Modules..."
             export MAVEN_OPTS="-Xmx512m"
             mvn clean package -DskipTests -pl upc-gateway,upc-ai -am -T 1
             
-            # 5. 重启 HSY 服务
+            # 重启 HSY 服务
             echo "Restarting HSY Services..."
             docker compose -f docker-compose-hsy.yml up -d --build --remove-orphans
+            
+            # 清理临时私钥与镜像垃圾
+            rm -f ~/.ssh/id_rsa_deploy
             docker image prune -f
