@@ -39,11 +39,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # 环境准备：下发临时私钥用于拉取 Gitee 源码
+            # 环境准备：下发临时私钥
             mkdir -p ~/.ssh
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_deploy
             chmod 600 ~/.ssh/id_rsa_deploy
-            export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no"
 
             # 进入目录并初始化 Git
             mkdir -p ${{ env.PROJECT_DIR }}
@@ -54,10 +53,10 @@ jobs:
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            # 更新并拉取代码
+            # 更新并拉取代码 (修复了解析错误的写法)
             git remote set-url origin ${{ env.GITEE_URL }}
-            $GIT_SSH_COMMAND git fetch origin main
-            $GIT_SSH_COMMAND git reset --hard FETCH_HEAD
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no" git fetch origin main
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no" git reset --hard FETCH_HEAD
             
             # 执行构建
             echo "Building TXY Modules..."
@@ -85,7 +84,6 @@ jobs:
             mkdir -p ~/.ssh
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_deploy
             chmod 600 ~/.ssh/id_rsa_deploy
-            export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no"
 
             # 进入目录并初始化 Git
             mkdir -p ${{ env.PROJECT_DIR }}
@@ -96,10 +94,10 @@ jobs:
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            # 强制对齐源码
+            # 强制对齐源码 (修复了解析错误的写法)
             git remote set-url origin ${{ env.GITEE_URL }}
-            $GIT_SSH_COMMAND git fetch origin main
-            $GIT_SSH_COMMAND git reset --hard FETCH_HEAD
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no" git fetch origin main
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no" git reset --hard FETCH_HEAD
             
             # 构建 HSY 模块 (Gateway, AI)
             echo "Building HSY Modules..."
