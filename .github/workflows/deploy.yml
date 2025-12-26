@@ -39,16 +39,28 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }} # 建议使用私钥，比密码更稳
           script: |
             set -e
+          # 1. 进入目录，如果目录不存在则创建
+            mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 更新代码
+            # 2. 检查当前目录是否为 Git 仓库，如果不是则初始化并拉取
+            if [ ! -d ".git" ]; then
+            echo "Initializing git repository..."
+            git init
+            git remote add origin ${{ env.GITEE_URL }}
+            fi
+            
+            # 3. 更新远程地址（防止 URL 变更）并拉取代码
+            git remote set-url origin ${{ env.GITEE_URL }}
             git fetch origin main
             git reset --hard FETCH_HEAD
             
+            # 4. 执行构建
             echo "Building TXY Modules (Auth, Trade, Worker, Community)..."
-            export MAVEN_OPTS="-Xmx1G"
+            export MAVEN_OPTS="-Xmx1024m"
             mvn clean package -DskipTests -pl upc-auth-user,upc-trade,upc-worker,upc-community -am
             
+            # 5. 重启容器
             echo "Restarting TXY Services..."
             docker compose -f docker-compose-txy.yml up -d --build --remove-orphans
             docker image prune -f
@@ -62,17 +74,29 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+          # 1. 进入目录并确保存在
+            mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 更新代码
+            # 2. 只有在不是 Git 仓库时才初始化
+            if [ ! -d ".git" ]; then
+            echo "Initializing git repository on HSY..."
+            git init
+            git remote add origin ${{ env.GITEE_URL }}
+            fi
+            
+            # 3. 强制对齐 Gitee 源码
+            git remote set-url origin ${{ env.GITEE_URL }}
             git fetch origin main
             git reset --hard FETCH_HEAD
             
+            # 4. 构建 HSY 专属模块 (Gateway, AI)
             echo "Building HSY Modules (Gateway, AI)..."
-            # 重要：2G 内存机器必须严格限制 Maven，且禁止多线程构建（-T 1）防止卡死
+            # 再次强调：2G 内存机器必须限制内存占用
             export MAVEN_OPTS="-Xmx512m"
             mvn clean package -DskipTests -pl upc-gateway,upc-ai -am -T 1
             
+            # 5. 重启 HSY 服务
             echo "Restarting HSY Services..."
             docker compose -f docker-compose-hsy.yml up -d --build --remove-orphans
             docker image prune -f
