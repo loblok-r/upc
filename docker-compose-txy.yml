@@ -92,7 +92,7 @@ services:
       SPRING_CLOUD_CLIENT_IP_ADDRESS: 10.0.0.4
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
-
+      SPRING_CLOUD_CONSUL_PORT: 8500
       SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
@@ -140,7 +140,7 @@ services:
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
-
+      SPRING_CLOUD_CONSUL_PORT: 8500
       SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
 
@@ -194,6 +194,7 @@ services:
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
       SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
@@ -238,6 +239,7 @@ services:
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
       SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}

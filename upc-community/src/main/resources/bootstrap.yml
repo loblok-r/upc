@@ -5,8 +5,8 @@ spring:
     name: upc-community
   cloud:
     consul:
-      host: localhost
-      port: 8500
+      host: ${SPRING_CLOUD_CONSUL_HOST:localhost}
+      port: ${SPRING_CLOUD_CONSUL_PORT:8500}
       discovery:
         # 1. 优先使用 IP 地址进行注册
         prefer-ip-address: true
