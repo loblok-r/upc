@@ -59,6 +59,9 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
      */
     @Override
     public List<PostResponse> getPostsTab(Long userId, int page, int pageSize, PostsTab postsTab) {
+
+
+        log.info("获取帖子列表,用户ID:{},page:{},pageSize:{},postsTab:{}", userId, page, pageSize, postsTab.getDescription());
         List<Long> IdList;
         List<Long> followedIds = followService.findFollowedIds(userId);
         Page<Posts> postsPage;
