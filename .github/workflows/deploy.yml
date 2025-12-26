@@ -1,0 +1,78 @@
+name: Deploy Distributed Microservices
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  GITEE_URL: "git@gitee.com:barondd/upc.git"
+  PROJECT_DIR: "/opt/projects/upc"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1. 同步到 Gitee (解决国内服务器拉取源码的带宽问题)
+      - name: Sync to Gitee
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts
+          git remote add gitee git@gitee.com:barondd/upc.git
+          git push gitee HEAD:main -f
+
+      # 2. 部署 腾讯云 (TXY) - 运行核心业务: Auth, Trade, Worker, Community
+      - name: Deploy to TXY (4C4G)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TXY_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # 建议使用私钥，比密码更稳
+          script: |
+            set -e
+            cd ${{ env.PROJECT_DIR }}
+            
+            # 更新代码
+            git fetch origin main
+            git reset --hard FETCH_HEAD
+            
+            echo "Building TXY Modules (Auth, Trade, Worker, Community)..."
+            export MAVEN_OPTS="-Xmx1G"
+            mvn clean package -DskipTests -pl upc-auth-user,upc-trade,upc-worker,upc-community -am
+            
+            echo "Restarting TXY Services..."
+            docker compose -f docker-compose-txy.yml up -d --build --remove-orphans
+            docker image prune -f
+
+      # 3. 部署 火山云 (HSY) - 运行流量入口与AI: Gateway, AI
+      - name: Deploy to HSY (2C2G)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HSY_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ env.PROJECT_DIR }}
+            
+            # 更新代码
+            git fetch origin main
+            git reset --hard FETCH_HEAD
+            
+            echo "Building HSY Modules (Gateway, AI)..."
+            # 重要：2G 内存机器必须严格限制 Maven，且禁止多线程构建（-T 1）防止卡死
+            export MAVEN_OPTS="-Xmx512m"
+            mvn clean package -DskipTests -pl upc-gateway,upc-ai -am -T 1
+            
+            echo "Restarting HSY Services..."
+            docker compose -f docker-compose-hsy.yml up -d --build --remove-orphans
+            docker image prune -f
