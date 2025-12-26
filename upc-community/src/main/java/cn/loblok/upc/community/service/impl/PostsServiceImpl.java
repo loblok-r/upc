@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -135,6 +136,9 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
 
     private List<PostResponse> getPostResponses(List<Long> IdList, Page<Posts> postsPage, List<Long> followedIds) {
 
+        if(IdList.isEmpty()){
+            return Collections.emptyList();
+        }
         Result<Map<Long, UserPublicInfoDTO>> useMap = userFeignClient.getUserPublicInfoBatch(IdList);
         if (useMap != null && useMap.getData() != null) {
         return postsPage.getRecords().stream()
