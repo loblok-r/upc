@@ -12,7 +12,7 @@ spring:
         prefer-ip-address: true
         # 2. 这里的 IP 填写 TXY 宿主机的内网 IP (例如 172.17.0.4)
         ip-address: ${SPRING_CLOUD_CLIENT_IP_ADDRESS}
-        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
         service-name: ${spring.application.name}
 jasypt:
   encryptor:

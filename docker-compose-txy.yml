@@ -93,7 +93,7 @@ services:
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
 
-      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: false
+      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
       SPRING_DATA_REDIS_HOST: upc-redis
@@ -141,7 +141,7 @@ services:
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
 
-      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: false
+      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
@@ -194,7 +194,7 @@ services:
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
-      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: false
+      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
       SPRING_DATA_REDIS_HOST: upc-redis
@@ -238,7 +238,7 @@ services:
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
-      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: false
+      SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_PASSWORD}
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
