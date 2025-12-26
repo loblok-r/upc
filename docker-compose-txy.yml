@@ -93,7 +93,7 @@ services:
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
       SPRING_CLOUD_CONSUL_PORT: 8500
-      SPRING_CLOUD_CLIENT_IP_ADDRESS: 101.43.117.193
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: ${TXY_PUBLIC_IP}
       SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS: "true"
 
       SPRING_DATASOURCE_URL: "jdbc:mysql://upc-mysql:3306/upc?useSSL=false"
@@ -137,7 +137,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
-      SPRING_CLOUD_CLIENT_IP_ADDRESS: 101.43.117.193
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: ${TXY_PUBLIC_IP}
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
@@ -191,7 +191,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
-      SPRING_CLOUD_CLIENT_IP_ADDRESS: 101.43.117.193
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: ${TXY_PUBLIC_IP}
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
@@ -236,7 +236,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
-      SPRING_CLOUD_CLIENT_IP_ADDRESS: 101.43.117.193
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: ${TXY_PUBLIC_IP}
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
