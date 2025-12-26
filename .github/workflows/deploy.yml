@@ -50,6 +50,9 @@ jobs:
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
+            mkdir -p ~/.ssh
+            ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts 2>/dev/null
+            
             # 3. 更新并拉取代码
             git remote set-url origin ${{ env.GITEE_URL }}
             git fetch origin main
@@ -84,6 +87,9 @@ jobs:
               git init
               git remote add origin ${{ env.GITEE_URL }}
             fi
+            
+            mkdir -p ~/.ssh
+            ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts 2>/dev/null
             
             # 3. 强制对齐源码
             git remote set-url origin ${{ env.GITEE_URL }}
