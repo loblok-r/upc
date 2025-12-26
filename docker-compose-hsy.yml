@@ -1,6 +1,6 @@
 services:
   # --- 流量入口 (Nginx) ---
-  frontend:
+  upc-frontend:
     image: upc-frontend:latest
     container_name: upc-frontend
     restart: always

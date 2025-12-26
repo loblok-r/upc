@@ -89,7 +89,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
-
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: 10.0.0.4
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
 
@@ -136,6 +136,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: 10.0.0.4
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
@@ -189,6 +190,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: 10.0.0.4
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul
@@ -232,6 +234,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: pro
+      SPRING_CLOUD_CLIENT_IP_ADDRESS: 10.0.0.4
       # 1. 基础 JVM 与 注册中心配置
       JAVA_OPTS: "-Xms320m -Xmx320m"
       SPRING_CLOUD_CONSUL_HOST: upc-consul

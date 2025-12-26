@@ -8,6 +8,10 @@ spring:
       host: localhost
       port: 8500
       discovery:
+        # 1. 优先使用 IP 地址进行注册
+        prefer-ip-address: true
+        # 2. 这里的 IP 填写 TXY 宿主机的内网 IP (例如 172.17.0.4)
+        ip-address: ${SPRING_CLOUD_CLIENT_IP_ADDRESS}
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
         service-name: ${spring.application.name}
 jasypt:
