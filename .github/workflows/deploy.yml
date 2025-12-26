@@ -45,9 +45,9 @@ jobs:
             
             # 2. 检查当前目录是否为 Git 仓库，如果不是则初始化并拉取
             if [ ! -d ".git" ]; then
-            echo "Initializing git repository..."
-            git init
-            git remote add origin ${{ env.GITEE_URL }}
+              echo "Initializing git repository..."
+              git init
+              git remote add origin ${{ env.GITEE_URL }}
             fi
             
             # 3. 更新远程地址（防止 URL 变更）并拉取代码
@@ -80,9 +80,9 @@ jobs:
             
             # 2. 只有在不是 Git 仓库时才初始化
             if [ ! -d ".git" ]; then
-            echo "Initializing git repository on HSY..."
-            git init
-            git remote add origin ${{ env.GITEE_URL }}
+              echo "Initializing git repository on HSY..."
+              git init
+              git remote add origin ${{ env.GITEE_URL }}
             fi
             
             # 3. 强制对齐 Gitee 源码
