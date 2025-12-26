@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 1. 同步到 Gitee (解决国内服务器拉取源码的带宽问题)
+      # 1. 同步到 Gitee
       - name: Sync to Gitee
         env:
           SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
@@ -30,33 +30,33 @@ jobs:
           git remote add gitee git@gitee.com:barondd/upc.git
           git push gitee HEAD:main -f
 
-      # 2. 部署 腾讯云 (TXY) - 运行核心业务: Auth, Trade, Worker, Community
+      # 2. 部署 腾讯云 (TXY)
       - name: Deploy to TXY (4C4G)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.TXY_IP }}
           username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # 建议使用私钥，比密码更稳
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-          # 1. 进入目录，如果目录不存在则创建
+            # 1. 进入目录，如果目录不存在则创建
             mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 2. 检查当前目录是否为 Git 仓库，如果不是则初始化并拉取
+            # 2. 检查当前目录是否为 Git 仓库
             if [ ! -d ".git" ]; then
               echo "Initializing git repository..."
               git init
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            # 3. 更新远程地址（防止 URL 变更）并拉取代码
+            # 3. 更新并拉取代码
             git remote set-url origin ${{ env.GITEE_URL }}
             git fetch origin main
             git reset --hard FETCH_HEAD
             
             # 4. 执行构建
-            echo "Building TXY Modules (Auth, Trade, Worker, Community)..."
+            echo "Building TXY Modules..."
             export MAVEN_OPTS="-Xmx1024m"
             mvn clean package -DskipTests -pl upc-auth-user,upc-trade,upc-worker,upc-community -am
             
@@ -65,7 +65,7 @@ jobs:
             docker compose -f docker-compose-txy.yml up -d --build --remove-orphans
             docker image prune -f
 
-      # 3. 部署 火山云 (HSY) - 运行流量入口与AI: Gateway, AI
+      # 3. 部署 火山云 (HSY)
       - name: Deploy to HSY (2C2G)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -74,25 +74,24 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-          # 1. 进入目录并确保存在
+            # 1. 进入目录
             mkdir -p ${{ env.PROJECT_DIR }}
             cd ${{ env.PROJECT_DIR }}
             
-            # 2. 只有在不是 Git 仓库时才初始化
+            # 2. 初始化 Git
             if [ ! -d ".git" ]; then
               echo "Initializing git repository on HSY..."
               git init
               git remote add origin ${{ env.GITEE_URL }}
             fi
             
-            # 3. 强制对齐 Gitee 源码
+            # 3. 强制对齐源码
             git remote set-url origin ${{ env.GITEE_URL }}
             git fetch origin main
             git reset --hard FETCH_HEAD
             
-            # 4. 构建 HSY 专属模块 (Gateway, AI)
-            echo "Building HSY Modules (Gateway, AI)..."
-            # 再次强调：2G 内存机器必须限制内存占用
+            # 4. 构建 HSY 模块
+            echo "Building HSY Modules..."
             export MAVEN_OPTS="-Xmx512m"
             mvn clean package -DskipTests -pl upc-gateway,upc-ai -am -T 1
             
