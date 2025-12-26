@@ -65,8 +65,11 @@ jobs:
             
             # 重启容器
             echo "Restarting TXY Services..."
+            # 强行停止并移除旧容器
+            docker compose -f docker-compose-txy.yml down
             docker compose -f docker-compose-txy.yml up -d --build --remove-orphans
             
+            sleep 10
             # 清理临时私钥与镜像垃圾
             rm -f ~/.ssh/id_rsa_deploy
             docker image prune -f
