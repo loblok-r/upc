@@ -21,6 +21,7 @@ public class Atest {
         String password = ""; // ← 这是你自己定的密钥（不是数据库密码！）
         String plainText = ""; // ← 要加密的真实密码
 
+        System.out.println("【Jasypt】");
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
 
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
