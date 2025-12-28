@@ -51,7 +51,7 @@ public class DeliveryService {
 
     public void deliverVirtual(ProductDeliveryMsgDTO msg) {
 
-        String orderId = msg.getOrderId();
+        String orderId = String.valueOf(msg.getOrderId());
         log.info("开始发放虚拟资产：订单ID={}", orderId);
         Long userId = msg.getUserId();
         Map<String, Object> config = parseConfig(msg.getDeliveryConfig());
@@ -90,14 +90,14 @@ public class DeliveryService {
 
     public void deliverVoucher(ProductDeliveryMsgDTO msg) {
 
-        String orderId = msg.getOrderId();
+        String orderId = String.valueOf(msg.getOrderId());
         log.info("开始发放代金券：订单ID={}", msg.getOrderId());
         Long userId = msg.getUserId();
         Map<String, Object> config = parseConfig(msg.getDeliveryConfig());
 
         String type = (String) config.get("type");
 
-        String sourceId = msg.getOrderId();
+        String sourceId = String.valueOf(msg.getOrderId());
 
         //发放补签卡
         if (UserItemType.RESIGN_CARD.getValue().equals(type)) {
