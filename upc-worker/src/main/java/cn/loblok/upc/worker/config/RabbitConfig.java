@@ -18,6 +18,7 @@ public class RabbitConfig {
     // 交换机
     public static final String EXCHANGE_NAME = "upc.direct.exchange";
 
+
     // 队列
     public static final String QUEUE_EMAIL = "q.notification.email";
     public static final String QUEUE_SITE_MSG = "q.notification.site";
@@ -34,11 +35,13 @@ public class RabbitConfig {
     public static final String ROUTE_STATS_UPDATE = "mq.route.stats_update";
     public static final String ROUTE_AI_SETTLE = "mq.route.ai_settle";
     public static final String ROUTE_PRODUCT_DELIVERY = "mq.route.product_delivery";
+    public static final String ROUTE_FLASHSALE_STOCK_ROLLBACK = "flashsale.stock.rollback.routing.key";
 
     @Bean
     public DirectExchange upcExchange() {
         return new DirectExchange(EXCHANGE_NAME, true, false);
     }
+
 
     // --- 定义队列 ---
 
@@ -79,6 +82,7 @@ public class RabbitConfig {
     @Bean public Queue productDeliveryQueue() { return new Queue(QUEUE_PRODUCT_DELIVERY, true); }
 
 
+
     // --- 绑定关系 ---
     @Bean
     public Binding bindEmail() {
@@ -109,6 +113,7 @@ public class RabbitConfig {
     public Binding bindProductDelivery() {
         return BindingBuilder.bind(productDeliveryQueue()).to(upcExchange()).with(ROUTE_PRODUCT_DELIVERY);
     }
+
 
     // 4G 内存关键配置：消息序列化器（使用 JSON 替代 JDK 序列化，省内存且跨语言）
     @Bean

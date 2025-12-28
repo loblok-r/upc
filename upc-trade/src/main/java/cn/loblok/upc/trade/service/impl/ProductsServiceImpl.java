@@ -81,7 +81,6 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
         queryWrapper.orderByDesc("created_at");
 
         IPage<Products> result = this.page(productPage, queryWrapper);
-
         // 转换为 DTO
         IPage<ProductDTO> dtoPage = result.convert(product -> {
             ProductDTO dto = new ProductDTO();
@@ -146,7 +145,7 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
 
         // 发送 MQ 消息，任务结束，立即返回给前端
         ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
-                .orderId(order.getId())
+                .orderId(Long.parseLong(order.getId()))
                 .userId(userId)
                 .source(UserItemSourceType.POINTS_TRADING.getDescription())
                 .category(product.getCategory().name())

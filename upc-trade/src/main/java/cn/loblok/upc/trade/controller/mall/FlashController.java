@@ -6,6 +6,7 @@ import cn.loblok.upc.trade.dto.mall.FlashOrderRequestDTO;
 import cn.loblok.upc.trade.dto.mall.FlashSaleDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
+import cn.loblok.upc.trade.dto.mall.PublishFlashSaleDTO;
 import cn.loblok.upc.trade.service.*;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,17 @@ public class FlashController {
 
     private final FlashSalesService flashSalesService;
 
+
+    /**
+     * 发布秒杀活动
+     *
+     * @param publishFlashSaleDTO 秒杀活动信息
+     * @return 操作结果
+     */
+    @PostMapping("/publish")
+    public Result<String> publishFlashSale(@Valid @RequestBody PublishFlashSaleDTO publishFlashSaleDTO ) {
+        return flashSalesService.publishFlashSale(publishFlashSaleDTO);
+    }
 
     /**
      * 获取秒杀活动列表

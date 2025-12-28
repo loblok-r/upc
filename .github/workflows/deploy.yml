@@ -111,6 +111,7 @@ jobs:
             echo "Restarting HSY Services..."
             docker compose -f docker-compose-hsy.yml up -d --build --remove-orphans
             
+            docker exec upc-frontend nginx -s reload || true
             # 清理临时私钥与镜像垃圾
             rm -f ~/.ssh/id_rsa_deploy
             docker image prune -f

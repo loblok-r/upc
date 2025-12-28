@@ -4,6 +4,7 @@ import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.trade.dto.mall.FlashOrderRequestDTO;
 import cn.loblok.upc.trade.dto.mall.FlashSaleDTO;
+import cn.loblok.upc.trade.dto.mall.PublishFlashSaleDTO;
 import cn.loblok.upc.trade.entity.FlashSales;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -44,4 +45,12 @@ public interface FlashSalesService extends IService<FlashSales> {
      * @return 秒杀活动列表
      */
     Result<PageResult<FlashSaleDTO>> getFlashSales(int page, int size, String date);
+
+    /**
+     * 发布秒杀活动
+     *
+     * @param publishFlashSaleDTO 秒杀活动信息
+     * @return 操作结果
+     */
+    Result<String> publishFlashSale(PublishFlashSaleDTO publishFlashSaleDTO);
 }

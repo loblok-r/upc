@@ -95,7 +95,7 @@ public class LotteryServiceImpl implements LotteryService {
         }
 
         ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
-                .orderId(order.getId())
+                .orderId(Long.parseLong(order.getId()))
                 .userId(userId)
                 .source(UserItemSourceType.EVENT_REWARD.getDescription())
                 .category(prize.getCategory().name())

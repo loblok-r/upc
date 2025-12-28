@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class FOrdersServiceImpl extends ServiceImpl<FlashOrdersMapper, FlashSaleOrders> implements FOrdersService {
 
+
+    public FOrdersServiceImpl() {
+    }
     /**
      * 更新订单状态
      *

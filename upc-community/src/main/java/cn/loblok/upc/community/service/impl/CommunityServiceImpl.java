@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 社区服务实现类
+ */
 @Slf4j
 @Service
 @Primary

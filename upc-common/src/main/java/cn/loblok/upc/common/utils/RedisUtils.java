@@ -27,11 +27,17 @@ public class RedisUtils {
 
     private static final String USER_VERIFICATION_KEY_PREFIX ="user:verification-code:";
 
+    private static final String FLASHSALE_LOCK_PREFIX = "flashsale:lock:";
+
 
 
     public static String buildDailyQuotaKey(Long userId){
         String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         return USER_DAILY_QUATA_PREFIX + userId + ":" + dateStr;
+    }
+
+    public static String buildFlashSaleLockKey(Long userId,String flashSaleId) {
+        return FLASHSALE_LOCK_PREFIX + userId + ":"+ flashSaleId;
     }
     public static String buildPointsKey(Long userId) {
         return USER_SCORE_KEY_PREFIX + userId;
