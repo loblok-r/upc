@@ -13,7 +13,6 @@ import java.time.LocalDate;
 public class CheckinRewardCalculator {
 
     private final CheckinRewardRuleService rewardRuleService;
-    private final CaculateUtils caculateUtils;
 
     // 可以将配置项放入数据库或 Apollo 配置中心，这里作为常量示例
     private static final int STREAK_THRESHOLD = 7;
@@ -43,7 +42,7 @@ public class CheckinRewardCalculator {
 
         // 4. 等级变更计算
         String oldLevel = user.getUserLevel();
-        String newLevel = caculateUtils.calculateLevel(newTotalExp);
+        String newLevel = CaculateUtils.calculateLevel(newTotalExp);
         boolean levelUpgraded = oldLevel != null && !oldLevel.equals(newLevel);
 
         // 5. 使用 Builder 模式构建结果对象

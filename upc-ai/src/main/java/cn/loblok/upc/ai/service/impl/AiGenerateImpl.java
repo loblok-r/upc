@@ -89,8 +89,7 @@ public class AiGenerateImpl implements AiService {
          如果 MQ 发送成功并得到 Ack，就删掉。如果 1 分钟后还没删，说明没发出去，
          由 AI 服务的定时任务补发。**/
 
-        AiSettleDTO aiSettleDTO = new AiSettleDTO();
-        aiSettleDTO.builder()
+        AiSettleDTO.builder()
                 .userId(userId)
                 .cost(cost)
                 .mode(mode)

@@ -135,6 +135,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
             Result<Map<Long, UserPublicInfoDTO>> useMap= userFeignClient.getUserPublicInfoBatch(ulist);
 
+            if (useMap.getCode() != 200 || useMap.getData() == null) {
+                log.error("获取用户信息失败");
+                return List.of();
+            }
             List<Long> followedIds = followService.findFollowedIds(userId, ulist);
             // 转换为TComment对象
             return comments.stream().map(comment -> {
@@ -143,9 +147,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 tComment.setUserId(String.valueOf(comment.getUserId()));
 
                 CommunityUserVO vo = new CommunityUserVO();
+
                 // 获取用户信息
                 UserPublicInfoDTO userPublicInfoDTO = useMap.getData().get(comment.getUserId());
 
+                if (userPublicInfoDTO == null) {
+                    log.error("用户信息为空，请检查用户ID是否正确");
+                    return null;
+                }
                 BeanUtils.copyProperties(userPublicInfoDTO, vo);
                 vo.setIsFollowed(followedIds.contains(comment.getUserId()));
 

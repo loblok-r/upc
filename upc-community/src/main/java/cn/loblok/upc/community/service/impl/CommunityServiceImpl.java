@@ -94,7 +94,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (topTuples == null || topTuples.isEmpty()) {
             loadCreatorLeaderboard();
             topTuples = redisTemplate.opsForZSet().reverseRangeWithScores(LEADERBOARD_KEY, 0, 9);
-            if (topTuples == null) topTuples = Collections.emptySet();
+            if (topTuples == null) {topTuples = Collections.emptySet();}
         }
 
         List<Long> userIds = topTuples.stream()
@@ -318,7 +318,7 @@ public class CommunityServiceImpl implements CommunityService {
             // 将变量类型改为:
 
             List<? extends Map<String, Object>> hits = results.getHits();
-            if (hits.isEmpty()) return Collections.emptyList();
+            if (hits.isEmpty()) {return Collections.emptyList();}
 
             List<Long> searchedUserIds = hits.stream()
                     .map(h -> Long.valueOf(h.get("id").toString()))

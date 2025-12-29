@@ -10,8 +10,8 @@ import java.util.function.IntFunction;
 public enum PlanCategory {
     BASIC("Basic", 1, level -> level >= 2 ? 15 : 10),
     HD("HD", 1, level -> {
-        if (level < 3) return 0;  // 3级以下不能使用
-        if (level == 5) return 10; // 5级每天用10次
+        if (level < 3) {return 0; } // 3级以下不能使用
+        if (level == 5){ return 10;}// 5级每天用10次
         return 5;                  // 3-4级每天用5次
     }),
     PRO("PRO", 1, level -> 0); // PRO功能 只有会员能用

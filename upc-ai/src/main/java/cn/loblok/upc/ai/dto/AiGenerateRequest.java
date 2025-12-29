@@ -25,7 +25,7 @@ public class AiGenerateRequest {
 
     private int height;
     public String getSize(){
-        if(mode.equals("AI_DRAWING")){
+        if("AI_DRAWING".equals(mode)){
             return width + "x" + height;
         }else{
             return null;

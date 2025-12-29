@@ -138,7 +138,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
      */
     @Override
     public boolean isMember(User user) {
-        if (user == null) return false;
+        if (user == null) {return false;}
 
         // 永久会员
         if (Boolean.TRUE.equals(user.getIsPermanentMember())) {
@@ -214,7 +214,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
     private void grantOneDayMembership(Long userId, CouponTemplate template) {
         // 1. 避免重复发放（幂等）
         User user = userService.getById(userId);
-        if (user == null) return;
+        if (user == null) {return;}
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneDayLater = now.plusDays(1);

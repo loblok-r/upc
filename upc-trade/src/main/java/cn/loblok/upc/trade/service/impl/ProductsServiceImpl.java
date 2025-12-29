@@ -127,20 +127,18 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
     @Override
     public Products drawRandomPrize() {
 
-        log.info("开始抽奖");
-        String selectedColorKey = selectColorByProbability();
+        // 限定重试 3 次，防止死循环
+        for (int i = 0; i < 3; i++) {
+            String selectedColorKey = selectColorByProbability();
+            String prizeIdStr = (String) redisTemplate.opsForSet().randomMember(selectedColorKey);
 
-        // 从该颜色奖品池中随机选一个
-        String prizeIdStr = (String) redisTemplate.opsForSet().randomMember(selectedColorKey);
-
-        if (prizeIdStr == null) {
-            // 该颜色无奖品？回退到重新抽
-            log.warn("Color pool {} is empty, fallback to full retry", selectedColorKey);
-            return drawRandomPrize();
+            if (prizeIdStr != null) {
+                return this.getById(Long.valueOf(prizeIdStr));
+            }
+            log.warn("奖池 {} 为空，尝试重试第 {} 次", selectedColorKey, i + 1);
         }
-
-        Long prizeId = Long.valueOf(prizeIdStr);
-        return this.getById(prizeId);
+        // 如果重试都失败，抛出异常或返回兜底奖品
+        throw new BizException("奖池暂时无货，请稍后再抽");
     }
 
     /**
@@ -231,9 +229,9 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
                 "3600"
         );
 
-        if (result == 0L) throw new BizException("库存不足");
-        if (result == -1L) throw new BizException("积分不足");
-        if (result == -2L) throw new BizException("请勿重复提交");
+        if (result == 0L) {throw new BizException("库存不足");}
+        if (result == -1L) {throw new BizException("积分不足");}
+        if (result == -2L) {throw new BizException("请勿重复提交");}
 
         FlashSaleOrders order = performExchangeInTransaction(userId, product, quantity);
 
@@ -301,7 +299,7 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
     @Transactional
     public boolean addStock(String productId, int quantity) {
         Products product = this.getById(productId);
-        if (product == null) return false;
+        if (product == null) {return false;}
         product.setStock(product.getStock() + quantity);
         return this.updateById(product);
     }

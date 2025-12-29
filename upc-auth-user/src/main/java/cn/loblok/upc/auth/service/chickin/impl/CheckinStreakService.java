@@ -31,8 +31,8 @@ public class CheckinStreakService {
         if (lastDateStr != null) {
             LocalDate lastDate = LocalDate.parse(lastDateStr);
             long gap = ChronoUnit.DAYS.between(lastDate, checkinDate);
-            if (gap == 1) newStreak = currentStreak + 1;
-            else if (gap == 0) newStreak = currentStreak;
+            if (gap == 1) {newStreak = currentStreak + 1;}
+            else if (gap == 0) {newStreak = currentStreak;}
         }
 
         Map<String, String> update = new HashMap<>();

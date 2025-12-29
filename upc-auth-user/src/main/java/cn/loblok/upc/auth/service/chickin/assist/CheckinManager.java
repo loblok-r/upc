@@ -26,7 +26,6 @@ public class CheckinManager {
     private final CheckinRecordMapper checkinRecordMapper;
     private final UserPointsService userPointsService;
     private final UserService userService;
-    private final CaculateUtils caculateUtils;
 
     @Transactional(rollbackFor = Exception.class)
     public long persistCheckinData(String tenantId, User user, LocalDate date, RewardResult rewards, int streakDays) {
@@ -49,7 +48,7 @@ public class CheckinManager {
         );
 
         // 3. 更新用户主表 (经验、等级、连续天数、签到标记)
-        String newLevel = caculateUtils.calculateLevel(rewards.getNewTotalExp());
+        String newLevel = CaculateUtils.calculateLevel(rewards.getNewTotalExp());
 
         userService.update(null, new UpdateWrapper<User>()
                 .eq("id", user.getId())

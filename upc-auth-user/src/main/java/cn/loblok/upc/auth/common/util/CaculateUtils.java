@@ -22,7 +22,7 @@ public class CaculateUtils {
     // 获取积分 todo 可能要补充
     public  Integer getPoints(String scoreKey) {
         String pointsStr = redisTemplate.opsForValue().get(scoreKey);
-        if (pointsStr == null) return 0;
+        if (pointsStr == null) {return 0;}
         try {
             return Integer.parseInt(pointsStr);
         } catch (NumberFormatException e) {
@@ -34,7 +34,7 @@ public class CaculateUtils {
     // 获取经验值 todo 可能要补充
     public  Integer getExps(String expsKey) {
         String expsStr = redisTemplate.opsForValue().get(expsKey);
-        if (expsStr == null) return 0;
+        if (expsStr == null) {return 0;}
         try {
             return Integer.parseInt(expsStr);
         } catch (NumberFormatException e) {

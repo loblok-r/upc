@@ -44,6 +44,11 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 
         log.info("开始关注/取关用户 {}", followerId);
 
+        if (followerId.equals(followeeId)) {
+            log.info("不能关注自己");
+            return null;
+        }
+
         // 检查是否已经关注
         QueryWrapper<Follow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("follower_id", followerId);

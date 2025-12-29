@@ -154,7 +154,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
     private boolean verifyWechatSignature(Map<String, String> params) {
         // 取出 sign
         String signFromWechat = params.get("sign");
-        if (signFromWechat == null) return false;
+        if (signFromWechat == null) {return false;}
 
         // 重新计算签名（排除 sign 字段）
         String signGenerated = WechatSignatureUtil.generateSign(params, "");

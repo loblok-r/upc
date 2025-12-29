@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 public class CommunityTimeTask {
 
     private static final String LEADERBOARD_KEY = KeyUtils.buildCommunityLeaderboardCreatorsKey();
-
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 

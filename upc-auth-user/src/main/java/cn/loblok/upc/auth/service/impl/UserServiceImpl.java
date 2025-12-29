@@ -146,10 +146,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new RuntimeException("用户不存在");
         }
 
-        // 验证密码
-//        if (!passwordEncoder.matches(password, user.getPassword())) {
-//            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(), CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
-//        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return Result.error(CommonStatusEnum.USER_PASSWORD_ERROR.getCode(), CommonStatusEnum.USER_PASSWORD_ERROR.getMessage());
+        }
 
         // 生成token
         String token = JwtUtil.generateToken(user.getId(), user.getUsername());
@@ -476,7 +476,7 @@ public Result<Void> extendVipDays(Long userId, Integer days) {
 
         // 获取用户（实时 DB 查询）
         User user = userMapper.selectById(userId);
-        if (user == null) throw new RuntimeException("User not found");
+        if (user == null) {throw new RuntimeException("User not found");}
 
         //校验算力
         if (user.getComputingPower() < cost) {
@@ -653,7 +653,7 @@ public Result<Void> extendVipDays(Long userId, Integer days) {
     // 本地缓存（如 Caffeine）或 Redis 缓存
     @Override
     public User getById(Long userId) {
-        if (userId == null) return null;
+        if (userId == null) {return null;}
         return userMapper.selectById(userId);
     }
 }

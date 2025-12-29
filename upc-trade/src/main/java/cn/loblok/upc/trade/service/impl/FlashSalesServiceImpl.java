@@ -330,7 +330,7 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
     @Transactional
     public void syncFlashSaleStockToProduct(String flashSaleId) {
         FlashSales flashSale = flashMapper.selectById(flashSaleId);
-        if (flashSale == null || flashSale.getSyncedToProductStock()) return;
+        if (flashSale == null || flashSale.getSyncedToProductStock()) {return;}
 
         // 1. 从 Redis 获取剩余库存（更准确！因为订单可能有失败/取消）
         String stockKey = KeyUtils.buildFlashSaleStockKey(flashSaleId);

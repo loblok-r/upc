@@ -25,7 +25,7 @@ public enum IssueStatus {
 
     // 可选：提供根据 code 反查枚举的方法（用于 DB 查询结果映射）
     public static IssueStatus fromCode(Byte code) {
-        if (code == null) return null;
+        if (code == null) {return null;}
         for (IssueStatus status : values()) {
             if (status.code == code) {
                 return status;

@@ -69,8 +69,7 @@ public class CheckinNotifyService {
      * @param basePoints
      */
     public void sendPointsLogMsg(String tenantId, Long userId, long recordId, int basePoints, int finalPoints,String biztype){
-        PointTransactionDTO pointTransactionDTO = new PointTransactionDTO();
-        pointTransactionDTO.builder()
+        PointTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
                 .bizType(biztype)
@@ -93,8 +92,7 @@ public class CheckinNotifyService {
      */
     public void sendExpLogMsg(String tenantId, Long userId, long recordId, int baseExp,int finalexps,String biztype){
         // 这里应该是ExpTransactionDTO，但根据上下文使用PointTransactionDTO
-        ExpTransactionDTO expTransactionDTO = new ExpTransactionDTO();
-        expTransactionDTO.builder()
+        ExpTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
                 .bizType(biztype)

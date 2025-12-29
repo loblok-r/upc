@@ -58,9 +58,9 @@ public class CommunityController {
                                                           @PathVariable("type") String type) {
         List<UserPublicInfoDTO> userList = null;
         try {
-            if (type.equals("following")) {
+            if ("following".equals(type)) {
                 userList = followService.getFollowingList(userId);
-            } else if (type.equals("followers")) {  // 注意这里是复数形式
+            } else if ("followers".equals(type)) {  // 注意这里是复数形式
                 userList = followService.getFollowerList(userId);
             }
 
