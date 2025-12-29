@@ -69,7 +69,7 @@ public class CheckinNotifyService {
      * @param basePoints
      */
     public void sendPointsLogMsg(String tenantId, Long userId, long recordId, int basePoints, int finalPoints,String biztype){
-        PointTransactionDTO.builder()
+        PointTransactionDTO pointTransactionDTO = PointTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
                 .bizType(biztype)
@@ -92,7 +92,7 @@ public class CheckinNotifyService {
      */
     public void sendExpLogMsg(String tenantId, Long userId, long recordId, int baseExp,int finalexps,String biztype){
         // 这里应该是ExpTransactionDTO，但根据上下文使用PointTransactionDTO
-        ExpTransactionDTO.builder()
+        ExpTransactionDTO extransactionDT0 = ExpTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
                 .bizType(biztype)
@@ -100,7 +100,7 @@ public class CheckinNotifyService {
                 .deltaExps(baseExp) //本次变动的经验值
                 .totalExps(finalexps)
                 .occurredAt(LocalDateTime.now()).build();
-        rabbitTemplate.convertAndSend("upc.direct.exchange","mq.route.exps_transaction", expTransactionDTO);
+        rabbitTemplate.convertAndSend("upc.direct.exchange","mq.route.exps_transaction", extransactionDT0);
     }
 
 }
