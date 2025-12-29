@@ -1,7 +1,7 @@
 package cn.loblok.upc.auth.common.util;
 
 import cn.loblok.upc.common.enums.UserLevel;
-import cn.loblok.upc.common.utils.RedisUtils;
+import cn.loblok.upc.common.utils.KeyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,15 +53,15 @@ public class CaculateUtils {
 
     // 查询等级时（懒加载）
     public String getUserLevel(Long userId) {
-        String cached = redisTemplate.opsForValue().get(RedisUtils.buildLevelKey(userId));
+        String cached = redisTemplate.opsForValue().get(KeyUtils.buildLevelKey(userId));
         if (cached != null) {
             return cached;
         }
         // 缓存 miss → 查积分 → 计算等级 → 写回缓存
-        Integer exps = getExps(RedisUtils.buildExpKey(userId));
+        Integer exps = getExps(KeyUtils.buildExpKey(userId));
         String level = calculateLevel(exps);
 
-        redisTemplate.opsForValue().set(RedisUtils.buildLevelKey(userId), level, 24L, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(KeyUtils.buildLevelKey(userId), level, 24L, TimeUnit.HOURS);
         return level;
     }
 

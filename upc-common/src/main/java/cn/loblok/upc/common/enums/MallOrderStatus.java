@@ -12,6 +12,7 @@ public enum MallOrderStatus {
 
     //待收货
     PENDING_EXTERNAL(2,"PENDING_EXTERNAL"),
+
     //待发货
     AWAITING_SHIPMENT(3,"AWAITING_SHIPMENT"),
 

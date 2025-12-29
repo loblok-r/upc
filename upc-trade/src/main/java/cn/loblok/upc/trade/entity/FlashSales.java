@@ -53,6 +53,11 @@ public class FlashSales implements Serializable {
     @TableField("status")
     private String status;
 
+    @TableField("synced_to_product_stock")
+    private Boolean syncedToProductStock;
+
+
+
     @TableField("created_at")
     private LocalDateTime createdAt;
 }

@@ -47,4 +47,9 @@ public class FOrdersServiceImpl extends ServiceImpl<FlashOrdersMapper, FlashSale
                     CommonStatusEnum.ORDER_UPDATE_ERROR.getMessage());
         }
     }
+
+    @Override
+    public int countSuccessfulOrders(String flashSaleId) {
+        return baseMapper.countSuccessfulOrders(flashSaleId);
+    }
 }

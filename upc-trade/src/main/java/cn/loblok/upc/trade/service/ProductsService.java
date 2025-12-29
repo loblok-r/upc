@@ -37,4 +37,14 @@ public interface ProductsService extends IService<Products> {
      */
     Result<String> exchangeProduct(Long userId, ExchangeProducesRequest request);
 
+    /**
+     * 扣减库存
+     *
+     * @param productId 商品ID
+     * @param soldCount 卖出数量
+     * @return 是否扣减成功
+     */
+    boolean deductStock(String productId, int soldCount);
+
+    boolean addStock(String productId, int remainingStock);
 }

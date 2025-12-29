@@ -26,6 +26,8 @@ public class RabbitConfig {
     public static final String QUEUE_STATS_UPDATE = "q.stats.update";
     public static final String QUEUE_AI_SETTLE = "q.ai.settle";
     public static final String QUEUE_PRODUCT_DELIVERY = "q.product.delivery";
+    public  static final String QUEUE_POINT_TRANSACTION = "q.point.transaction";
+    public  static final String QUEUE_EXP_TRANSACTION = "q.exp.transaction";
 
 
     // 路由键
@@ -35,7 +37,10 @@ public class RabbitConfig {
     public static final String ROUTE_STATS_UPDATE = "mq.route.stats_update";
     public static final String ROUTE_AI_SETTLE = "mq.route.ai_settle";
     public static final String ROUTE_PRODUCT_DELIVERY = "mq.route.product_delivery";
-    public static final String ROUTE_FLASHSALE_STOCK_ROLLBACK = "flashsale.stock.rollback.routing.key";
+    public static final String ROUTE_POINT_TRANSACTION = "mq.route.point_transaction";
+    public static final String ROUTE_EXP_TRANSACTION = "mq.route.exp_transaction";
+
+
 
     @Bean
     public DirectExchange upcExchange() {
@@ -81,7 +86,10 @@ public class RabbitConfig {
      */
     @Bean public Queue productDeliveryQueue() { return new Queue(QUEUE_PRODUCT_DELIVERY, true); }
 
+    @Bean public Queue pointTransactionQueue() { return new Queue(QUEUE_POINT_TRANSACTION, true); }
 
+
+    @Bean public Queue expTransactionQueue() { return new Queue(QUEUE_EXP_TRANSACTION, true); }
 
     // --- 绑定关系 ---
     @Bean
@@ -112,6 +120,16 @@ public class RabbitConfig {
     @Bean
     public Binding bindProductDelivery() {
         return BindingBuilder.bind(productDeliveryQueue()).to(upcExchange()).with(ROUTE_PRODUCT_DELIVERY);
+    }
+
+    @Bean
+    public Binding bindPointTransaction() {
+        return BindingBuilder.bind(pointTransactionQueue()).to(upcExchange()).with(ROUTE_POINT_TRANSACTION);
+    }
+
+    @Bean
+    public Binding bindExpTransaction() {
+        return BindingBuilder.bind(expTransactionQueue()).to(upcExchange()).with(ROUTE_EXP_TRANSACTION);
     }
 
 

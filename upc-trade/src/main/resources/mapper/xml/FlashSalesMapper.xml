@@ -14,12 +14,13 @@
         <result column="end_time" property="endTime" />
         <result column="daily_limit" property="dailyLimit" />
         <result column="status" property="status" />
+        <result column="synced_to_product_stock" property="syncedToProductStock" />
         <result column="created_at" property="createdAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, product_id, sale_price, original_price, total_stock, remaining_stock, start_time, end_time, daily_limit, status, created_at
+        id, product_id, sale_price, original_price,synced_to_product_stock, total_stock, remaining_stock, start_time, end_time, daily_limit, status, created_at
     </sql>
 
 </mapper>

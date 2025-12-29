@@ -1,96 +1,32 @@
-package cn.loblok.upc.auth.service.chickin.impl;
+package cn.loblok.upc.auth.service.impl;
 
-import cn.loblok.upc.auth.dto.chickin.ExpTransactionDTO;
 import cn.loblok.upc.auth.entity.chickin.ExpTransaction;
-import cn.loblok.upc.auth.service.chickin.ExpTransactionService;
-import cn.loblok.upc.common.enums.BizType;
 import cn.loblok.upc.auth.mapper.ExpTransactionMapper;
+import cn.loblok.upc.common.enums.BizType;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import cn.loblok.upc.auth.dto.chickin.ExpTransactionDTO;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * <p>
- * 用户经验值流水表 服务实现类
- * </p>
- *
- * @author loblok
- * @since 2025-12-02
- */
 @Service
-@Primary
 @Slf4j
-public class ExpTransactionServiceImpl extends ServiceImpl<ExpTransactionMapper, ExpTransaction> implements ExpTransactionService {
+@AllArgsConstructor
+public class ExpLogsService extends ServiceImpl<ExpTransactionMapper, ExpTransaction> {
 
-
-    @Autowired
-    private ExpTransactionMapper expTransactionMapper; // MyBatis Mapper
-
-    private static final ZoneId BUSINESS_TIMEZONE = ZoneId.of("Asia/Shanghai");
     private static final Set<String> VALID_BIZ_TYPES =
             Arrays.stream(BizType.values())
                     .map(Enum::name)
                     .collect(Collectors.toSet());
-
-    /**
-     * 异步记录经验流水（生产级安全）
-     */
-    @Async("expTaskExecutor") // ← 指定线程池
-    @Override
-    public void asyncLog(
-            String tenantId,
-            Long userId,
-            BizType bizType,
-            Long bizId,          // 注意：传 Long，内部转 String
-            int deltaExps,
-            Long balanceAfter
-    ) {
-
-        LocalDateTime curDateTime = LocalDateTime.now(BUSINESS_TIMEZONE);
-        // 1. 构造实体
-        ExpTransaction tx = new ExpTransaction();
-        tx.setUserId(userId);
-        tx.setTenantId(tenantId);
-        tx.setBizType(bizType.name()); // 修正：使用枚举名称而非枚举本身
-        tx.setBizId(String.valueOf(bizId)); // 转为字符串存储
-        tx.setDeltaExp(deltaExps);
-        tx.setBalanceAfter(balanceAfter);
-        tx.setCreatedAt(curDateTime);
-        int maxRetries = 3;
-        for (int i = 0; i < maxRetries; i++) {
-            try {
-                expTransactionMapper.insert(tx);
-                return; // 成功就退出
-            } catch (Exception e) {
-                if (i == maxRetries - 1) {
-                    log.error("【严重】经验流水写入失败，已重试{}次", maxRetries, e);
-                    // TODO: 发送企业微信/钉钉告警
-                } else {
-                    try {
-                        Thread.sleep(100 * (i + 1)); // 100ms, 200ms, 300ms
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-
     /**
      * 分页查询用户经验流水
      *
@@ -101,7 +37,7 @@ public class ExpTransactionServiceImpl extends ServiceImpl<ExpTransactionMapper,
      * @param pageSize 页面大小
      * @return 经验流水分页数据
      */
-    @Override
+
     public IPage<ExpTransactionDTO> getUserTransactions(String tenantId, Long userId, String bizType, int pageNum, int pageSize) {
         Page<ExpTransaction> page = new Page<>(pageNum, pageSize);
 

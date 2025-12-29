@@ -4,7 +4,7 @@ import cn.loblok.upc.api.worker.dto.EmailMsgDTO;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.CommonStatusEnum;
 import cn.loblok.upc.auth.service.VerificationCodeService;
-import cn.loblok.upc.common.utils.RedisUtils;
+import cn.loblok.upc.common.utils.KeyUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -36,7 +36,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
         int numbercode = getNumberCode(6);
 
-        String key = RedisUtils.buildVerificationCodeKey(email,type);
+        String key = KeyUtils.buildVerificationCodeKey(email,type);
 
         log.info("登录 验证码的 key:"+key);
         log.info("Redis连接工厂: {}", stringRedisTemplate.getConnectionFactory());
@@ -72,7 +72,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             return false;
         }
 
-        String key = RedisUtils.buildVerificationCodeKey(email, type);
+        String key = KeyUtils.buildVerificationCodeKey(email, type);
 
         log.info("checkcode取出的验证码key为："+key);
         String redisCode = stringRedisTemplate.opsForValue().get(key);

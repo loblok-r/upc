@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PublishFlashSaleDTO {
-    private Long id;
+    private String id;
     private Integer totalStock;
     private LocalDateTime endTime;
 }

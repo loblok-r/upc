@@ -2,6 +2,7 @@ package cn.loblok.upc.community.service.impl;
 
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
+import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.community.entity.LikeRecord;
 import cn.loblok.upc.community.entity.Posts;
 import cn.loblok.upc.community.mapper.LikeRecordMapper;
@@ -12,7 +13,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,8 +38,13 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
 
     private final PostsService postsService;
 
+    private final StringRedisTemplate redisTemplate;
+
 
     private final RabbitTemplate rabbitTemplate;
+
+    private final String LEADERBOARD_KEY = KeyUtils.buildCommunityLeaderboardCreatorsKey();
+
 
     @Override
     public void likePost(Long postId, Boolean isLiked, Long userId) {
@@ -65,11 +72,15 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
                 likeRecord.setCreatedAt(LocalDateTime.now());
                 likeRecordMapper.insert(likeRecord);
 
+
                 // 更新帖子的点赞数
                 post.setLikesCount(post.getLikesCount() + 1);
                 postsService.updateById(post);
                 // 更新用户点赞数
                 userFeignClient.updateLikeCounts(userId, 1);
+
+                //更新排行榜分数
+                redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), 0.4);
 
                 StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
                 msg.setUserId(userId);
@@ -92,6 +103,8 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
                 post.setLikesCount(post.getLikesCount() - 1);
                 postsService.updateById(post);
             }
+
+            redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), -0.4);
 
             StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
             msg.setUserId(userId);

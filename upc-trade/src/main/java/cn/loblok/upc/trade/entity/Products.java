@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -96,4 +97,9 @@ public class Products implements Serializable {
 
     @TableField("delivery_config")
     private String deliveryConfig;
+
+    @Version
+    @TableField("version")
+    private Integer version;
+
 }

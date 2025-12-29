@@ -1,10 +1,10 @@
 package cn.loblok.upc.trade.service.impl;
 
-import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.UserItemSourceType;
+import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.trade.dto.mall.ExchangeProducesRequest;
 import cn.loblok.upc.trade.dto.mall.ProductDTO;
 import cn.loblok.upc.trade.entity.FlashSaleOrders;
@@ -19,16 +19,22 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import lombok.AllArgsConstructor;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <p>
@@ -40,35 +46,140 @@ import java.util.Random;
  */
 @Service
 @Slf4j
-@AllArgsConstructor
 public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> implements ProductsService {
 
 
-    private final FOrdersService FOrdersService;
 
-    private final UserFeignClient userFeignClient;
+    private  final FOrdersService fOrdersService;
 
-    private final RabbitTemplate rabbitTemplate;
+
+    private  final RabbitTemplate rabbitTemplate;
+
+
+    private  final RedisTemplate<String, String> redisTemplate;
+
+    private final DefaultRedisScript<Long> deductStockAndPointsScript;
+
+
+    /**
+     * 项目启动时初始化缓存
+     */
+    @PostConstruct
+    public void initLotteryPrizeCacheOnStartup() {
+        refreshLotteryPrizeCache();
+        initProductStockCache();
+    }
+
+    public ProductsServiceImpl(
+            FOrdersService fOrdersService,
+            RabbitTemplate rabbitTemplate,
+            RedisTemplate<String, String> redisTemplate
+    ) {
+        this.fOrdersService = fOrdersService;
+        this.rabbitTemplate = rabbitTemplate;
+        this.redisTemplate = redisTemplate;
+
+        this.deductStockAndPointsScript = new DefaultRedisScript<>();
+        this.deductStockAndPointsScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/deduct_stock_points.lua")));
+        this.deductStockAndPointsScript.setResultType(Long.class);
+    }
+
+    /**
+     * 刷新抽奖奖品缓存
+     */
+    private void refreshLotteryPrizeCache() {
+        QueryWrapper<Products> query = new QueryWrapper<>();
+        query.eq("status", "active").eq("lottery_eligible", true);
+
+        List<Products> prizes = baseMapper.selectList(query);
+
+        redisTemplate.delete("lottery:prizes:blue");
+        redisTemplate.delete("lottery:prizes:purple");
+        redisTemplate.delete("lottery:prizes:yellow");
+
+        for (Products p : prizes) {
+            String color = p.getDisplayColor();
+            String key = switch (color) {
+                case "text-blue-400" -> "lottery:prizes:blue";
+                case "text-purple-400" -> "lottery:prizes:purple";
+                case "text-yellow-400" -> "lottery:prizes:yellow";
+                default -> null;
+            };
+            if (key != null) {
+                redisTemplate.opsForSet().add(key, p.getId().toString());
+            }
+        }
+        log.info("抽奖奖品缓存初始化完成，共加载 {} 个奖品", prizes.size());
+    }
+
+    /**
+     * 初始化商品库存缓存
+     */
+
+    private void initProductStockCache() {
+        List<Products> products = this.list(new QueryWrapper<Products>().eq("status", "active"));
+        for (Products p : products) {
+            String key = KeyUtils.buildProductStockKey(p.getId().toString());
+            redisTemplate.opsForValue().set(key, String.valueOf(p.getStock()));
+        }
+    }
 
     @Override
-    // ProductsService.java
     public Products drawRandomPrize() {
-        QueryWrapper<Products> query = new QueryWrapper<>();
-        query.eq("status", "active")
-                .eq("lottery_eligible", true);
 
-        List<Products> prizes = this.list(query);
+        log.info("开始抽奖");
+        String selectedColorKey = selectColorByProbability();
 
-        if (prizes.isEmpty()) {
-            throw new RuntimeException("当前无可抽奖奖品");
+        // 从该颜色奖品池中随机选一个
+        String prizeIdStr = (String) redisTemplate.opsForSet().randomMember(selectedColorKey);
+
+        if (prizeIdStr == null) {
+            // 该颜色无奖品？回退到重新抽
+            log.warn("Color pool {} is empty, fallback to full retry", selectedColorKey);
+            return drawRandomPrize();
         }
 
-        // todo 简单随机，实际可加权重
-        Random random = new Random();
-        return prizes.get(random.nextInt(prizes.size()));
+        Long prizeId = Long.valueOf(prizeIdStr);
+        return this.getById(prizeId);
+    }
+
+    /**
+     * 按概率选择颜色
+     *
+     * @return 颜色
+     */
+    private String selectColorByProbability() {
+        log.info("开始选择颜色");
+        int maxAttempts = 10;
+        for (int i = 0; i < maxAttempts; i++) {
+            double rand = ThreadLocalRandom.current().nextDouble();
+            String key;
+            if (rand < 0.5) {
+                key = "lottery:prizes:blue";
+            } else if (rand < 0.8) {
+                key = "lottery:prizes:purple";
+            } else {
+                key = "lottery:prizes:yellow";
+            }
+
+            // 检查该颜色是否有奖品
+            Long size = redisTemplate.opsForSet().size(key);
+            if (size != null && size > 0) {
+                return key;
+            }
+            // 否则继续尝试
+        }
+        throw new BizException("当前无可抽奖奖品");
     }
 
 
+    /**
+     * 获取商品列表
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 商品列表
+     */
 
     @Override
     public Result<PageResult<ProductDTO>> getProductList(int page, int size) {
@@ -93,69 +204,105 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
         return Result.success(PageConverter.toPageResult(dtoPage));
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<String> exchangeProduct(Long userId, ExchangeProducesRequest request) {
-        // TODO:校验
 
+
+    @Override
+    public Result<String> exchangeProduct(Long userId, ExchangeProducesRequest request) {
+        // 校验参数、权限等...
         String productId = request.getProductId();
         Products product = this.getById(productId);
 
-        // 检查库存
-        if (product.getStock() <= 0) {
-            throw new BizException("商品已售完");
+        if (product == null || product.getStock() <= 0) {
+            throw new BizException("商品不存在或已售罄");
         }
 
-        // TODO: 这里应该使用乐观锁更新库存
-        // 减少库存
-        product.setStock(product.getStock() - 1);
-        this.updateById(product);
+        int quantity = request.getQuantity() != 0 ? request.getQuantity() : 1;
 
-        //扣除积分
-        Result<Void> result = userFeignClient.reduceUserPoints(userId, product.getPointsRequired());
 
-        if(result.getCode() != 200){
-            return Result.error(result.getCode(), result.getMsg());
-        }
+        String stockKey = KeyUtils.buildProductStockKey(productId);
+        String pointsKey = KeyUtils.buildPointsKey(userId);
 
-        log.info("扣除用户{}积分成功", userId);
+        // 执行和秒杀一样的 Lua 扣减
+        Long result = (Long) redisTemplate.execute(
+                deductStockAndPointsScript, // 复用秒杀的 script
+                List.of(stockKey, pointsKey),
+                String.valueOf(product.getPointsRequired() * quantity),
+                String.valueOf(quantity),
+                "3600"
+        );
 
-        // 创建订单
-        FlashSaleOrders order = new FlashSaleOrders();
-        order.setUserId(userId);
-        order.setFlashSaleId(null);
-        order.setProductId(product.getId());
-        order.setPointsSpent(product.getPointsRequired());
+        if (result == 0L) throw new BizException("库存不足");
+        if (result == -1L) throw new BizException("积分不足");
+        if (result == -2L) throw new BizException("请勿重复提交");
 
-        //等待发放
-        order.setMallOrderStatus(MallOrderStatus.PENDING_EXTERNAL);
-        //没有过期时间
-        order.setReserveExpiresAt(null);
-        order.setCreatedAt(LocalDateTime.now());
+        FlashSaleOrders order = performExchangeInTransaction(userId, product, quantity);
 
-        boolean saved = FOrdersService.save(order);
-        if (!saved) {
-            throw new BizException("抢购失败，请重试");
-        }
-
-        //todo 判断是否是实体商品 发放动作应在订单创建后异步完成，需保证最终一致性。
-        // 虚拟商品（算力值，会员，优惠券）发放，事务结束后立即发放
-
-        //异步发放商品
-
-        // 发送 MQ 消息，任务结束，立即返回给前端
-        ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
-                .orderId(Long.parseLong(order.getId()))
-                .userId(userId)
-                .source(UserItemSourceType.POINTS_TRADING.getDescription())
-                .category(product.getCategory().name())
-                .productName(product.getName())
-                .deliveryConfig(product.getDeliveryConfig())
-                .build();
-
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery",msg);
-
+        // 事务成功后，发 MQ
+        sendMsgAfterCommit(userId, order, product,quantity);
 
         return Result.success("兑换请求已提交，请留意站内信");
+    }
+
+    /**
+     * 兑换商品
+     *
+     * @param userId 用户ID
+     * @return 兑换结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public FlashSaleOrders performExchangeInTransaction(Long userId, Products product, int quantity) {
+        // 2. 创建订单
+        FlashSaleOrders order = new FlashSaleOrders();
+        order.setUserId(userId);
+        order.setProductId(product.getId());
+        order.setPointsSpent(product.getPointsRequired() * quantity);
+        order.setMallOrderStatus(MallOrderStatus.PENDING_EXTERNAL);
+        order.setCreatedAt(LocalDateTime.now());
+
+        boolean saved = fOrdersService.save(order);
+        if (!saved) {
+            throw new BizException("订单创建失败");
+        }
+
+        return order;
+    }
+
+    private void sendMsgAfterCommit(Long userId, FlashSaleOrders order, Products product, int quantity) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
+                        .orderId(order.getId())
+                        .userId(userId)
+                        .source(UserItemSourceType.POINTS_TRADING.getDescription())
+                        .category(product.getCategory().name())
+                        .productName(product.getName())
+                        .deliveryConfig(product.getDeliveryConfig())
+                        .build();
+                rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery", msg);
+            }
+        });
+    }
+
+    @Override
+    @Transactional
+    public boolean deductStock(String productId, int quantity) {
+        Products product = this.getById(productId);
+        if (product == null || product.getStock() < quantity) {
+            return false;
+        }
+        // 扣减
+        product.setStock(product.getStock() - quantity);
+        // MP 会自动处理 version++
+        return this.updateById(product); // 如果 version 冲突，返回 false
+    }
+
+    @Override
+    @Transactional
+    public boolean addStock(String productId, int quantity) {
+        Products product = this.getById(productId);
+        if (product == null) return false;
+        product.setStock(product.getStock() + quantity);
+        return this.updateById(product);
     }
 }

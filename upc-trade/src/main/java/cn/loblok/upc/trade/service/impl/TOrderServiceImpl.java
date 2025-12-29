@@ -102,7 +102,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         PlanEnum plan = PlanEnum.getByValue(tOrder.getPlanId());
 
         ProductDeliveryMsgDTO deliveryMsg = ProductDeliveryMsgDTO.builder()
-                .orderId(Long.parseLong(tOrder.getOrderId()))
+                .orderId(tOrder.getOrderId())
                 .userId(tOrder.getUserId())
                 .category("VIRTUAL") // 会员属于虚拟权益
                 .productName(plan.getName())

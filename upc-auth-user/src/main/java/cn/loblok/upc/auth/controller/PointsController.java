@@ -5,7 +5,6 @@ import cn.loblok.upc.auth.dto.UserPointsResponse;
 import cn.loblok.upc.auth.dto.chickin.LeaderboardResponseDTO;
 import cn.loblok.upc.auth.dto.chickin.PointTransactionDTO;
 import cn.loblok.upc.auth.service.UserPointsService;
-import cn.loblok.upc.auth.service.chickin.PointTransactionService;
 import cn.loblok.upc.auth.service.chickin.impl.LeaderboardServiceImpl;
 import cn.loblok.upc.common.annotation.CurrentUser;
 import cn.loblok.upc.common.base.PageResult;
@@ -15,6 +14,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import cn.loblok.upc.auth.service.impl.PointsLogsService;
 
 /**
  * <p>
@@ -33,7 +33,7 @@ public class PointsController {
     private final UserPointsService pointsService;
 
 
-    private final PointTransactionService pointTransactionService;
+    private final PointsLogsService pointsLogsService;
 
 
     private final LeaderboardServiceImpl leaderboardService;
@@ -59,7 +59,7 @@ public class PointsController {
         //暂不启用多租户
         tenantId = "default";
         // TODO: 权限校验`，上线前必须补！
-        IPage<PointTransactionDTO> pageResult = pointTransactionService.getUserTransactions(tenantId, userId, bizType, page, size);
+        IPage<PointTransactionDTO> pageResult = pointsLogsService.getUserTransactions(tenantId, userId, bizType, page, size);
 
         PageResult<PointTransactionDTO> response = PageConverter.toPageResult(pageResult);
         return Result.success(response);

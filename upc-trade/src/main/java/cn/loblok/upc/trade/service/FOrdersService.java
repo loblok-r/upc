@@ -15,4 +15,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface FOrdersService extends IService<FlashSaleOrders> {
 
     Result<Void> updateOrderStatus(String orderId, String status);
+
+    /**
+     * 统计成功订单数
+     * @param flashSaleId
+     * @return
+     */
+    int countSuccessfulOrders(String flashSaleId);
 }

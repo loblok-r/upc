@@ -3,7 +3,7 @@ package cn.loblok.upc.auth.service.impl;
 import cn.loblok.upc.auth.mapper.CouponTemplateMapper;
 import cn.loblok.upc.auth.entity.CouponTemplate;
 import cn.loblok.upc.auth.service.CouponTemplateService;
-import cn.loblok.upc.common.utils.RedisUtils;
+import cn.loblok.upc.common.utils.KeyUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         this.save(template); // 先保存到 DB
 
         // 初始化 Redis 库存（注意：只在新建时设置，避免覆盖）
-        String stockKey = RedisUtils.buildCouponStockKey(template.getId());
+        String stockKey = KeyUtils.buildCouponStockKey(template.getId());
         Boolean exists = redisTemplate.hasKey(stockKey);
         if (Boolean.FALSE.equals(exists)) {
             redisTemplate.opsForValue().set(stockKey, String.valueOf(template.getTotalStock()));

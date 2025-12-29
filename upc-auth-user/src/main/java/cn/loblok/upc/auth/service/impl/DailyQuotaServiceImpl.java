@@ -1,7 +1,7 @@
 package cn.loblok.upc.auth.service.impl;
 
 import cn.loblok.upc.auth.service.DailyQuotaService;
-import cn.loblok.upc.common.utils.RedisUtils;
+import cn.loblok.upc.common.utils.KeyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -25,7 +25,7 @@ class DailyQuotaServiceImpl implements DailyQuotaService {
 
     @Override
     public int getUsedToday(Long userId, String plan) {
-        String key = RedisUtils.buildDailyQuotaKey(userId);
+        String key = KeyUtils.buildDailyQuotaKey(userId);
         String field = plan.toUpperCase();
         // ⚠️ opsForHash().get() 返回 Object，需转为 String
         Object valObj = redisTemplate.opsForHash().get(key, field);
@@ -44,7 +44,7 @@ class DailyQuotaServiceImpl implements DailyQuotaService {
 
 
     public void incrementUsed(Long userId, String plan) {
-        String key = RedisUtils.buildDailyQuotaKey(userId);
+        String key = KeyUtils.buildDailyQuotaKey(userId);
         String field = plan.toUpperCase();
         // 原子递增
         redisTemplate.opsForHash().increment(key, field, 1);

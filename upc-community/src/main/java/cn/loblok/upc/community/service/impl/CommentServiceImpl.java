@@ -3,6 +3,7 @@ package cn.loblok.upc.community.service.impl;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.common.base.Result;
+import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.community.dto.CommunityUserVO;
 import cn.loblok.upc.community.dto.PayloadDTO;
 import cn.loblok.upc.community.dto.TComment;
@@ -19,6 +20,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -48,6 +50,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final CommentMapper commentMapper;
 
     private final LikeRecordMapper likeRecordMapper;
+
+    private final StringRedisTemplate redisTemplate;
+
+    private final String LEADERBOARD_KEY = KeyUtils.buildCommunityLeaderboardCreatorsKey();
+
 
     @Override
     public Result<TComment> addComment(Long postId, PayloadDTO payloadDTO, Long userId) {
@@ -80,6 +87,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         // 更新帖子的评论数
         post.setCommentsCount(post.getCommentsCount() + 1);
         postsService.updateById(post);
+
+        redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY,String.valueOf(post.getUserId()), 0.6);
+
 
         // 构造返回的TComment对象
         TComment tComment = new TComment();
@@ -195,6 +205,8 @@ public Result<String> deleteComment(Long postId, Long commentId, Long userId) {
     // 更新帖子的评论数
     post.setCommentsCount(Math.max(0, post.getCommentsCount() - 1));
     postsService.updateById(post);
+
+    redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), -0.6);
 
     return Result.success("评论删除成功");
 }

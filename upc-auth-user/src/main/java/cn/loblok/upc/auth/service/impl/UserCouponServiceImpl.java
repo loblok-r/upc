@@ -12,7 +12,7 @@ import cn.loblok.upc.auth.service.CouponTemplateService;
 import cn.loblok.upc.auth.service.UserCouponService;
 import cn.loblok.upc.auth.service.UserEntitlementService;
 import cn.loblok.upc.common.exception.BizException;
-import cn.loblok.upc.common.utils.RedisUtils;
+import cn.loblok.upc.common.utils.KeyUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -132,7 +132,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
 
 
             // 【关键新增】：在锁内检查库存是否还有
-            String stockKey = RedisUtils.buildCouponStockKey(template.getId());
+            String stockKey = KeyUtils.buildCouponStockKey(template.getId());
             String stockStr = redisTemplate.opsForValue().get(stockKey);
             Long stock = (stockStr != null) ? Long.parseLong(stockStr) : 0L;
             if (stock <= 0) {
@@ -277,7 +277,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             // 补偿 Redis 库存
             if (stockDeducted) {
                 try {
-                    redisTemplate.opsForValue().increment(RedisUtils.buildCouponStockKey(template.getId()), 1);
+                    redisTemplate.opsForValue().increment(KeyUtils.buildCouponStockKey(template.getId()), 1);
                     log.warn("DB save failed, compensated Redis stock for template: {}", template.getId());
                 } catch (Exception ex) {
                     log.error("Failed to compensate Redis stock", ex);
@@ -293,7 +293,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
      * @return true=扣减成功，false=库存不足
      */
     private boolean redisCouponStockDeduct(Long templateId) {
-        String stockKey = RedisUtils.buildCouponStockKey(templateId);
+        String stockKey = KeyUtils.buildCouponStockKey(templateId);
         DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
         redisScript.setScriptText(DEDUCT_STOCK_LUA_SCRIPT);
         redisScript.setResultType(Long.class);

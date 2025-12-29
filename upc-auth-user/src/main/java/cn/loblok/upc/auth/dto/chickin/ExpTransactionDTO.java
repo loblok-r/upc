@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 秒杀活动信息
+ *  经验值记录
  */
 @Data
 public class ExpTransactionDTO {

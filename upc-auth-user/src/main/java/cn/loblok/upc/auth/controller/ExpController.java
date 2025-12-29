@@ -2,9 +2,9 @@ package cn.loblok.upc.auth.controller;
 
 import cn.loblok.upc.auth.common.util.PageConverter;
 import cn.loblok.upc.auth.dto.chickin.ExpTransactionDTO;
+import cn.loblok.upc.auth.service.impl.ExpLogsService;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
-import cn.loblok.upc.auth.service.chickin.ExpTransactionService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class ExpController {
 
     @Autowired
-    private ExpTransactionService expTransactionService;
+    private ExpLogsService explogService;
 
     /**
      * 查询用户经验流水
@@ -42,7 +42,7 @@ public class ExpController {
             @RequestParam(value = "bizType", required = false) String bizType) {
 
         // TODO: 权限校验，上线前必须补！
-        IPage<ExpTransactionDTO> pageResult = expTransactionService.getUserTransactions(tenantId, userId, bizType, page, size);
+        IPage<ExpTransactionDTO> pageResult = explogService.getUserTransactions(tenantId, userId, bizType, page, size);
 
         PageResult<ExpTransactionDTO> response = PageConverter.toPageResult(pageResult);
         return Result.success(response);
