@@ -11,6 +11,8 @@ import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.CommonStatusEnum;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ import cn.loblok.upc.auth.service.impl.PointsLogsService;
 @RestController
 @RequestMapping("/api/points")
 @RequiredArgsConstructor
+@Tag(name = "积分管理", description = "积分管理")
 public class PointsController {
 
     private final UserPointsService pointsService;
@@ -49,6 +52,7 @@ public class PointsController {
      * @return 积分流水列表
      */
     @GetMapping("/transactions")
+    @Operation(summary = "查询用户积分流水")
     public Result<PageResult<PointTransactionDTO>> getUserTransactions(
             @RequestHeader("X-Tenant-ID") String tenantId,
             @CurrentUser Long userId,
@@ -68,6 +72,7 @@ public class PointsController {
      * 获取用户积分信息
      */
     @GetMapping
+    @Operation(summary = "获取用户积分信息")
     public Result<UserPointsResponse> getUserPoints(@CurrentUser Long userId) {
 
         log.info("查询用户积分信息，用户ID: {}", userId);
@@ -96,6 +101,7 @@ public class PointsController {
      * @return 排行榜信息
      */
     @GetMapping("/points/leaderboard")
+    @Operation(summary = "获取积分排行榜")
     public Result<LeaderboardResponseDTO> getLeaderboard(@RequestHeader("X-Tenant-ID") String tenantId,
                                                          @RequestParam("userId") Long userId) {
         return leaderboardService.getLeaderboard(tenantId, userId);

@@ -5,6 +5,8 @@ import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.community.dto.PayloadDTO;
 import cn.loblok.upc.community.dto.TComment;
 import cn.loblok.upc.community.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/community/posts")
+@Tag(name = "评论接口", description = "评论接口")
 public class CommentController {
 
     @Autowired
@@ -32,6 +35,7 @@ public class CommentController {
      * @return 评论列表
      */
     @GetMapping("/{postId}/comments")
+    @Operation(summary = "获取帖子评论")
     public Result<List<TComment>> getPostComments(@PathVariable("postId") Long postId,
                                                   @CurrentUser Long userId) {
         List<TComment> comments = commentService.getCommentsList(postId, userId);
@@ -47,6 +51,7 @@ public class CommentController {
      * @return 添加结果
      */
     @PostMapping("/{postId}/comments")
+    @Operation(summary = "添加评论")
     public Result<TComment> addComment(@PathVariable("postId") Long postId,
                                        @RequestBody PayloadDTO payloadDTO,
                                        @CurrentUser Long userId) {
@@ -61,6 +66,7 @@ public class CommentController {
 
 
     @DeleteMapping("/{postId}/comments/{commentId}")
+    @Operation(summary = "删除评论")
     public Result<String> deleteComment(@PathVariable("postId") Long postId,
                                        @PathVariable("commentId") Long commentId,
                                        @CurrentUser Long userId) {

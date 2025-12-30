@@ -8,6 +8,8 @@ import cn.loblok.upc.community.entity.Posts;
 import cn.loblok.upc.community.service.FollowService;
 import cn.loblok.upc.community.service.LikeRecordService;
 import cn.loblok.upc.community.service.PostsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/community/posts")
+@Tag(name = "帖子", description = "帖子管理")
 public class PostsController {
 
     @Autowired
@@ -41,6 +44,7 @@ public class PostsController {
      * @return 发布结果
      */
     @PostMapping("/create")
+    @Operation(summary = "发布帖子")
     public Result<Posts> createPost(@CurrentUser Long userId, @RequestBody CreatePostRequest createPostRequest) {
         try {
             return postsService.createPost(userId, createPostRequest);
@@ -57,6 +61,7 @@ public class PostsController {
      * @return 我的帖子列表
      */
     @GetMapping("/mine")
+    @Operation(summary = "获取我的帖子")
     public Result<List<PostResponse>> getMyPosts(@CurrentUser Long userId,
                                                  @RequestParam(value = "page",defaultValue = "1") int page,
                                                  @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
@@ -71,6 +76,7 @@ public class PostsController {
      * @return 推荐帖子列表
      */
     @GetMapping("/recommend")
+    @Operation(summary = "获取推荐帖子")
     public Result<List<PostResponse>> getRecommendPosts(@CurrentUser Long userId,
                                                         @RequestParam(value = "page",defaultValue = "1") int page,
                                                         @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
@@ -85,6 +91,7 @@ public class PostsController {
      * @return 关注用户的帖子列表
      */
     @GetMapping("/following")
+    @Operation(summary = "获取关注用户的帖子")
     public Result<List<PostResponse>> getFollowingPosts(@CurrentUser Long userId,
                                                         @RequestParam(value = "page",defaultValue = "1") int page,
                                                         @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
@@ -99,6 +106,7 @@ public class PostsController {
      * @return 最新帖子列表
      */
     @GetMapping("/latest")
+    @Operation(summary = "获取最新帖子")
     public Result<List<PostResponse>> getLatestPosts(@CurrentUser Long userId,
                                                      @RequestParam(value = "page",defaultValue = "1") int page,
                                                      @RequestParam(value = "pageSize",defaultValue = "20") int pageSize) {
@@ -114,6 +122,7 @@ public class PostsController {
      * @return 用户作品列表
      */
     @GetMapping("/users/{targetUserId}/works")
+    @Operation(summary = "获取用户的作品列表")
     public Result<List<PostResponse>> getUserPosts(@PathVariable("targetUserId") Long targetUserId,
                                                    @RequestParam(value = "page",defaultValue = "1") int page,
                                                    @RequestParam(value = "pageSize",defaultValue = "20") int pageSize,
@@ -145,6 +154,7 @@ public class PostsController {
      * @return 操作结果
      */
     @PostMapping("/{postId}/{isLiked}")
+    @Operation(summary = "点赞/取消点赞帖子")
     public Result<String> likePost(@PathVariable("postId") Long postId,
                                    @PathVariable("isLiked") String isLiked,
                                    @CurrentUser Long userId) {
@@ -176,6 +186,7 @@ public class PostsController {
      * @return 删除结果
      */
     @DeleteMapping("/{postId}")
+    @Operation(summary = "删除帖子")
     public Result<String> deletePost(@PathVariable("postId") Long postId, @CurrentUser Long userId) {
         try {
             postsService.deletePost(postId, userId);

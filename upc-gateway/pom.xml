@@ -18,6 +18,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
         <!-- 1. 引入公共模块 (用于 JWT 解析、Result 对象等) -->
         <dependency>
             <groupId>cn.loblok</groupId>

@@ -9,6 +9,8 @@ import cn.loblok.upc.trade.enums.ProductStatus;
 import cn.loblok.upc.trade.service.LotteryService;
 import cn.loblok.upc.trade.service.ProductsService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/lottery")
 @AllArgsConstructor
+@Tag(name = "抽奖接口",description = "抽奖接口")
 public class LotteryController {
 
 
@@ -40,6 +43,7 @@ public class LotteryController {
      * 获取抽奖奖池
      */
     @GetMapping("/list")
+    @Operation(summary = "获取抽奖奖品列表")
     public Result<List<LotteryPrizeDTO>> getLotteryPrizes() {
         log.info("开始获取抽奖奖品列表");
         QueryWrapper<Products> query = new QueryWrapper<>();
@@ -77,6 +81,7 @@ public class LotteryController {
      * 抽奖
      */
     @PostMapping("/draw")
+    @Operation(summary = "抽奖")
     public Result<DrawResultDTO> drawLottery(@CurrentUser Long userId) {
         log.info("收到抽奖请求");
         return  lotteryService.draw(userId);

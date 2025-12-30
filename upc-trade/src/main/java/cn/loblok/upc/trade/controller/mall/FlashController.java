@@ -8,6 +8,8 @@ import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.trade.dto.mall.PublishFlashSaleDTO;
 import cn.loblok.upc.trade.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/mall/flash")
 @AllArgsConstructor
 @Slf4j
+@Tag(name = "秒杀接口", description = "秒杀接口")
 public class FlashController {
 
 
@@ -38,6 +41,7 @@ public class FlashController {
      * @return 操作结果
      */
     @PostMapping("/publish")
+    @Operation(summary = "发布秒杀活动")
     public Result<String> publishFlashSale(@Valid @RequestBody PublishFlashSaleDTO publishFlashSaleDTO ) {
         return flashSalesService.publishFlashSale(publishFlashSaleDTO);
     }
@@ -50,6 +54,7 @@ public class FlashController {
      * @return 秒杀活动列表
      */
     @GetMapping("/list")
+    @Operation(summary = "获取秒杀活动列表")
     public Result<PageResult<FlashSaleDTO>> getFlashSales(
             @RequestParam(value = "page",defaultValue = "1") int page,
             @RequestParam(value = "size",defaultValue = "10") int size,
@@ -66,6 +71,7 @@ public class FlashController {
      * @return 抢购结果
      */
     @PostMapping("/grab")
+    @Operation(summary = "秒杀抢购接口")
     public Result<String> purchaseFlashSale(@CurrentUser Long userId, 
                                           @Valid @RequestBody FlashOrderRequestDTO request) {
 

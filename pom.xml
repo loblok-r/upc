@@ -30,11 +30,18 @@
         <hutool.version>5.8.25</hutool.version>
         <jjwt.version>0.11.5</jjwt.version>
         <mysql.version>8.0.33</mysql.version>
+
+        <springdoc.version>2.3.0</springdoc.version>
     </properties>
 
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>

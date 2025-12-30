@@ -10,6 +10,8 @@ import cn.loblok.upc.community.service.CommunityService;
 import cn.loblok.upc.community.service.FollowService;
 import cn.loblok.upc.community.dto.FollowUserRequest;
 import cn.loblok.upc.community.dto.FollowUserResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/community")
 @AllArgsConstructor
+@Tag(name = "社区服务", description = "社区服务接口")
 public class CommunityController {
 
 
@@ -37,6 +40,7 @@ public class CommunityController {
      * @return 操作结果
      */
     @PostMapping("/users/follow")
+    @Operation(summary = "关注或取消关注用户")
     public Result<FollowUserResponse> followOrUnfollow(@CurrentUser Long userId, @RequestBody FollowUserRequest request) {
         try {
             FollowUserResponse response = followService.followOrUnfollow(userId, request.getUserId());
@@ -54,6 +58,7 @@ public class CommunityController {
      * @return 用户列表
      */
     @GetMapping("/users/{userId}/{type}")
+    @Operation(summary = "查询用户关注列表或粉丝列表")
     public Result<List<CommunityUserVO>> getFollowingList(@PathVariable("userId") Long userId,
                                                           @PathVariable("type") String type) {
         List<UserPublicInfoDTO> userList = null;
@@ -75,6 +80,7 @@ public class CommunityController {
      * 查询当前推荐的推荐关注的用户列表
      */
     @GetMapping("/users/recommend")
+    @Operation(summary = "查询当前推荐的推荐关注的用户列表")
     public Result<List<CommunityUserVO>> getRecommendFollowList(@CurrentUser Long userId) {
         try {
             List<UserPublicInfoDTO> recommendUsers = followService.getRecommendFollowList(userId);
@@ -96,6 +102,7 @@ public class CommunityController {
      * 查询创作者排行榜
      */
     @GetMapping("/leaderboard/creators")
+    @Operation(summary = "查询创作者排行榜")
     public Result<List<CreatorLeaderboardResponse>> getCreatorLeaderboard(@CurrentUser Long userId) {
         try {
 
@@ -111,6 +118,7 @@ public class CommunityController {
      * 查询新创作者排行榜
      */
     @GetMapping("/leaderboard/newcreators")
+    @Operation(summary = "查询新创作者排行榜")
     public Result<List<CreatorLeaderboardResponse>> getNewCreatorLeaderboard(@CurrentUser Long userId) {
         try {
             List<CreatorLeaderboardResponse> creatorLeaderboard = communityService.getNewCreatorLeaderboard(userId);
@@ -129,6 +137,7 @@ public class CommunityController {
      * @return 操作结果
      */
     @PostMapping("/comments/{commentId}/like")
+    @Operation(summary = "点赞或取消点赞评论")
     public Result<String> likeOrUnlikeComment(@CurrentUser Long userId, @PathVariable("commentId") Long commentId) {
         try {
             String response = communityService.likeOrUnlikeComment(userId, commentId);
@@ -146,6 +155,7 @@ public class CommunityController {
      * @return 用户个人资料
      */
     @GetMapping("/users/{targetUserId}/profile")
+    @Operation(summary = "获取用户个人资料")
     public Result<CommunityUserVO> getUserProfile(@PathVariable("targetUserId") Long targetUserId,
                                                     @CurrentUser Long currentUserId) {
         try {
@@ -166,6 +176,7 @@ public class CommunityController {
      *
      */
     @GetMapping("/users/search")
+    @Operation(summary = "搜索用户")
     public Result<List<CommunityUserVO>> searchUsers(@CurrentUser Long userId, @RequestParam("q") String keyword,
                                                      @RequestParam(value = "page", defaultValue = "1") int page, // 第几页
                                                      @RequestParam(value = "pageSize", defaultValue = "10") int pageSize)  // 每页多少条

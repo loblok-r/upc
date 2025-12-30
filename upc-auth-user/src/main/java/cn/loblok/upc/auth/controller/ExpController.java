@@ -6,6 +6,8 @@ import cn.loblok.upc.auth.service.impl.ExpLogsService;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/exp")
+@Tag(name = "用户经验值接口", description = "用户经验值接口")
 public class ExpController {
 
     @Autowired
@@ -34,6 +37,7 @@ public class ExpController {
      * @return 经验流水列表
      */
     @GetMapping("/transactions")
+    @Operation(summary = "查询用户经验流水")
     public Result<PageResult<ExpTransactionDTO>> getUserTransactions(
             @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(value = "userId", required = true) Long userId,

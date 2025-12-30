@@ -4,6 +4,8 @@ import cn.loblok.upc.ai.dto.ChatBotRequest;
 import cn.loblok.upc.ai.dto.ChatBotResponse;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.ai.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/chat")
 @AllArgsConstructor
+@Tag(name = "ChatBotController", description = "对话机器人")
 public class ChatBotController {
 
 
@@ -26,6 +29,7 @@ public class ChatBotController {
      * URL: POST /api/chat/completions
      */
     @PostMapping("/completions")
+    @Operation(summary = "处理对话请求")
     public Result<ChatBotResponse> chatCompletions(@RequestBody ChatBotRequest request) {
 
 

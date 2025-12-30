@@ -6,6 +6,8 @@ import cn.loblok.upc.common.annotation.CurrentUser;
 import cn.loblok.upc.auth.common.util.PageConverter;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/ai-history")
 @AllArgsConstructor
 @Slf4j
+@Tag(name = "AI生成历史记录接口", description = "AI生成历史记录接口")
 public class AiGenerationHistoryController {
 
     private final AiGenerationLogsService aiGenerationLogsService;
@@ -35,6 +38,7 @@ public class AiGenerationHistoryController {
      * @return
      */
     @GetMapping("/list")
+    @Operation(summary = "获取用户ai生成的历史记录")
     public Result<PageResult<AiHistoryResponse>> getHistoryList(@CurrentUser Long userId,
                                                                 @RequestParam(value = "page",defaultValue = "1") Integer page,
                                                                 @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize){

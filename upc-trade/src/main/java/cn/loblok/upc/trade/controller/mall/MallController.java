@@ -6,6 +6,8 @@ import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.trade.dto.mall.ExchangeProducesRequest;
 import cn.loblok.upc.trade.dto.mall.ProductDTO;
 import cn.loblok.upc.trade.service.ProductsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/mall")
 @Slf4j
 @AllArgsConstructor
+@Tag(name = "商城接口", description = "商城接口")
 public class MallController {
 
 
@@ -35,6 +38,7 @@ public class MallController {
      * @return 商品列表
      */
     @GetMapping("/products")
+    @Operation(summary = "获取商品列表")
     public Result<PageResult<ProductDTO>> getProductList(
             @RequestParam(value = "page",defaultValue = "1") int page,
             @RequestParam(value="size", defaultValue = "20") int size) {
@@ -52,6 +56,7 @@ public class MallController {
      * @return 兑换结果
      */
     @PostMapping("/exchange")
+    @Operation(summary = "兑换商品")
     public Result<String> exchangeProduct(@CurrentUser Long userId, @RequestBody ExchangeProducesRequest request) {
 
        return productsService.exchangeProduct(userId, request);

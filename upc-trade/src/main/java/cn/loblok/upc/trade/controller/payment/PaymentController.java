@@ -7,6 +7,9 @@ import cn.loblok.upc.trade.dto.pay.PaymentResponse;
 import cn.loblok.upc.trade.dto.pay.PaymentStatusResponse;
 import cn.loblok.upc.trade.enums.PlanEnum;
 import cn.loblok.upc.trade.service.PaymentService;
+import com.baomidou.mybatisplus.annotation.TableField;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/payment")
 @Slf4j
 @AllArgsConstructor
+@Tag(name = "支付接口", description = "用户支付接口")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -27,6 +31,7 @@ public class PaymentController {
      * @return 创建结果
      */
     @PostMapping("/create")
+    @Operation(summary = "创建支付订单")
     public Result<PaymentResponse> createPaymentOrder(
             @RequestBody CreatePaymentRequest request,
             @CurrentUser Long userId) {
@@ -65,6 +70,7 @@ public class PaymentController {
      * @return 订单状态
      */
     @GetMapping("/status/{orderId}")
+    @Operation(summary = "查询支付订单状态")
     public Result<PaymentStatusResponse> getPaymentStatus(@PathVariable String orderId) {
         log.info("查询订单: {}", orderId);
 
@@ -78,6 +84,7 @@ public class PaymentController {
      * @return 是否成功
      */
     @PostMapping("/cancel/{orderId}")
+    @Operation(summary = "取消支付订单")
     public Result<Boolean> cancelPayment(@PathVariable String orderId) {
         log.info("取消订单: {}", orderId);
 

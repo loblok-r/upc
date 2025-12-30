@@ -6,6 +6,8 @@ import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.trade.dto.pay.InvoiceSummaryRequest;
 import cn.loblok.upc.trade.dto.pay.SummaryResponse;
 import cn.loblok.upc.trade.strategy.InvoiceSummarService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/payment")
 @AllArgsConstructor
 @Slf4j
+@Tag(name = "发票摘要", description = "发票摘要")
 public class InvoiceSummaryController {
 
     private final InvoiceSummarService invoiceSummarService;
 
     @PostMapping("/generateInvoiceSummary")
+    @Operation(summary = "创建发票摘要")
     public Result<SummaryResponse> generateInvoiceSummary(
             @RequestBody @Valid InvoiceSummaryRequest request,
             @CurrentUser Long userId) {

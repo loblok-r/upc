@@ -10,6 +10,8 @@ import cn.loblok.upc.common.enums.CommonStatusEnum;
 import cn.loblok.upc.common.enums.VerificationCodeType;
 import cn.loblok.upc.auth.service.UserService;
 import cn.loblok.upc.auth.service.VerificationCodeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 @Slf4j
+@Tag(name = "用户接口", description = "用户接口")
 public class UserController {
     
     @Autowired
@@ -40,6 +43,7 @@ public class UserController {
 
 
     @GetMapping("/profile")
+    @Operation(summary = "获取用户信息")
     public Result<UserProfileDTO> getProfile(@CurrentUser Long userId){
         return userService.getUserInfo(userId);
     }
@@ -50,6 +54,7 @@ public class UserController {
      * @return 认证响应对象
      */
     @PostMapping("/register")
+    @Operation(summary = "用户注册")
     public Result<RegisterResponse> register(@Validated(CheckVerificationCodeGroup.class)
                                                  @RequestBody RegisterRequestDTO registerRequest) {
 
@@ -88,6 +93,7 @@ public class UserController {
      * @return 用户资源对象
      */
     @GetMapping("/resources")
+    @Operation(summary = "获取用户资源")
     public Result<UserResourcesDTO> getResources(@CurrentUser Long userId) {
         return userService.getResources(userId);
     }
@@ -99,6 +105,7 @@ public class UserController {
      * @return 认证响应对象
      */
     @PostMapping("/login")
+    @Operation(summary = "用户登录")
     public Result<AuthResponseDTO> login(@Validated(CheckVerificationCodeGroup.class)
                                              @RequestBody LoginRequestDTO loginRequest) {
 
@@ -130,6 +137,7 @@ public class UserController {
      * @return 重置结果
      */
     @PostMapping("/resetPassword")
+    @Operation(summary = "忘记密码")
     public Result resetPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
         log.info("重置密码请求: email={}", request.getEmail());
 
@@ -148,6 +156,7 @@ public class UserController {
      * @return 验证码响应对象
      */
     @PostMapping("/sendCode")
+    @Operation(summary = "获取验证码")
     public Result sendCode(@Validated(SendVerificationCodeGroup.class)
                            @RequestBody VerificationCodeCTO verificationCodeCTO) {
         log.info("用户请求发送验证码: {}", verificationCodeCTO);

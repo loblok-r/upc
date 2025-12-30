@@ -1,5 +1,7 @@
 package cn.loblok.upc.auth.dto.chickin;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
 /**
@@ -8,6 +10,7 @@ import java.util.List;
 public class CheckinHistoryResponse {
 
     // yyyy-MM-dd
+    @Schema(description = "签到历史")
     private List<String> checkInHistory;
 
     public CheckinHistoryResponse(List<String> checkInHistory) {
