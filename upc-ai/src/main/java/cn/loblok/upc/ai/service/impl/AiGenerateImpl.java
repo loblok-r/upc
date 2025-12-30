@@ -18,6 +18,8 @@ import com.alibaba.dashscope.exception.InputRequiredException;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -100,7 +102,20 @@ public class AiGenerateImpl implements AiService {
                 .cosPath(aiResult.getCosPath())
                 .build();
 
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.ai_settle", aiSettleDTO);
+
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
+
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.ai_settle",
+                aiSettleDTO,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
 
 
         // 构造响应

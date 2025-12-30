@@ -1,5 +1,6 @@
 package cn.loblok.upc.trade.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.enums.MembershipOrderStatus;
 import cn.loblok.upc.common.enums.UserItemSourceType;
@@ -14,6 +15,8 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -109,8 +112,19 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
                 .source(UserItemSourceType.PURCHASE_PAID.getDescription())
                 .deliveryConfig(buildMemberConfig(plan)) // 例如
                 .build();
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
 
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery",deliveryMsg);
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.product_delivery",
+                deliveryMsg,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
     }
 
     private String buildMemberConfig(PlanEnum plan) {

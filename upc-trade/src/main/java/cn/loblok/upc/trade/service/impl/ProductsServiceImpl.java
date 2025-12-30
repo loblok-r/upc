@@ -1,5 +1,6 @@
 package cn.loblok.upc.trade.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
@@ -21,6 +22,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ClassPathResource;
@@ -269,6 +272,8 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
+                String bizId = IdUtil.randomUUID();
+                CorrelationData correlationData = new CorrelationData(bizId);
                 ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
                         .orderId(order.getId())
                         .userId(userId)
@@ -277,7 +282,16 @@ public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> i
                         .productName(product.getName())
                         .deliveryConfig(product.getDeliveryConfig())
                         .build();
-                rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery", msg);
+                rabbitTemplate.convertAndSend(
+                        "upc.direct.exchange",
+                        "mq.route.product_delivery",
+                        msg,
+                        message -> {
+                            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                            return message;
+                        },
+                        correlationData
+                );
             }
         });
     }

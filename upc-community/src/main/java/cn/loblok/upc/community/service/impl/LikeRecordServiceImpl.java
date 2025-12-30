@@ -1,5 +1,6 @@
 package cn.loblok.upc.community.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.utils.KeyUtils;
@@ -12,8 +13,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -82,11 +84,22 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
                 //更新排行榜分数
                 redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), 0.4);
 
+                String bizId = IdUtil.randomUUID();
+                CorrelationData correlationData = new CorrelationData(bizId);
                 StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
                 msg.setUserId(userId);
                 msg.setDelta(1);
                 msg.setType("LIKE");
-                rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+                rabbitTemplate.convertAndSend(
+                        "upc.direct.exchange",
+                        "mq.route.stats_update",
+                        msg,
+                        message -> {
+                            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                            return message;
+                        },
+                        correlationData
+                );
             }
         } else {
             // 取消点赞操作
@@ -106,11 +119,23 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
 
             redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), -0.4);
 
+            String bizId = IdUtil.randomUUID();
+            CorrelationData correlationData = new CorrelationData(bizId);
+
             StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
             msg.setUserId(userId);
             msg.setDelta(-1);
             msg.setType("LIKE");
-            rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+            rabbitTemplate.convertAndSend(
+                    "upc.direct.exchange",
+                    "mq.route.stats_update",
+                    msg,
+                    message -> {
+                        message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                        return message;
+                    },
+                    correlationData
+            );
         }
     }
 }

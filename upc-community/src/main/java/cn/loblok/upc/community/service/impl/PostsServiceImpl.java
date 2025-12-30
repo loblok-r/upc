@@ -1,15 +1,13 @@
 package cn.loblok.upc.community.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.PostsTab;
 import cn.loblok.upc.community.dto.*;
-import cn.loblok.upc.community.entity.LikeRecord;
 import cn.loblok.upc.community.entity.Posts;
-import cn.loblok.upc.community.mapper.CommentMapper;
-import cn.loblok.upc.community.mapper.LikeRecordMapper;
 import cn.loblok.upc.community.mapper.PostsMapper;
 import cn.loblok.upc.community.service.FollowService;
 import cn.loblok.upc.community.service.PostsService;
@@ -19,6 +17,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -190,11 +190,23 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         // 保存帖子
         boolean saved = this.save(posts);
 
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
+
         StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
         msg.setUserId(userId);
         msg.setDelta(1);
         msg.setType("POST");
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.stats_update",
+                msg,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
 
 
 
@@ -220,12 +232,23 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         if (!post.getUserId().equals(userId)) {
             throw new RuntimeException("无权限删除他人的帖子");
         }
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
 
         StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
         msg.setUserId(userId);
         msg.setDelta(-1);
         msg.setType("POST");
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.stats_update",
+                msg,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
 
 
 

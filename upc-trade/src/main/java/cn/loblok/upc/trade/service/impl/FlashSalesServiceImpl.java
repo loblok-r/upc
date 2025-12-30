@@ -1,5 +1,6 @@
 package cn.loblok.upc.trade.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
@@ -26,11 +27,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -283,6 +284,8 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
 
         String productId = order.getProductId();
         Products product = productsService.getById(productId);
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
         // 发送 MQ 消息，任务结束，立即返回给前端
         ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
                 .orderId(order.getId())
@@ -292,7 +295,16 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
                 .source(UserItemSourceType.FLASH_SALE.getDescription())
                 .deliveryConfig(product.getDeliveryConfig())
                 .build();
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery", msg);
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.product_delivery",
+                msg,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
     }
 
 

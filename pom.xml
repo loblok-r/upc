@@ -18,6 +18,7 @@
         <module>upc-worker</module>
         <module>upc-trade</module>
         <module>upc-ai</module>
+        <module>common-rabbitmq-starter</module>
     </modules>
 
     <properties>

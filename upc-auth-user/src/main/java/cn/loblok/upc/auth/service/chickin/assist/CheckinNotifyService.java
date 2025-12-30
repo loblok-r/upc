@@ -1,5 +1,6 @@
 package cn.loblok.upc.auth.service.chickin.assist;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.worker.dto.ExpTransactionDTO;
 import cn.loblok.upc.api.worker.dto.PointTransactionDTO;
 import cn.loblok.upc.auth.common.util.CacheUtils;
@@ -8,6 +9,8 @@ import cn.loblok.upc.auth.service.chickin.impl.LeaderboardServiceImpl;
 import cn.loblok.upc.common.enums.BizType;
 import cn.loblok.upc.common.utils.KeyUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -69,6 +72,7 @@ public class CheckinNotifyService {
      * @param basePoints
      */
     public void sendPointsLogMsg(String tenantId, Long userId, long recordId, int basePoints, int finalPoints,String biztype){
+
         PointTransactionDTO pointTransactionDTO = PointTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
@@ -78,7 +82,19 @@ public class CheckinNotifyService {
                 .totalPoints(finalPoints)
                 .occurredAt(LocalDateTime.now()).build();
 
-        rabbitTemplate.convertAndSend("upc.direct.exchange","mq.route.point_transaction", pointTransactionDTO);
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
+
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.point_transaction",
+                pointTransactionDTO,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
     }
 
 
@@ -92,6 +108,8 @@ public class CheckinNotifyService {
      */
     public void sendExpLogMsg(String tenantId, Long userId, long recordId, int baseExp,int finalexps,String biztype){
         // 这里应该是ExpTransactionDTO，但根据上下文使用PointTransactionDTO
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
         ExpTransactionDTO extransactionDT0 = ExpTransactionDTO.builder()
                 .tenantId(tenantId)
                 .userId(userId)
@@ -100,7 +118,16 @@ public class CheckinNotifyService {
                 .deltaExps(baseExp) //本次变动的经验值
                 .totalExps(finalexps)
                 .occurredAt(LocalDateTime.now()).build();
-        rabbitTemplate.convertAndSend("upc.direct.exchange","mq.route.exps_transaction", extransactionDT0);
+        rabbitTemplate.convertAndSend(
+                "upc.direct.exchange",
+                "mq.route.exps_transaction",
+                extransactionDT0,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
     }
 
 }

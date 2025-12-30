@@ -1,10 +1,10 @@
 package cn.loblok.upc.community.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.base.Result;
-import cn.loblok.upc.common.enums.FollowOpration;
 import cn.loblok.upc.community.dto.FollowUserResponse;
 import cn.loblok.upc.community.entity.Follow;
 import cn.loblok.upc.community.mapper.FollowMapper;
@@ -13,6 +13,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +64,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             // 已经关注，执行取消关注操作
             this.remove(queryWrapper);
 
+            String bizId = IdUtil.randomUUID();
+            CorrelationData correlationData = new CorrelationData(bizId);
 
             // 更新被关注者的粉丝数，粉丝数减一 & 更新当前用户的关注数，关注减一
             StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
@@ -69,7 +73,16 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             msg.setTargetUserId(followeeId);
             msg.setDelta(-1);
             msg.setType("FOLLOW");
-            rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+            rabbitTemplate.convertAndSend(
+                    "upc.direct.exchange",
+                    "mq.route.stats_update",
+                    msg,
+                    message -> {
+                        message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                        return message;
+                    },
+                    correlationData
+            );
 
 
             // 设置操作结果描述
@@ -85,13 +98,24 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 //            follow.setTenantId("default");
             this.save(follow);
             // 更新被关注者的粉丝数
+            String bizId = IdUtil.randomUUID();
+            CorrelationData correlationData = new CorrelationData(bizId);
 
             StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
             msg.setUserId(followerId);
             msg.setTargetUserId(followeeId);
             msg.setDelta(1);
             msg.setType("FOLLOW");
-            rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.stats_update", msg);
+            rabbitTemplate.convertAndSend(
+                    "upc.direct.exchange",
+                    "mq.route.stats_update",
+                    msg,
+                    message -> {
+                        message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                        return message;
+                    },
+                    correlationData
+            );
 
             response.setFollowerCount(getFollowerCount(followeeId));
             return response;
