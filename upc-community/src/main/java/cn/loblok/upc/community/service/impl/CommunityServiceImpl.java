@@ -7,7 +7,9 @@ import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.community.dto.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
-import java.util.ArrayList;
+
+import java.util.*;
+
 import cn.loblok.upc.community.entity.Comment;
 import cn.loblok.upc.community.entity.LikeRecord;
 import cn.loblok.upc.community.entity.Posts;
@@ -29,10 +31,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -308,7 +306,7 @@ public class CommunityServiceImpl implements CommunityService {
     public List<CommunityUserVO> searchUsers(String keyword, int page,int pageSize,Long currentUserId) {
 
         // 1. 计算偏移量
-        int offset = (page - 1) * pageSize;
+        int offset = Math.max(0, page - 1) * pageSize;
         int limit = pageSize;
         // 1. 调用 Meilisearch 进行全文检索
         // 这里建议封装一个 MeilisearchUtil
@@ -326,6 +324,7 @@ public class CommunityServiceImpl implements CommunityService {
             // 3. 批量查询本地关注关系 (SELECT followee_id FROM follow WHERE follower_id = ? AND followee_id IN (...))
             List<Long> followedIds = followService.findFollowedIds(currentUserId, searchedUserIds);
 
+            Set<Long> followedIdSet = new HashSet<>(followedIds);
             // 4. 合并数据并返回
             return hits.stream().map(hit -> {
                 CommunityUserVO dto = new CommunityUserVO();
@@ -336,8 +335,8 @@ public class CommunityServiceImpl implements CommunityService {
                 dto.setAvatar((String) hit.get("avatar_url"));
                 dto.setFollowers((Integer) hit.get("followers"));
 
-                // 核心：设置关注状态
-                dto.setIsFollowed(followedIds.contains(userId));
+                // 核心：设置关注状态,O(1) 查询
+                dto.setIsFollowed(followedIdSet.contains(userId));
 
                 return dto;
             }).collect(Collectors.toList());

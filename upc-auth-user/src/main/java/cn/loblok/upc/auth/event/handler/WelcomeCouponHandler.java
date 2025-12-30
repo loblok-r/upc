@@ -1,13 +1,17 @@
 package cn.loblok.upc.auth.event.handler;
 
+
 import cn.loblok.upc.auth.entity.IssueContext;
-import cn.loblok.upc.auth.service.CouponIssueLogService;
-import cn.loblok.upc.auth.service.UserCouponService;
+
+import cn.loblok.upc.auth.service.UserItemsService;
 import cn.loblok.upc.common.enums.BizType;
 import cn.loblok.upc.auth.common.util.PrefixUtil;
 import cn.loblok.upc.auth.event.UserRegisteredEvent;
+
+import cn.loblok.upc.common.enums.UserItemSourceType;
+import cn.loblok.upc.common.enums.UserItemType;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -17,13 +21,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
+@AllArgsConstructor
 public class WelcomeCouponHandler {
 
-    @Autowired
-    private CouponIssueLogService couponIssueService;
+//    @Autowired
+//    private CouponIssueLogService couponIssueService;
+//
+//    @Autowired
+//    private UserCouponService userCouponService;
 
-    @Autowired
-    private UserCouponService userCouponService;
+    private final UserItemsService userItemsService;
 
     @EventListener
     @Async
@@ -35,9 +42,18 @@ public class WelcomeCouponHandler {
                     .build();
         try {
 
-            log.info("发放欢迎券，user={}", event.getUserId());
+            log.info("发放欢迎奖励，user={}", event.getUserId());
 
-            userCouponService.grantWelcomeCoupons(event.getUserId(), context);
+            //直接改UserItem
+            userItemsService.addItem(
+                    event.getUserId(),
+                    UserItemType.RESIGN_CARD,
+                    UserItemSourceType.ADMIN_GRANT,
+                    null,
+                    null,
+                    3
+            );
+//            userCouponService.grantWelcomeCoupons(event.getUserId(), context);
 
         } catch (Exception e) {
             log.error("发券失败，投递到重试队列 user={}", event.getUserId(), e);
@@ -53,6 +69,7 @@ public class WelcomeCouponHandler {
             // failedTaskService.save(new FailedTask(...));
         }
     }
+
 
     // todo 监听邀请成功事件
 //    @EventListener

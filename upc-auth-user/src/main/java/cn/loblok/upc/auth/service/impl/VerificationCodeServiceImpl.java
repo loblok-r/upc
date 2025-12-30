@@ -1,5 +1,7 @@
 package cn.loblok.upc.auth.service.impl;
 
+import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.EmailMsgDTO;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.CommonStatusEnum;
@@ -7,6 +9,8 @@ import cn.loblok.upc.auth.service.VerificationCodeService;
 import cn.loblok.upc.common.utils.KeyUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -54,8 +58,19 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
         // 调用第三方发送到邮箱
         try {
+            String bizId = IdUtil.randomUUID();
+            CorrelationData correlationData = new CorrelationData(bizId);
             // 发送到定义的交换机和 RoutingKey
-            rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.email", msg);
+            rabbitTemplate.convertAndSend(
+                    MQConstants.EXCHANGE_NAME,
+                    MQConstants.ROUTE_EMAIL,
+                    msg,
+                    message -> {
+                        message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                        return message;
+                    },
+                    correlationData
+            );
             log.info("验证码请求已进入队列: {}", email);
             return Result.success("验证码已发送至您的邮箱");
         } catch (Exception e) {

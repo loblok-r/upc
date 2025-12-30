@@ -1,9 +1,9 @@
 package cn.loblok.upc.worker.mq;
 
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.utils.KeyUtils;
-import cn.loblok.upc.worker.config.RabbitConfig;
 import cn.loblok.upc.worker.service.StatService;
 import cn.loblok.upc.worker.util.MessageRetryHelper;
 import com.rabbitmq.client.Channel;
@@ -29,7 +29,7 @@ public class StatUpdateConsumer {
     private final MessageRetryHelper retryHelper;
 
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_STATS_UPDATE
+    @RabbitListener(queues = MQConstants.QUEUE_STATS_UPDATE
             ,ackMode = "MANUAL")
     public void onStatUpdateMessage(StatUpdateMsgDTO msg, Message message, Channel channel) {
         log.info("【统计更新】收到任务: userId={}, type={}, delta={}",
@@ -81,8 +81,8 @@ public class StatUpdateConsumer {
                             log.warn("未知统计类型: {}", msg.getType());
                     }
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_STATS_UPDATE + ".retry.5s",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_STATS_UPDATE + ".retry.5s",
                 2 // 最多重试 2 次
         );
     }

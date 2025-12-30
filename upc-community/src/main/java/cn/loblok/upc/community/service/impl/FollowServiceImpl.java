@@ -1,6 +1,7 @@
 package cn.loblok.upc.community.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
@@ -74,8 +75,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             msg.setDelta(-1);
             msg.setType("FOLLOW");
             rabbitTemplate.convertAndSend(
-                    "upc.direct.exchange",
-                    "mq.route.stats_update",
+                    MQConstants.EXCHANGE_NAME,
+                    MQConstants.ROUTE_STATS_UPDATE,
                     msg,
                     message -> {
                         message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
@@ -107,8 +108,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             msg.setDelta(1);
             msg.setType("FOLLOW");
             rabbitTemplate.convertAndSend(
-                    "upc.direct.exchange",
-                    "mq.route.stats_update",
+                    MQConstants.EXCHANGE_NAME,
+                    MQConstants.ROUTE_STATS_UPDATE,
                     msg,
                     message -> {
                         message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.AiSettleDTO;
 import cn.loblok.upc.worker.config.RabbitConfig;
@@ -24,7 +25,7 @@ public class AISettleConsumer {
     private final AiLogService aiLogService;
 
     private final MessageRetryHelper retryHelper;
-    @RabbitListener(queues = RabbitConfig.QUEUE_AI_SETTLE,
+    @RabbitListener(queues = MQConstants.QUEUE_AI_SETTLE,
                     ackMode = "MANUAL")
     public void onAISettleMessage(AiSettleDTO msg, Message message, Channel channel) {
         retryHelper.processWithRetry(
@@ -38,8 +39,8 @@ public class AISettleConsumer {
                             msg.getCost(), msg.getRefImage(), msg.getContent(),
                             msg.getCosPath(), msg.getSessionId());
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_AI_SETTLE + ".retry.5s",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_AI_SETTLE + ".retry.5s",
                 2 // 最多重试 2 次
         );
     }

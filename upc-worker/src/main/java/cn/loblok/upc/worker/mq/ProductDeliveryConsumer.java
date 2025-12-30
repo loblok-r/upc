@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.NotificationMsg;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.worker.config.RabbitConfig;
@@ -24,7 +25,7 @@ public class ProductDeliveryConsumer {
     private final MessageRetryHelper retryHelper;
 
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_PRODUCT_DELIVERY
+    @RabbitListener(queues = MQConstants.QUEUE_PRODUCT_DELIVERY
             , ackMode = "MANUAL")
     public void onMessage(ProductDeliveryMsgDTO msg, Message message, Channel channel) {
         retryHelper.processWithRetry(
@@ -39,8 +40,8 @@ public class ProductDeliveryConsumer {
                             .content("您兑换的[" + msg.getProductName() + "]已发放到账")
                             .build());
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_PRODUCT_DELIVERY + ".retry.5s",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_PRODUCT_DELIVERY + ".retry.5s",
                 2 // 最多重试 2 次
         );
     }

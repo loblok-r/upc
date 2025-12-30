@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.EmailMsgDTO;
 import cn.loblok.upc.api.worker.dto.NotificationMsg;
 import cn.loblok.upc.worker.config.RabbitConfig;
@@ -31,7 +32,7 @@ public class NotificationConsumer {
     /**
      * 1. 监听邮件队列 (验证码、欢迎邮件)
      */
-    @RabbitListener(queues = RabbitConfig.QUEUE_EMAIL
+    @RabbitListener(queues = MQConstants.QUEUE_EMAIL
             ,ackMode = "MANUAL")
     public void onEmailMessage(EmailMsgDTO msg, Channel channel, Message message) throws MessagingException {
         log.info("【邮件队列】开始处理任务: target={}, type={}", msg.getEmail(), msg.getType());
@@ -45,8 +46,8 @@ public class NotificationConsumer {
                         throw new RuntimeException(e);
                     }
                 },
-                RabbitConfig.DLX_EXCHANGE_NAME,
-                RabbitConfig.ROUTE_EMAIL,
+                MQConstants.DLX_EXCHANGE_NAME,
+                MQConstants.ROUTE_EMAIL,
                 2
         );
     }
@@ -54,7 +55,7 @@ public class NotificationConsumer {
     /**
      * 2. 监听站内信队列 (点赞、评论提醒)
      */
-    @RabbitListener(queues = RabbitConfig.QUEUE_SITE_MSG
+    @RabbitListener(queues = MQConstants.QUEUE_SITE_MSG
             , ackMode = "MANUAL")
     public void onSiteMessage(NotificationMsg msg, Message message, Channel channel) {
         log.info("【站内信队列】收到提醒消息: from={}, to={}, type={}",
@@ -66,8 +67,8 @@ public class NotificationConsumer {
                 () -> {
                     notifyService.createNotification(msg);
                 },
-                RabbitConfig.DLX_EXCHANGE_NAME,
-                RabbitConfig.ROUTE_SITE_MSG,
+                MQConstants.DLX_EXCHANGE_NAME,
+                MQConstants.ROUTE_SITE_MSG,
                 2
         );
     }

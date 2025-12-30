@@ -1,6 +1,7 @@
 package cn.loblok.upc.community.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.utils.KeyUtils;
@@ -92,8 +93,8 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
                 msg.setType("LIKE");
                 msg.setPostId(postId);
                 rabbitTemplate.convertAndSend(
-                        "upc.direct.exchange",
-                        "mq.route.stats_update",
+                        MQConstants.EXCHANGE_NAME,
+                        MQConstants.ROUTE_STATS_UPDATE,
                         msg,
                         message -> {
                             message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
@@ -128,8 +129,7 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
             msg.setDelta(-1);
             msg.setType("LIKE");
             rabbitTemplate.convertAndSend(
-                    "upc.direct.exchange",
-                    "mq.route.stats_update",
+                    MQConstants.EXCHANGE_NAME,MQConstants.ROUTE_STATS_UPDATE,
                     msg,
                     message -> {
                         message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

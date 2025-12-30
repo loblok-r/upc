@@ -1,5 +1,7 @@
 package cn.loblok.upc.trade.service.impl;
 
+import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.enums.MallOrderStatus;
@@ -16,6 +18,8 @@ import cn.loblok.upc.trade.service.ProductsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,8 +96,19 @@ public class LotteryServiceImpl implements LotteryService {
                 .productName(prize.getName())
                 .deliveryConfig(prize.getDeliveryConfig())
                 .build();
+        String bizId = IdUtil.randomUUID();
+        CorrelationData correlationData = new CorrelationData(bizId);
 
-        rabbitTemplate.convertAndSend("upc.direct.exchange", "mq.route.product_delivery",msg);
+        rabbitTemplate.convertAndSend(
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_PRODUCT_DELIVERY,
+                msg,
+                message -> {
+                    message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                    return message;
+                },
+                correlationData
+        );
     }
 
     /**

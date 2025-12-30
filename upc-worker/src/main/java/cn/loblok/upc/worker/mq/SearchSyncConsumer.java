@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.worker.util.MessageRetryHelper;
 import com.rabbitmq.client.Channel;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class SearchSyncConsumer {
     /**
      * 监听用户搜索同步队列
      */
-    @RabbitListener(queues = RabbitConfig.QUEUE_SEARCH_SYNC
+    @RabbitListener(queues = MQConstants.QUEUE_SEARCH_SYNC
             , ackMode = "MANUAL")
     public void onUserSyncMessage(UserSyncDTO msg, Message message, Channel channel) {
         retryHelper.processWithRetry(
@@ -45,8 +46,8 @@ public class SearchSyncConsumer {
                         }
                     }
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_SEARCH_SYNC + ".retry.5s",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_SEARCH_SYNC + ".retry.5s",
                 2 // 最多重试 2 次
         );
     }

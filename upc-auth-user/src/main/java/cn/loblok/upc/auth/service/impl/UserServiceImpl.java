@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.dto.UserStatsDTO;
 import cn.loblok.upc.auth.dto.*;
+import cn.loblok.upc.auth.event.UserRegisteredEvent;
 import cn.loblok.upc.auth.mapper.DailyUsageMapper;
 import cn.loblok.upc.auth.entity.UserItems;
 import cn.loblok.upc.auth.service.UserItemsService;
@@ -27,6 +28,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -122,9 +124,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         log.info("用户注册成功：{}", username);
 
-        // 发布用户注册事件
-//        UserRegisteredEvent event = new UserRegisteredEvent(this, user.getId(), username);
-//        eventPublisher.publishEvent(event);
+        //发布用户注册事件
+        UserRegisteredEvent event = new UserRegisteredEvent(this, user.getId(), username, defaultAvatar);
+        eventPublisher.publishEvent(event);
 
         return Result.success(registerResponse);
     }
@@ -204,24 +206,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserProfileDTO userProfileDTO = new UserProfileDTO();
 
         UserStatsDTO userStatsDTO = new UserStatsDTO();
+        BeanUtils.copyProperties(user, userStatsDTO);
         userStatsDTO.setFollowing(user.getFollowings());
-        userStatsDTO.setWorks(user.getWorks());
-        userStatsDTO.setFollowers(user.getFollowers());
-        userStatsDTO.setLikes(user.getLikes());
 
 
         userProfileDTO.setUserId(user.getId());
-        userProfileDTO.setUsername(user.getUsername());
-        userProfileDTO.setEmail(user.getEmail());
-        userProfileDTO.setExp(user.getExp());
-        userProfileDTO.setPoints(user.getPoints());
+        BeanUtils.copyProperties(user, userProfileDTO);
         userProfileDTO.setStats(userStatsDTO);
-        userProfileDTO.setUserLevel(user.getUserLevel());
-        userProfileDTO.setComputingPower(user.getComputingPower());
-        userProfileDTO.setMemberExpireAt(user.getMemberExpireAt());
         userProfileDTO.setPermanentMember(user.getIsPermanentMember());
         userProfileDTO.setCheckedIn(user.getIschickined());
-        userProfileDTO.setStreakDays(user.getStreakdays());
         userProfileDTO.setLotteryCounts(totolLotteryChances);
         userProfileDTO.setDailyUsage(dailyUsageResponse);
         userProfileDTO.setAvatar(user.getAvatarUrl());

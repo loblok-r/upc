@@ -1,6 +1,7 @@
 package cn.loblok.upc.auth.service.chickin.assist;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ExpTransactionDTO;
 import cn.loblok.upc.api.worker.dto.PointTransactionDTO;
 import cn.loblok.upc.auth.common.util.CacheUtils;
@@ -86,8 +87,7 @@ public class CheckinNotifyService {
         CorrelationData correlationData = new CorrelationData(bizId);
 
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.point_transaction",
+                MQConstants.EXCHANGE_NAME, MQConstants.ROUTE_POINT_TRANSACTION,
                 pointTransactionDTO,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
@@ -119,8 +119,8 @@ public class CheckinNotifyService {
                 .totalExps(finalexps)
                 .occurredAt(LocalDateTime.now()).build();
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.exps_transaction",
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_EXP_TRANSACTION,
                 extransactionDT0,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

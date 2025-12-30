@@ -1,6 +1,7 @@
 package cn.loblok.upc.community.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.user.dto.UserPublicInfoDTO;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
@@ -255,8 +256,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         msg.setPostId(posts.getId());
         msg.setType("POST");
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.stats_update",
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_STATS_UPDATE,
                 msg,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
@@ -295,8 +296,8 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         msg.setType("POST");
         msg.setPostId(postId);
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.stats_update",
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_STATS_UPDATE,
                 msg,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

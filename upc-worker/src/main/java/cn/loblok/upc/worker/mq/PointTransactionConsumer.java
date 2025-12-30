@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.PointTransactionDTO;
 import cn.loblok.upc.common.enums.BizType;
 import cn.loblok.upc.worker.config.RabbitConfig;
@@ -24,7 +25,7 @@ public class PointTransactionConsumer {
     private final MessageRetryHelper retryHelper;
 
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_POINT_TRANSACTION
+    @RabbitListener(queues = MQConstants.QUEUE_POINT_TRANSACTION
             , ackMode = "MANUAL")
     public void onMessage(PointTransactionDTO msg, Message message, Channel channel) {
         log.info("积分流水消息：{}", msg);
@@ -40,8 +41,8 @@ public class PointTransactionConsumer {
                         msg.getDeltaPoints(),
                         (long) msg.getTotalPoints());
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_POINT_TRANSACTION + ".retry.5",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_POINT_TRANSACTION + ".retry.5",
                 2 // 最多重试 2 次
         );
     }

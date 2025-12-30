@@ -1,5 +1,6 @@
 package cn.loblok.upc.worker.mq;
 
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ExpTransactionDTO;
 import cn.loblok.upc.common.enums.BizType;
 import cn.loblok.upc.worker.config.RabbitConfig;
@@ -23,7 +24,7 @@ public class ExpTransactiionConsumer {
     private final MessageRetryHelper retryHelper;
 
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_EXP_TRANSACTION
+    @RabbitListener(queues = MQConstants.QUEUE_EXP_TRANSACTION
                     , ackMode = "MANUAL")
     public void onMessage(ExpTransactionDTO msg, Channel channel, Message message) {
         retryHelper.processWithRetry(
@@ -37,8 +38,8 @@ public class ExpTransactiionConsumer {
                             msg.getDeltaExps(),
                             (long)msg.getTotalExps());
                 },
-                RabbitConfig.RETRY_EXCHANGE_NAME,
-                RabbitConfig.QUEUE_EXP_TRANSACTION + ".retry.5s",
+                MQConstants.RETRY_EXCHANGE_NAME,
+                MQConstants.QUEUE_EXP_TRANSACTION + ".retry.5s",
                 2 // 最多重试 2 次
         );
     }

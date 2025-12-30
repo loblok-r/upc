@@ -1,6 +1,7 @@
 package cn.loblok.upc.ai.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.ai.client.QwenClient;
 import cn.loblok.upc.ai.client.SilionClient;
 import cn.loblok.upc.ai.dto.AiGenerateRequest;
@@ -107,8 +108,8 @@ public class AiGenerateImpl implements AiService {
         CorrelationData correlationData = new CorrelationData(bizId);
 
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.ai_settle",
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_AI_SETTLE,
                 aiSettleDTO,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

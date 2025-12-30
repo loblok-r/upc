@@ -25,9 +25,9 @@ public interface UserItemsService extends IService<UserItems> {
             Long userId,
             UserItemType itemType,
             UserItemSourceType sourceType,
-            String sourceId,      // 👈 建议加上，用于追踪来源（如订单ID）
-            Map<String, Object> extra,  // 👈 所有额外属性放这里
-            Integer quantity      // 👈 数量（必须是整数）
+            String sourceId,      //
+            Map<String, Object> extra,  //
+            Integer quantity      //
     );
 
     /**

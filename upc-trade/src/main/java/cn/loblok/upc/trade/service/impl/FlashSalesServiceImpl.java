@@ -1,6 +1,7 @@
 package cn.loblok.upc.trade.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.loblok.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
@@ -296,8 +297,8 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
                 .deliveryConfig(product.getDeliveryConfig())
                 .build();
         rabbitTemplate.convertAndSend(
-                "upc.direct.exchange",
-                "mq.route.product_delivery",
+                MQConstants.EXCHANGE_NAME,
+                MQConstants.ROUTE_PRODUCT_DELIVERY,
                 msg,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
