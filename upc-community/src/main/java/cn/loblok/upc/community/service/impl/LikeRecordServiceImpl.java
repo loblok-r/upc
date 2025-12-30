@@ -90,6 +90,7 @@ public class LikeRecordServiceImpl extends ServiceImpl<LikeRecordMapper, LikeRec
                 msg.setUserId(userId);
                 msg.setDelta(1);
                 msg.setType("LIKE");
+                msg.setPostId(postId);
                 rabbitTemplate.convertAndSend(
                         "upc.direct.exchange",
                         "mq.route.stats_update",

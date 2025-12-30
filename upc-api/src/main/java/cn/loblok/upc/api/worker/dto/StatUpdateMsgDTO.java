@@ -13,6 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class StatUpdateMsgDTO implements Serializable {
     private Long userId;
+    private Long postId;
     private Long targetUserId;
     private String type;   // LIKE, POST, FOLLOW
     private Integer delta; // 1 (增加), -1 (减少)

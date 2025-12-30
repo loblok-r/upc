@@ -23,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         postsService.updateById(post);
 
         redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY,String.valueOf(post.getUserId()), 0.6);
+        redisTemplate.delete(KeyUtils.buildPostDetailKey(postId));
 
 
         // 构造返回的TComment对象
@@ -217,6 +219,7 @@ public Result<String> deleteComment(Long postId, Long commentId, Long userId) {
 
     redisTemplate.opsForZSet().incrementScore(LEADERBOARD_KEY, String.valueOf(post.getUserId()), -0.6);
 
+    redisTemplate.delete(KeyUtils.buildPostDetailKey(postId));
     return Result.success("评论删除成功");
 }
 }

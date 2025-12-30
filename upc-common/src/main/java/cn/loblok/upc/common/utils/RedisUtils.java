@@ -1,17 +1,18 @@
 package cn.loblok.upc.common.utils;
 
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class RedisUtils {
-
-
-
-
-
+    private static RedisTemplate<String, String> redisTemplate;
 
 
 
@@ -32,6 +33,14 @@ public class RedisUtils {
                                 String key, Object value, Duration expire) {
         redisTemplate.opsForValue().set(key, String.valueOf(value),
                 expire.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    public static List<Long> getIdsFromRedis(String key, int start, int end) {
+        Set<String> range = redisTemplate.opsForZSet().reverseRange(key, start, end);
+        if (CollectionUtils.isEmpty(range)) {
+            return Collections.emptyList();
+        }
+        return range.stream().map(Long::valueOf).toList();
     }
 
 

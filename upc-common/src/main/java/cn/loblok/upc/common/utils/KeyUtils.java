@@ -27,6 +27,39 @@ public class KeyUtils {
     private static final String Coupon_STOCK_PREFIX = "coupon:stock:";
     private static final String COMMUNITY_LEADERBOARD_CREATORS = "community:leaderboard:creators";
 
+    private static final String POST_TAB_LATEST_POST_KEY = "community:tab:latest:post";
+    private static final String POST_TAB_RECOMMEND_POST_KEY = "community:tab:recommend:post";
+
+    private static final String POST_DETAIL_KEY_PREFIX =  "post:detail:" ;
+
+
+    /**
+     * 帖子详情 key
+     *
+     * @param postId
+     * @return
+     */
+    public static String buildPostDetailKey(Long postId) {
+        return POST_DETAIL_KEY_PREFIX + postId;
+    }
+
+    /**
+     * 最新帖子列表 key
+     *
+     * @return
+     */
+    public static String buildPostTabLatestPostKey() {
+        return POST_TAB_LATEST_POST_KEY;
+    }
+
+    /**
+     * 推荐帖子列表 key
+     *
+     * @return
+     */
+    public static String buildPostTabRecommendPostKey() {
+        return POST_TAB_RECOMMEND_POST_KEY;
+    }
 
 
     /**

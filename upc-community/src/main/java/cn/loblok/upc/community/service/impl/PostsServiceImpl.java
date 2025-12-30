@@ -6,6 +6,8 @@ import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.PostsTab;
+import cn.loblok.upc.common.utils.KeyUtils;
+import cn.loblok.upc.common.utils.RedisUtils;
 import cn.loblok.upc.community.dto.*;
 import cn.loblok.upc.community.entity.Posts;
 import cn.loblok.upc.community.mapper.PostsMapper;
@@ -21,6 +23,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,10 +49,13 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
 
     private final FollowService followService;
 
-
     private final UserFeignClient userFeignClient;
 
     private final RabbitTemplate rabbitTemplate;
+
+    private final PostCacheService postCacheService;
+
+    private final StringRedisTemplate redisTemplate;
 
 
     /**
@@ -63,74 +69,136 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
 
 
         log.info("获取帖子列表,用户ID:{},page:{},pageSize:{},postsTab:{}", userId, page, pageSize, postsTab.getDescription());
-        List<Long> IdList;
+        List<Long> authorIdList = new ArrayList<>();
         List<Long> followedIds = followService.findFollowedIds(userId);
-        Page<Posts> postsPage;
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        List<Long> postIds = new ArrayList<>();
 
         switch (postsTab) {
             case RECOMMEND -> {
-                // 推荐的帖子列表，获取所有帖子按点赞数倒序排列
-                QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("is_deleted", false);
+                String key = KeyUtils.buildPostTabRecommendPostKey();
+                // 从缓存拿 Top 500 进行内存过滤，避免频繁查库
+                List<Long> allIds = RedisUtils.getIdsFromRedis(key, 0, 500);
 
-                // 排除已关注用户的作品
-                if (!followedIds.isEmpty()) {
-                    queryWrapper.notIn("user_id", followedIds);
+                final List<Long> finalFollowedIds = followedIds;
+                if (!allIds.isEmpty()) {
+                    // 批量获取详情进行过滤，漏斗模型
+                    List<Posts> allPosts = postCacheService.getPostsBatch(allIds);
+                    postIds = allPosts.stream()
+                            .filter(p -> !finalFollowedIds.contains(p.getUserId())) // 排除已关注
+                            .map(Posts::getId)
+                            .skip((long) (page - 1) * pageSize)
+                            .limit(pageSize)
+                            .toList();
                 }
-
-                queryWrapper.orderByDesc("likes_count");
-
-                postsPage = new Page<>(page, pageSize);
-                this.page(postsPage, queryWrapper);
-
-                IdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
-                //空列表
+                // 兜底：如果缓存为空或过滤后没数据，走原有的数据库查询
+                if (postIds.isEmpty()) {
+                    postIds = getPostIdsFromDb(postsTab, page, pageSize, followedIds);
+                }
+                // 推荐页通常不显示“已关注”标签，所以传空列表给 Response
                 followedIds = new ArrayList<>();
-            }
-            case FOLLOW -> {
-                //关注帖子
-                if (followedIds.isEmpty()) {
-                    return List.of(); // 如果没有关注任何人，则返回空列表
-                }
-
-                // 查询关注用户发布的帖子
-                QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
-                queryWrapper.in("user_id", followedIds);
-                queryWrapper.eq("is_deleted", false);
-                queryWrapper.orderByDesc("created_at");
-
-                postsPage = new Page<>(page, pageSize);
-                this.page(postsPage, queryWrapper);
-
-                IdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
             }
             case LATEST -> {
-                // 最新帖子
-                QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("is_deleted", false);
-                queryWrapper.orderByDesc("created_at");
+                String key = KeyUtils.buildPostTabLatestPostKey();
+                int start = (page - 1) * pageSize;
+                int end = start + pageSize - 1;
+                postIds = RedisUtils.getIdsFromRedis(key, start, end);
 
-                postsPage = new Page<>(page, pageSize);
-                this.page(postsPage, queryWrapper);
-                IdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
+                if (postIds.isEmpty()) {
+                    postIds = getPostIdsFromDb(postsTab, page, pageSize, null);
+                }
             }
-            default -> {
-                //查询个人的帖子
-                QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("user_id", userId);
-                queryWrapper.eq("is_deleted", false);
-                queryWrapper.orderByDesc("created_at");
+            case FOLLOW -> {
+                // 关注页数据量因人而异，暂时维持原有的数据库分页查询
+                if (followedIds.isEmpty()) return Collections.emptyList();
+                return getFollowTabResponses(followedIds, page, pageSize);
+            }
 
-                postsPage = new Page<>(page, pageSize);
-                this.page(postsPage, queryWrapper);
-                IdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
-                //空列表，默认为空
-                followedIds = new ArrayList<>();
+            default -> {
+               return getOwnerPosts(userId, page, pageSize);
             }
         }
-        log.info("查询结果{},用户IdList.size:{},folledIds.size:{}", postsTab.getDescription(), IdList.size(), followedIds.size());
+        // 将最终确定的 postIds 转换为统一的 Page 对象和作者 ID 列表
+        postsPage = convertIdsToPage(postIds, page, pageSize, postsTab);
+        authorIdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
 
-        return getPostResponses(IdList, postsPage, followedIds);
+        return getPostResponses(authorIdList, postsPage, followedIds);
+    }
+
+    /**
+     * 从数据库中获取帖子 ID 列表（作为 Redis 缺失时的兜底）
+     */
+    private List<Long> getPostIdsFromDb(PostsTab postsTab, int page, int pageSize, List<Long> followedIds) {
+        log.warn("缓存未命中，触发数据库兜底查询: tab={}, page={}", postsTab, page);
+
+        QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_deleted", false);
+        queryWrapper.select("id"); // 关键：只查 ID，减少网络 IO 和内存占用
+
+        if (postsTab == PostsTab.RECOMMEND) {
+            // 推荐逻辑：按点赞排序
+            if (followedIds != null && !followedIds.isEmpty()) {
+                queryWrapper.notIn("user_id", followedIds);
+            }
+            queryWrapper.orderByDesc("likes_count", "created_at");
+        } else {
+            // 最新逻辑：按时间排序
+            queryWrapper.orderByDesc("created_at");
+        }
+
+        // 执行分页查询
+        Page<Posts> dbPage = new Page<>(page, pageSize);
+        this.page(dbPage, queryWrapper);
+
+        return dbPage.getRecords().stream().map(Posts::getId).toList();
+    }
+
+    private List<PostResponse> getFollowTabResponses(List<Long> followedIds, int page, int pageSize) {
+        //关注帖子
+        if (followedIds.isEmpty()) {
+            return List.of(); // 如果没有关注任何人，则返回空列表
+        }
+        // 查询关注用户发布的帖子
+        QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("user_id", followedIds);
+        queryWrapper.eq("is_deleted", false);
+        queryWrapper.orderByDesc("created_at");
+
+        Page<Posts> postsPage  = new Page<>(page, pageSize);
+        this.page(postsPage, queryWrapper);
+
+        List<Long> authorIdList= postsPage.getRecords().stream().map(Posts::getUserId).toList();
+        return getPostResponses(authorIdList, postsPage, followedIds);
+    }
+
+    //查询个人的帖子
+    List<PostResponse> getOwnerPosts(Long userId, int page, int pageSize){
+        QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("is_deleted", false);
+        queryWrapper.orderByDesc("created_at");
+
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        this.page(postsPage, queryWrapper);
+        List<Long> authorIdList = postsPage.getRecords().stream().map(Posts::getUserId).toList();
+        //空列表，默认为空
+        List<Long> followedIds = new ArrayList<>();
+        return getPostResponses(authorIdList, postsPage, followedIds);
+    }
+
+
+    private Page<Posts> convertIdsToPage(List<Long> ids, int page, int pageSize, PostsTab postsTab) {
+        // 批量从 Redis 详情缓存获取，缺失的会自动回填 DB
+        List<Posts> postsList = postCacheService.getPostsBatch(ids);
+        Page<Posts> postsPage = new Page<>(page, pageSize);
+        postsPage.setRecords(postsList);
+
+        //若是缓存模式，从 ZSet 长度获取，否则保持 0
+        String key = postsTab == PostsTab.LATEST ? KeyUtils.buildPostTabLatestPostKey() : KeyUtils.buildPostTabRecommendPostKey();
+        Long total = redisTemplate.opsForZSet().zCard(key);
+        postsPage.setTotal(total != null ? total : 0);
+
+        return postsPage;
     }
 
 
@@ -144,23 +212,16 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         return postsPage.getRecords().stream()
                 .map(post -> {
                     CommunityUserVO vo = new CommunityUserVO();
-                    UserPublicInfoDTO userPublicInfoDTO = useMap.getData().get(post.getUserId());
-                    BeanUtils.copyProperties(userPublicInfoDTO, vo);
-                    vo.setIsFollowed(followedIds.contains(post.getUserId()));
-                    PostResponse response = new PostResponse();
-                    response.setId(post.getId());
-                    response.setTitle(post.getTitle());
-                    response.setContent(post.getContent());
-                    response.setAuthor(vo);
-                    response.setWidth(post.getWidth());
-                    response.setHeight(post.getHeight());
-                    response.setCommentsCount(post.getCommentsCount());
-//                    String tmpImageUrl = tencentCOSUtil.getTmpImageUrl(post.getImageUrl(), 30);
-                    response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(), false));
-                    response.setLikesCount(post.getLikesCount());
-                    response.setCreatedAt(post.getCreatedAt());
-                    response.setUpdatedAt(post.getUpdatedAt());
+                    UserPublicInfoDTO dto = useMap.getData().get(post.getUserId());
 
+                    if (dto != null) {
+                        BeanUtils.copyProperties(dto, vo);
+                    }
+                    vo.setIsFollowed(followedIds != null && followedIds.contains(post.getUserId()));
+                    PostResponse response = new PostResponse();
+                    BeanUtils.copyProperties(post, response);
+                    response.setAuthor(vo);
+                    response.setImageUrl(ImageUtil.getOptimizedUrl(post.getImageUrl(), false));
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -175,15 +236,10 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         Posts posts = new Posts();
         // 设置帖子的基本信息
         posts.setUserId(userId);
-        posts.setTitle(createPostRequest.getTitle());
-        posts.setContent(createPostRequest.getContent());
-        posts.setImageUrl(createPostRequest.getImageUrl());
+        BeanUtils.copyProperties(createPostRequest, posts);
         posts.setCreatedAt(LocalDateTime.now());
         posts.setUpdatedAt(LocalDateTime.now());
         posts.setLikesCount(0);
-        posts.setSize(createPostRequest.getSize());
-        posts.setWidth(createPostRequest.getWidth());
-        posts.setHeight(createPostRequest.getHeight());
         posts.setCommentsCount(0);
         posts.setIsDeleted(false);
 
@@ -196,6 +252,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         StatUpdateMsgDTO msg = new StatUpdateMsgDTO();
         msg.setUserId(userId);
         msg.setDelta(1);
+        msg.setPostId(posts.getId());
         msg.setType("POST");
         rabbitTemplate.convertAndSend(
                 "upc.direct.exchange",
@@ -207,9 +264,6 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
                 },
                 correlationData
         );
-
-
-
 
         if (saved) {
             return Result.success(posts);
@@ -239,6 +293,7 @@ public class PostsServiceImpl extends ServiceImpl<PostsMapper, Posts> implements
         msg.setUserId(userId);
         msg.setDelta(-1);
         msg.setType("POST");
+        msg.setPostId(postId);
         rabbitTemplate.convertAndSend(
                 "upc.direct.exchange",
                 "mq.route.stats_update",
