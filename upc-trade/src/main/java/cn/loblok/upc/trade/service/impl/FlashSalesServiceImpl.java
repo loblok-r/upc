@@ -2,17 +2,13 @@ package cn.loblok.upc.trade.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
-import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.api.worker.dto.SeckillOrderCreateDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
-import cn.loblok.upc.common.enums.MallOrderStatus;
-import cn.loblok.upc.common.enums.UserItemSourceType;
 import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.trade.dto.mall.FlashOrderRequestDTO;
 import cn.loblok.upc.trade.dto.mall.FlashSaleDTO;
 import cn.loblok.upc.trade.dto.mall.PublishFlashSaleDTO;
-import cn.loblok.upc.trade.entity.FlashSaleOrders;
 import cn.loblok.upc.trade.entity.FlashSales;
 import cn.loblok.upc.trade.entity.Products;
 import cn.loblok.upc.common.exception.BizException;

@@ -48,7 +48,6 @@ class RabbitAutoConfiguration {
                     returned.getRoutingKey(),
                     returned.getReplyText());
         });
-
         // 必须设置 mandatory=true，ReturnCallback 才会触发
         template.setMandatory(true);
 

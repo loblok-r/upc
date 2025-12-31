@@ -41,7 +41,7 @@ public class OrderCreateConsumer {
             value = @Queue(value = MQConstants.QUEUE_ORDER_CREATE, durable = "true"),
             exchange = @Exchange(value = MQConstants.EXCHANGE_NAME),
             key = MQConstants.ROUTE_ORDER_CREATE
-    ), ackMode = "MANUAL")
+    ), ackMode = "MANUAL", concurrency = "1-3")
     public void onMessage(SeckillOrderCreateDTO msg, Message message, Channel channel) {
         log.info("创建秒杀订单：{}", msg);
         retryHelper.processWithRetry(

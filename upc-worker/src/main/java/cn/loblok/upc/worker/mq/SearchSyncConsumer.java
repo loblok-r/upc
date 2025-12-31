@@ -37,7 +37,7 @@ public class SearchSyncConsumer {
                         searchService.deleteUser(msg.getId());
                     } else {
                         // UPSERT 模式：新增或修改
-                        // 注意：如果 status 为禁用状态，也可以选择直接从 Meilisearch 删除
+                        // 如果 status 为禁用状态，也可以选择直接从 Meilisearch 删除
                         if (msg.getStatus() != null && msg.getStatus() == 1) {
                             searchService.deleteUser(msg.getId());
                         } else {

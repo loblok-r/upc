@@ -1,16 +1,10 @@
 package cn.loblok.upc.auth.service.chickin.impl;
 
-import cn.loblok.upc.api.worker.dto.ExpTransactionDTO;
-import cn.loblok.upc.api.worker.dto.PointTransactionDTO;
 import cn.loblok.upc.auth.dto.chickin.RewardResult;
-import cn.loblok.upc.auth.entity.UserItems;
-import cn.loblok.upc.auth.entity.UserPoints;
 import cn.loblok.upc.auth.service.chickin.CheckinRecordService;
 import cn.loblok.upc.auth.service.chickin.assist.CheckinManager;
 import cn.loblok.upc.auth.service.chickin.assist.CheckinNotifyService;
-import cn.loblok.upc.common.enums.UserItemType;
 import cn.loblok.upc.auth.service.UserItemsService;
-import cn.loblok.upc.auth.service.UserPointsService;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.auth.entity.chickin.CheckinRecord;
 import cn.loblok.upc.auth.mapper.CheckinRecordMapper;
@@ -30,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import cn.loblok.upc.auth.service.chickin.assist.CheckinRewardCalculator;
 
