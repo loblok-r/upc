@@ -51,4 +51,18 @@ public class AiGenerationHistoryController {
         return Result.success(response);
     }
 
+    /**
+     * 删除历史记录
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除AI生成历史记录")
+    public Result<Boolean> deleteHistory(@PathVariable Long id){
+        log.info("删除历史记录，ID: {}", id);
+        //todo 删除
+//        Boolean result = aiGenerationLogsService.deleteHistoryById(id);
+        return Result.success(false);
+    }
+
 }

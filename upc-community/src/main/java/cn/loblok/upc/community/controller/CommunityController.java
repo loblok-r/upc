@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -190,6 +191,30 @@ public class CommunityController {
             return Result.success(searchResults);
         } catch (Exception e) {
             return Result.error(500, "搜索失败", e.getMessage());
+        }
+    }
+
+
+
+    /**
+     * 获取消息通知
+     * 包括谁点赞了我的帖子、谁评论了我
+     *
+     * @param userId 当前用户ID
+     * @return 消息通知列表
+     */
+    @GetMapping("/notifications")
+    @Operation(summary = "获取消息通知")
+    public Result<List<Object>> getNotifications(@CurrentUser Long userId) {
+        try {
+            // 这里需要根据实际的业务逻辑和数据结构来实现
+            // 目前返回Object类型列表，后续需要定义具体的Notification DTO
+            //todo 待实现
+//            List<Object> notifications = communityService.getNotifications(userId);
+            List<Object> notifications = new ArrayList<>();
+            return Result.success(notifications);
+        } catch (Exception e) {
+            return Result.error(500, "获取通知失败", e.getMessage());
         }
     }
 

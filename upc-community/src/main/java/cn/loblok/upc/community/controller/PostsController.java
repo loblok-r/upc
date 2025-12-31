@@ -196,4 +196,24 @@ public class PostsController {
         }
     }
 
+
+    /**
+     * 获取帖子详情
+     *
+     * @param postId 帖子ID
+     * @param userId 当前用户ID
+     * @return 帖子详情
+     */
+    @GetMapping("/{postId}")
+    @Operation(summary = "获取帖子详情")
+    public Result<PostResponse> getPostDetail(@PathVariable("postId") Long postId, @CurrentUser Long userId) {
+        try {
+            //todo 获取帖子详情
+//            PostResponse postDetail = postsService.getPostDetail(postId, userId);
+            PostResponse postDetail = null;
+            return Result.success(postDetail);
+        } catch (Exception e) {
+            return Result.error(500, "获取帖子详情失败", e.getMessage());
+        }
+    }
 }

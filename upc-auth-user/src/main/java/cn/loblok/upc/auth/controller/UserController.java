@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -41,13 +42,45 @@ public class UserController {
     private VerificationCodeService verificationCodeService;
 
 
-
+/**
+     * 获取用户信息接口
+     * @param userId 用户ID
+     * @return 用户信息对象
+     */
     @GetMapping("/profile")
     @Operation(summary = "获取用户信息")
     public Result<UserProfileDTO> getProfile(@CurrentUser Long userId){
         return userService.getUserInfo(userId);
     }
-    
+
+
+
+    /**
+     * 修改用户信息接口
+     * @param userId 当前用户ID
+     * @param updateProfileRequest 更新用户信息请求参数
+     * @return 更新结果
+     */
+    @PostMapping("/updateProfile")
+    @Operation(summary = "修改用户信息")
+    public Result<String> updateProfile(@CurrentUser Long userId, 
+                                        @Valid @RequestBody UpdateProfileRequestDTO updateProfileRequest) {
+        log.info("修改用户信息: userId={}, request={}", userId, updateProfileRequest);
+        
+        if (userId == null) {
+            return Result.error("用户未登录");
+        }
+        
+        try {
+            //todo 待完善
+//            return userService.updateUserProfile(userId, updateProfileRequest);
+            return null;
+        } catch (Exception e) {
+            return Result.error("修改用户信息失败: " + e.getMessage());
+        }
+    }
+
+
     /**
      * 用户注册接口
      * @param registerRequest 注册请求参数
@@ -151,6 +184,31 @@ public class UserController {
     }
 
     /**
+     * 用户注销接口
+     * @param userId 当前用户ID
+     * @return 注销结果
+     */
+    @PostMapping("/logout")
+    @Operation(summary = "用户注销")
+    public Result<String> logout(@CurrentUser Long userId) {
+        log.info("用户注销: userId={}", userId);
+        
+        if (userId == null) {
+            return Result.error("用户未登录");
+        }
+        
+        try {
+            //todo 添加用户注销逻辑
+//            userService.logout(userId);
+            return Result.success("注销成功");
+        } catch (Exception e) {
+            return Result.error("注销失败: " + e.getMessage());
+        }
+    }
+
+
+
+    /**
      * 获取验证码
      * @param verificationCodeCTO 验证码请求参数
      * @return 验证码响应对象
@@ -169,8 +227,47 @@ public class UserController {
         return verificationCodeService.generationCode(verificationCodeCTO.getEmail(), verificationCodeCTO.getType());
     }
 
-    @PostMapping("/test-mapping")
-    public String testMapping() {
-        return "ok";
+
+
+    /**
+     * 头像上传接口
+     * @param userId 当前用户ID
+     * @param avatarFile 头像文件
+     * @return 上传结果
+     */
+    @PostMapping("/uploadAvatar")
+    @Operation(summary = "上传头像")
+    public Result<String> uploadAvatar(@CurrentUser Long userId, 
+                                       @RequestParam("avatar") MultipartFile avatarFile) {
+        log.info("上传头像: userId={}, fileName={}", userId, avatarFile.getOriginalFilename());
+        
+        if (userId == null) {
+            return Result.error("用户未登录");
+        }
+        
+        if (avatarFile == null || avatarFile.isEmpty()) {
+            return Result.error("请选择要上传的头像文件");
+        }
+        
+        try {
+            // 检查文件类型
+            String contentType = avatarFile.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return Result.error("请选择图片文件");
+            }
+            
+            // 检查文件大小，限制为5MB
+            long maxSize = 5 * 1024 * 1024;
+            if (avatarFile.getSize() > maxSize) {
+                return Result.error("头像文件大小不能超过5MB");
+            }
+
+            //todo 添加用户上传头像逻辑
+//            return userService.uploadAvatar(userId, avatarFile);
+            return null;
+        } catch (Exception e) {
+            log.error("上传头像失败", e);
+            return Result.error("上传头像失败: " + e.getMessage());
+        }
     }
 }

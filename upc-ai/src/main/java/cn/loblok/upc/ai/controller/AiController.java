@@ -56,9 +56,33 @@ public class AiController {
 
     }
 
+    @PostMapping("/retry/{id}")
+    @Operation(summary = "重试生成图片")
+    public Result<AiGenerateResponse> retry(
+            @PathVariable Long id,
+            @CurrentUser Long userId) {
 
+        log.info("用户ID: {}, 重试生成图片，图片ID: {}", userId, id);
 
-
-
+        try {
+            // todo 重试生成图片
+//            AiGenerateResponse response = aiGenerateService.retry(userId, id);
+            AiGenerateResponse response = null;
+            return Result.success(response);
+        } catch (InsufficientComputingPowerException e) {
+            return Result.error(CommonStatusEnum.INSUFFICIENT_COMPUTING_POWER.getCode(),
+                    CommonStatusEnum.INSUFFICIENT_COMPUTING_POWER.getMessage());
+        } catch (DailyLimitExceededException e) {
+            return Result.error(CommonStatusEnum.DAILY_LIMIT_EXCEEDED.getCode(),
+                    CommonStatusEnum.DAILY_LIMIT_EXCEEDED.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Result.error(CommonStatusEnum.INVALID_ARGUMENT.getCode(),
+                    CommonStatusEnum.INVALID_ARGUMENT.getMessage());
+        } catch (Exception e) {
+            log.error("重试生成图片失败，用户ID: {}, 图片ID: {}", userId, id, e);
+            return Result.error(CommonStatusEnum.INTERNAL_SERVER_ERROR.getCode(),
+                    CommonStatusEnum.INTERNAL_SERVER_ERROR.getMessage());
+        }
+    }
 
 }

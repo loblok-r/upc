@@ -5,6 +5,7 @@ import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.trade.dto.mall.ExchangeProducesRequest;
 import cn.loblok.upc.trade.dto.mall.ProductDTO;
+import cn.loblok.upc.trade.service.FOrdersService;
 import cn.loblok.upc.trade.service.ProductsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +30,8 @@ public class MallController {
 
 
     private final ProductsService productsService;
+
+    private final FOrdersService fOrdersService;
 
     /**
      * 获取商品列表
@@ -60,6 +63,27 @@ public class MallController {
     public Result<String> exchangeProduct(@CurrentUser Long userId, @RequestBody ExchangeProducesRequest request) {
 
        return productsService.exchangeProduct(userId, request);
+    }
+
+
+
+    /**
+     * 查询我的兑换/购买记录
+     *
+     * @param userId 用户ID
+     * @param page 页码
+     * @param size 页面大小
+     * @return 兑换/购买记录列表
+     */
+    @GetMapping("/orders")
+    @Operation(summary = "查询我的购买记录")
+    public Result<PageResult<Object>> getMyOrders(
+            @CurrentUser Long userId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
+        //todo 待实现
+//        return fOrdersService.getMyOrders(userId, page, size);
+        return null;
     }
 
 
