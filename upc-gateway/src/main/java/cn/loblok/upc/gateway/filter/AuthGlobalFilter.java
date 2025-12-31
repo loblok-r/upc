@@ -45,6 +45,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info("AuthGlobalFilter processing path: {}", exchange.getRequest().getURI().getPath());
         ServerHttpRequest request = exchange.getRequest();
 
         // --- 如果是 OPTIONS 请求，直接放行 ---
@@ -81,6 +82,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                     // 还可以顺便传用户名或等级
                     .build();
 
+            log.info("Gateway forwarding path: {}", exchange.getRequest().getURI().getPath());
             return chain.filter(exchange.mutate().request(mutableRequest).build());
 
         } catch (Exception e) {
@@ -106,6 +108,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -100;
+        return -90;
     }
 }

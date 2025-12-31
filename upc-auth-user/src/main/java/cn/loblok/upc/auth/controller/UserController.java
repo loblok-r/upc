@@ -168,4 +168,9 @@ public class UserController {
 
         return verificationCodeService.generationCode(verificationCodeCTO.getEmail(), verificationCodeCTO.getType());
     }
+
+    @PostMapping("/test-mapping")
+    public String testMapping() {
+        return "ok";
+    }
 }

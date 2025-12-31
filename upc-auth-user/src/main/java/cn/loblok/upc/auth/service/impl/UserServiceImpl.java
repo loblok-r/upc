@@ -26,8 +26,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
@@ -90,6 +92,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final DailyUsageMapper dailyUsageMapper;
 
 
+    private final MessageConverter messageConverter;
+
+
+    @PostConstruct
+    public void checkConverter() {
+        System.out.println("====== 当前使用的转换器类型: " + messageConverter.getClass().getName());
+    }
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<RegisterResponse> register(String username, String password, String email) {

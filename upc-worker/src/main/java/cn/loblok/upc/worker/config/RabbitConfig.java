@@ -283,13 +283,4 @@ public class RabbitConfig {
     @Bean public Binding bindOrderCreateDlq() {
         return BindingBuilder.bind(orderCreateDlq()).to(dlxExchange()).with(dlqName(MQConstants.QUEUE_ORDER_CREATE));
     }
-
-
-
-
-    //消息转换器
-    @Bean
-    public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
 }
