@@ -1,4 +1,4 @@
-package cn.loblok.rabbit.event;
+package cn.loblok.rabbit.util.rabbit.event;
 
 import org.springframework.context.ApplicationEvent;
 

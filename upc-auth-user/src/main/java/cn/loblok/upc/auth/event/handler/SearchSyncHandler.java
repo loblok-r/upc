@@ -1,7 +1,7 @@
 package cn.loblok.upc.auth.event.handler;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.UserSyncDTO;
 import cn.loblok.upc.auth.event.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;

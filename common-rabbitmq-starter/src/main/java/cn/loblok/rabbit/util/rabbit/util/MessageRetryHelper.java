@@ -1,4 +1,4 @@
-package cn.loblok.upc.worker.util;
+package cn.loblok.rabbit.util.rabbit.util;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +48,10 @@ public class MessageRetryHelper {
                 int newRetryCount = retryCount + 1;
                 log.warn("消息将第 {} 次重试，routingKey: {}", newRetryCount, retryRoutingKey);
 
-                // 1. 直接在当前 message 对象中设置新的 Header
+                // 直接在当前 message 对象中设置新的 Header
                 message.getMessageProperties().setHeader("x-retry-count", newRetryCount);
 
-                // 2. 调用最简单的 send 方法，不使用容易产生歧义的 Lambda 处理器
+                // 调用最简单的 send 方法，不使用容易产生歧义的 Lambda 处理器
                 rabbitTemplate.send(
                         retryExchange,
                         retryRoutingKey,

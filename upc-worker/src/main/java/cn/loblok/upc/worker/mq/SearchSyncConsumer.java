@@ -1,7 +1,7 @@
 package cn.loblok.upc.worker.mq;
 
-import cn.loblok.rabbit.constants.MQConstants;
-import cn.loblok.upc.worker.util.MessageRetryHelper;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.util.MessageRetryHelper;
 import com.rabbitmq.client.Channel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Component;
 
 import cn.loblok.upc.api.worker.dto.UserSyncDTO;
-import cn.loblok.upc.worker.config.RabbitConfig;
 import cn.loblok.upc.worker.service.SearchService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 

@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,32 @@ public class UserItemsServiceImpl extends ServiceImpl<UserItemsMapper, UserItems
                 .eq(UserItems::getUserId, userId)
                 .eq(UserItems::getItemType, userItemType)
                 .list();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    public boolean deductRetroCard(Long userId) {
+
+
+        log.info("开始扣减补签卡");
+        List<UserItems> chances =  this.getByUserId(userId, UserItemType.RESIGN_CARD);
+
+        // 检查补签
+        if (chances.isEmpty()) {
+            return false;
+        }
+
+        // todo 扣减次数，原子操作，生产环境 需要换数据库乐观锁或 Redis 分布式锁
+        for (UserItems chance : chances) {
+            // 尝试乐观锁扣减（推荐）
+            int updated = this.consumeOneChanceWithOptimisticLock(chance.getId());
+            if (updated > 0) {
+                // 扣减成功，退出
+                return true;
+            }
+            // 如果失败（quantity 被别人改了），继续下一条
+        }
+        return false;
     }
 
     @Override

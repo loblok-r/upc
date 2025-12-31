@@ -1,7 +1,7 @@
 package cn.loblok.upc.ai.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.ai.client.QwenClient;
 import cn.loblok.upc.ai.client.SilionClient;
 import cn.loblok.upc.ai.dto.AiGenerateRequest;

@@ -1,7 +1,7 @@
 package cn.loblok.upc.trade.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;

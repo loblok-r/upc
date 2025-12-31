@@ -1,8 +1,9 @@
 package cn.loblok.upc.trade.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ProductDeliveryMsgDTO;
+import cn.loblok.upc.api.worker.dto.SeckillOrderCreateDTO;
 import cn.loblok.upc.common.base.PageResult;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.MallOrderStatus;
@@ -25,6 +26,9 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -38,13 +42,13 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,8 +63,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSales> implements FlashSalesService {
 
-
-    private final FOrdersService ordersService;
 
     private final ProductsService productsService;
 
@@ -84,7 +86,6 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
             FlashSalesMapper flashMapper
     ) {
 
-        this.ordersService = ordersService;
         this.productsService = productsService;
         this.rabbitTemplate = rabbitTemplate;
         this.redissonClient = redissonClient;
@@ -151,6 +152,20 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
     }
 
 
+    //本地限流器：单机每秒只允许 100 个请求进入，防止 Tomcat 线程耗尽
+    private final RateLimiter localLimiter = RateLimiter.create(100.0);
+
+    // 本地售罄标记：如果 Redis 提示没库存了，本地直接拦截，不再访问 Redis
+    private final Map<String, Boolean> stockOutMap = new ConcurrentHashMap<>();
+
+    // 本地活动信息缓存：5秒自动刷新，避免高并发下频繁查 DB
+    private final Cache<String, FlashSales> flashSaleLocalCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.SECONDS)
+            .maximumSize(100)
+            .build();
+
+
+
     /**
      * 秒杀抢购
      *
@@ -161,25 +176,46 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
     @Override
     public Result<String> purchaseFlashSale(Long userId, FlashOrderRequestDTO request) {
         log.info("用户{}正在抢购秒杀活动{}", userId, request.getFlashSaleId());
+        String flashId = request.getFlashSaleId();
+        // 微秒级拦截，不产生网络 IO
+        if (!localLimiter.tryAcquire()) {
+            throw new BizException("抢购人数过多，请稍后再试"); // 快速失败，保护系统
+        }
 
-        String lockKey = KeyUtils.buildFlashSaleLockKey(userId, request.getFlashSaleId());
+        //本地售罄快照
+        if (Boolean.TRUE.equals(stockOutMap.get(flashId))) {
+            throw new BizException("商品已售罄 (Local)");
+        }
+
+        //本地缓存校验活动状态
+        // 使用 Optional 包装或判空，防止无效 ID 穿透
+        FlashSales flashSale = flashSaleLocalCache.get(flashId, id -> {
+            FlashSales dbSale = this.getById(id);
+            // 如果数据库也没有，可以返回一个特殊状态的对象，防止频繁回源
+            return dbSale;
+        });
+
+        if (flashSale == null || !"active".equals(flashSale.getStatus())) {
+            throw new BizException("活动不存在或已结束");
+        }
+
+        //时间校验
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(flashSale.getStartTime())) {
+            throw new BizException("秒杀尚未开始");
+        }
+
+        //分布式锁，防止同一个用户通过脚本开启多个线程刷单
+        String lockKey = KeyUtils.buildFlashSaleLockKey(userId, flashId);
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            // 尝试获取锁：最多等1秒，持有10秒自动释放
-            if (lock.tryLock(1, 10, TimeUnit.SECONDS)) {
-                // 执行核心抢购
-                FlashSaleOrders order = doPurchaseInTransaction(userId, request);
+            // 尝试获取锁，最多等1秒，持有10秒自动释放
+            if (lock.tryLock(500, 5000, TimeUnit.MILLISECONDS)) {
 
-                //TODO 可以异步同步DB，或定时任务同步，DB 乐观锁更新（最终一致性兜底）
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        sendDeliveryMessage(order, userId);
-                    }
-                });
+                // 执行核心 Lua 扣减
+                return executeSeckillLogic(userId, flashSale);
 
-                return Result.success("抢购成功");
             } else {
                 throw new BizException("请勿重复提交");
             }
@@ -192,113 +228,62 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
     }
 
     /**
-     * 秒杀核心逻辑
+     * 核心秒杀逻辑
      *
      * @param userId
-     * @param request
+     * @param flashSale
      * @return
      */
-    @Transactional
-    public FlashSaleOrders doPurchaseInTransaction(Long userId, FlashOrderRequestDTO request) {
-        FlashSales flashSale = this.getById(request.getFlashSaleId());
-
-        if (flashSale == null) {
-            throw new BizException("秒杀活动不存在");
-        }
-
-        // 检查活动状态
-        if (!"active".equals(flashSale.getStatus())) {
-            throw new BizException("秒杀活动未开始或已结束");
-        }
-
-        // 检查时间
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(flashSale.getStartTime()) || now.isAfter(flashSale.getEndTime())) {
-            throw new BizException("秒杀活动未开始或已结束");
-        }
-
-
-        // 检查库存
-        String stockKey = KeyUtils.buildFlashSaleStockKey(request.getFlashSaleId());
-        // 1. 获取字符串结果
-        String remainingStockStr = redisTemplate.opsForValue().get(stockKey);
-
-// 2. 解析为 Long（注意判空，防止空指针异常）
-        Long remainingStock = (remainingStockStr != null) ? Long.valueOf(remainingStockStr) : 0L;
-
-        if (remainingStock <= 0) {
-            throw new BizException("秒杀商品已售完");
-        }
-
+    private Result<String> executeSeckillLogic(Long userId, FlashSales flashSale) {
+        String flashId = flashSale.getId();
+        String stockKey = KeyUtils.buildFlashSaleStockKey(flashId);
         String pointsKey = KeyUtils.buildPointsKey(userId);
-        String userFlagKey = KeyUtils.buildFlashSaleUserKey(userId, request.getFlashSaleId());
+        String userFlagKey = KeyUtils.buildFlashSaleUserKey(userId, flashId);
 
-        long ttlSeconds = Duration.between(LocalDateTime.now(), flashSale.getEndTime()).getSeconds() + 300;
-        // 库存扣减使用乐观锁（并发超卖）
-        Long result = (Long) redisTemplate.execute(
+        // --- 第五层：Redis Lua 原子扣减 ---
+        Long result = redisTemplate.execute(
                 deductStockAndPointsScript,
                 List.of(stockKey, pointsKey, userFlagKey),
                 String.valueOf(flashSale.getSalePrice()),
-                "1",  // 扣1件库存
-                ttlSeconds // 防重1小时
+                "1",
+                "3600"
         );
-        if (result == null || result == 0L) {
-            throw new BizException("手慢啦，商品已被抢光");
-        }
-        if (result == -1L) {
-            throw new BizException("积分不足，快去赚积分吧！");
-        }
-        if (result == -2L) {
-            throw new BizException("您已参与过本次秒杀");
-        }
 
-
-        // 创建订单
-        FlashSaleOrders order = new FlashSaleOrders();
-        order.setUserId(userId);
-        order.setPointsSpent(flashSale.getSalePrice());
-        order.setFlashSaleId(request.getFlashSaleId());
-        order.setProductId(flashSale.getProductId());
-        //等待发放
-        order.setMallOrderStatus(MallOrderStatus.PENDING_EXTERNAL);
-        //没有过期时间
-        order.setReserveExpiresAt(null);
-        order.setCreatedAt(LocalDateTime.now());
-
-        if (!ordersService.save(order)) {
-            log.error("订单创建失败，userId={}, flashSaleId={}", userId, request.getFlashSaleId());
-            // 1. 记录到“待补偿表” 或
-            // 2. 直接抛异常，由上层告警 + 对账任务处理
-            throw new BizException("系统繁忙，请稍后查看订单");
+        //标记本地售罄，拦截后续流量
+        if (result == 0L) {
+            stockOutMap.put(flashId, true);
+            throw new BizException("手慢啦，商品已抢光");
         }
-        return order;
+        if (result == -1L) throw new BizException("积分不足");
+        if (result == -2L) throw new BizException("您已参加过本次活动");
+
+        // MQ 异步落库
+        // 发消息到 MQ，让订单服务慢慢消费
+        sendOrderCreateMessage(userId, flashSale);
+        return Result.success("抢购成功，请稍后在订单列表中查看");
     }
 
-
     /**
-     * 发送 MQ 秒杀成功消息
+     * 发送下单消息
      *
-     * @param order
      * @param userId
+     * @param flashSale
      */
-    private void sendDeliveryMessage(FlashSaleOrders order, Long userId) {
+    private void sendOrderCreateMessage(Long userId, FlashSales flashSale) {
+        SeckillOrderCreateDTO msg = SeckillOrderCreateDTO.builder()
+                .userId(userId)
+                .flashSaleId(flashSale.getId())
+                .productId(flashSale.getProductId())
+                .payPoints(flashSale.getSalePrice())
+                .traceId(IdUtil.fastSimpleUUID())
+                .build();
 
-        String productId = order.getProductId();
-        Products product = productsService.getById(productId);
         String bizId = IdUtil.randomUUID();
         CorrelationData correlationData = new CorrelationData(bizId);
-        // 发送 MQ 消息，任务结束，立即返回给前端
-        ProductDeliveryMsgDTO msg = ProductDeliveryMsgDTO.builder()
-                .orderId(order.getId())
-                .userId(userId)
-                .category(product.getCategory().name())
-                .productName(product.getName())
-                .source(UserItemSourceType.FLASH_SALE.getDescription())
-                .deliveryConfig(product.getDeliveryConfig())
-                .build();
+
         rabbitTemplate.convertAndSend(
                 MQConstants.EXCHANGE_NAME,
-                MQConstants.ROUTE_PRODUCT_DELIVERY,
+                MQConstants.ROUTE_ORDER_CREATE,
                 msg,
                 message -> {
                     message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
@@ -307,7 +292,6 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
                 correlationData
         );
     }
-
 
     /**
      * 发布秒杀活动
@@ -345,23 +329,23 @@ public class FlashSalesServiceImpl extends ServiceImpl<FlashSalesMapper, FlashSa
         FlashSales flashSale = flashMapper.selectById(flashSaleId);
         if (flashSale == null || flashSale.getSyncedToProductStock()) {return;}
 
-        // 1. 从 Redis 获取剩余库存（更准确！因为订单可能有失败/取消）
+        // 1. 从 Redis 获取剩余库存
         String stockKey = KeyUtils.buildFlashSaleStockKey(flashSaleId);
         String remainingStr = (String) redisTemplate.opsForValue().get(stockKey);
         int remainingStock = (remainingStr != null) ? Integer.parseInt(remainingStr) : 0;
 
-        // 2. 【归还】未售出的库存到 products.stock
+        // 2. 未售出的库存到 products.stock
         boolean updated = productsService.addStock(flashSale.getProductId(), remainingStock);
         if (!updated) {
             log.error("归还库存失败，flashSaleId={}, remaining={}", flashSaleId, remainingStock);
             throw new BizException("库存归还异常");
         }
 
-        // 3. 同时更新 Redis 普通商品库存（因为总库存增加了！）
+        // 3. 同时更新 Redis 普通商品库存
         String productStockKey = KeyUtils.buildProductStockKey(flashSale.getProductId());
         redisTemplate.opsForValue().increment(productStockKey, remainingStock);
 
-        // 4. 更新 flash_sales 表记录剩余量（用于对账）
+        // 4. 更新 flash_sales 表记录剩余量,用于对账
         flashMapper.updateRemainingStock(flashSaleId, remainingStock);
 
         // 5. 标记已同步

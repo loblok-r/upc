@@ -26,4 +26,13 @@ public interface FlashOrdersMapper extends BaseMapper<FlashSaleOrders> {
     @Select("SELECT COUNT(*) FROM orders WHERE flash_sale_id = #{flashSaleId} AND order_status IN (2,5)")
     int countSuccessfulOrders(String flashSaleId);
 
+
+    /**
+     * 判断用户是否已参与某场秒杀活动
+     * @param userId
+     * @param flashSaleId
+     * @return
+     */
+    @Select("SELECT EXISTS(SELECT 1 FROM orders WHERE user_id = #{userId} AND flash_sale_id = #{flashSaleId})")
+    boolean existsByUserIdAndFlashSaleId(Long userId, String flashSaleId);
 }

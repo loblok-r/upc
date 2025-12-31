@@ -1,4 +1,4 @@
-package cn.loblok.rabbit.constants;
+package cn.loblok.rabbit.util.rabbit.constants;
 
 // 在公共模块中定义
 public interface MQConstants {
@@ -20,6 +20,7 @@ public interface MQConstants {
     public static final String QUEUE_PRODUCT_DELIVERY = "q.product.delivery";
     public static final String QUEUE_POINT_TRANSACTION = "q.point.transaction";
     public static final String QUEUE_EXP_TRANSACTION = "q.exp.transaction";
+    public static final String QUEUE_ORDER_CREATE = "q.order.create";
 
     //路由键
     public static final String ROUTE_EMAIL = "mq.route.email";
@@ -30,4 +31,5 @@ public interface MQConstants {
     public static final String ROUTE_PRODUCT_DELIVERY = "mq.route.product_delivery";
     public static final String ROUTE_POINT_TRANSACTION = "mq.route.point_transaction";
     public static final String ROUTE_EXP_TRANSACTION = "mq.route.exp_transaction";
+    public static final String ROUTE_ORDER_CREATE = "mq.route.order_create";
 }

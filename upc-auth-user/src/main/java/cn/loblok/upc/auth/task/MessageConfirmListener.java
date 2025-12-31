@@ -1,6 +1,6 @@
 package cn.loblok.upc.auth.task;
 
-import cn.loblok.rabbit.event.MessageConfirmEvent;
+import cn.loblok.rabbit.util.rabbit.event.MessageConfirmEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 

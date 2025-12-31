@@ -1,6 +1,6 @@
 package cn.loblok.upc.worker.config;
 
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -256,6 +256,36 @@ public class RabbitConfig {
     @Bean public Binding bindExpTransactionDlq() {
         return BindingBuilder.bind(expTransactionDlq()).to(dlxExchange()).with(dlqName(MQConstants.QUEUE_EXP_TRANSACTION));
     }
+
+    // 订单创建
+    @Bean public Queue orderCreateQueue() {
+        return QueueBuilder.durable(MQConstants.QUEUE_ORDER_CREATE)
+                .deadLetterExchange(MQConstants.DLX_EXCHANGE_NAME)
+                .deadLetterRoutingKey(dlqName(MQConstants.QUEUE_ORDER_CREATE))
+                .build();
+    }
+    @Bean public Queue orderCreateRetry5sQueue() {
+        return QueueBuilder.durable(retry5sQueueName(MQConstants.QUEUE_ORDER_CREATE))
+                .withArgument("x-dead-letter-exchange", MQConstants.EXCHANGE_NAME)
+                .withArgument("x-dead-letter-routing-key", MQConstants.ROUTE_ORDER_CREATE)
+                .withArgument("x-message-ttl", 5000)
+                .build();
+    }
+    @Bean public Queue orderCreateDlq() {
+        return QueueBuilder.durable(dlqName(MQConstants.QUEUE_ORDER_CREATE)).build();
+    }
+    @Bean public Binding bindOrderCreate() {
+        return BindingBuilder.bind(orderCreateQueue()).to(upcExchange()).with(MQConstants.ROUTE_ORDER_CREATE);
+    }
+    @Bean public Binding bindOrderCreateRetry5s() {
+        return BindingBuilder.bind(orderCreateRetry5sQueue()).to(retryExchange()).with(retry5sQueueName(MQConstants.QUEUE_ORDER_CREATE));
+    }
+    @Bean public Binding bindOrderCreateDlq() {
+        return BindingBuilder.bind(orderCreateDlq()).to(dlxExchange()).with(dlqName(MQConstants.QUEUE_ORDER_CREATE));
+    }
+
+
+
 
     //消息转换器
     @Bean

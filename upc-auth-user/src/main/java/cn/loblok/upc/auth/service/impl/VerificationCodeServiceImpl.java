@@ -1,7 +1,7 @@
 package cn.loblok.upc.auth.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.EmailMsgDTO;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.CommonStatusEnum;

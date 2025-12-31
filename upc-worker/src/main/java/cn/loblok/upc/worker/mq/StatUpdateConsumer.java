@@ -1,11 +1,11 @@
 package cn.loblok.upc.worker.mq;
 
 
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.StatUpdateMsgDTO;
 import cn.loblok.upc.common.utils.KeyUtils;
 import cn.loblok.upc.worker.service.StatService;
-import cn.loblok.upc.worker.util.MessageRetryHelper;
+import cn.loblok.rabbit.util.rabbit.util.MessageRetryHelper;
 import com.rabbitmq.client.Channel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

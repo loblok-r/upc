@@ -1,12 +1,11 @@
 package cn.loblok.upc.worker.mq;
 
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.EmailMsgDTO;
 import cn.loblok.upc.api.worker.dto.NotificationMsg;
-import cn.loblok.upc.worker.config.RabbitConfig;
 import cn.loblok.upc.worker.service.MailService;
 import cn.loblok.upc.worker.service.NotifyService;
-import cn.loblok.upc.worker.util.MessageRetryHelper;
+import cn.loblok.rabbit.util.rabbit.util.MessageRetryHelper;
 import com.rabbitmq.client.Channel;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;

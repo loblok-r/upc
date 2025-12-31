@@ -73,6 +73,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<CheckinResponseDTO> executeCheckin(String tenantId, Long userId, LocalDate checkinDate) {
 
 
@@ -137,7 +138,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             }
 
             // 扣除补签卡（单独事务）
-            boolean deductSuccess = deductRetroCard(userId);
+            boolean deductSuccess = userItemsService.deductRetroCard(userId);
             if (!deductSuccess) {
                 return Result.error("补签卡不足");
             }
@@ -172,31 +173,6 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
         return ValidationResult.success();
     }
 
-
-    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
-    public boolean deductRetroCard(Long userId) {
-
-
-        log.info("开始扣减补签卡");
-        List<UserItems> chances =  userItemsService.getByUserId(userId, UserItemType.RESIGN_CARD);
-
-        // 检查补签
-        if (chances.isEmpty()) {
-            return false;
-        }
-
-        // todo 扣减次数，原子操作，生产环境 需要换数据库乐观锁或 Redis 分布式锁
-        for (UserItems chance : chances) {
-            // 尝试乐观锁扣减（推荐）
-            int updated = userItemsService.consumeOneChanceWithOptimisticLock(chance.getId());
-            if (updated > 0) {
-                // 扣减成功，退出
-               return true;
-            }
-            // 如果失败（quantity 被别人改了），继续下一条
-        }
-        return false;
-    }
 
 
     @Override

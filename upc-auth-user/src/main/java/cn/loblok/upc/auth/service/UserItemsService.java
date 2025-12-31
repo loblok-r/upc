@@ -47,4 +47,13 @@ public interface UserItemsService extends IService<UserItems> {
     int consumeOneChanceWithOptimisticLock(Long id);
 
 
+    /**
+     * 扣减道具次数
+     *
+     * @param  userId 用户id
+     * @return
+     */
+    boolean deductRetroCard(Long userId);
+
+
 }

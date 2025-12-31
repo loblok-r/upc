@@ -1,7 +1,7 @@
 package cn.loblok.upc.auth.service.chickin.assist;
 
 import cn.hutool.core.util.IdUtil;
-import cn.loblok.rabbit.constants.MQConstants;
+import cn.loblok.rabbit.util.rabbit.constants.MQConstants;
 import cn.loblok.upc.api.worker.dto.ExpTransactionDTO;
 import cn.loblok.upc.api.worker.dto.PointTransactionDTO;
 import cn.loblok.upc.auth.common.util.CacheUtils;

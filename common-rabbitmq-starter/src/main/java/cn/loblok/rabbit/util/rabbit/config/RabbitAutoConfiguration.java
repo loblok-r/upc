@@ -1,6 +1,7 @@
-package cn.loblok.rabbit.config;
+package cn.loblok.rabbit.util.rabbit.config;
 
-import cn.loblok.rabbit.event.MessageConfirmEvent;
+import cn.loblok.rabbit.util.rabbit.event.MessageConfirmEvent;
+import cn.loblok.rabbit.util.rabbit.util.MessageRetryHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -52,5 +53,11 @@ class RabbitAutoConfiguration {
         template.setMandatory(true);
 
         return template;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MessageRetryHelper messageRetryHelper(RabbitTemplate rabbitTemplate) {
+        return new MessageRetryHelper(rabbitTemplate);
     }
 }
