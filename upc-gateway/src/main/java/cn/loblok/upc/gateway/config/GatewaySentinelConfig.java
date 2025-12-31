@@ -1,6 +1,12 @@
 package cn.loblok.upc.gateway.config;
 
+import com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayConstants;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPathPredicateItem;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPredicateItem;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.GatewayApiDefinitionManager;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayParamFlowItem;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayRuleManager;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.BlockRequestHandler;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
@@ -27,6 +33,8 @@ public class GatewaySentinelConfig {
 
     @PostConstruct
     public void init() {
+
+        initCustomApiDefs();
         // 1. 加载限流规则
         initGatewayRules();
         // 2. 加载熔断规则
@@ -35,11 +43,37 @@ public class GatewaySentinelConfig {
         initBlockHandler();
     }
 
+    private void initCustomApiDefs() {
+        Set<ApiDefinition> definitions = new HashSet<>();
+        // 定义一个名为 "user_login_api" 的组，包含登录和注册接口
+        ApiDefinition loginApi = new ApiDefinition("user_login_api")
+                .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                    add(new ApiPathPredicateItem().setPattern("/api/user/login"));
+                    add(new ApiPathPredicateItem().setPattern("/api/user/register"));
+                    add(new ApiPathPredicateItem().setPattern("/api/user/sendCode"));
+                }});
+        definitions.add(loginApi);
+        GatewayApiDefinitionManager.loadApiDefinitions(definitions);
+    }
+
     private void initGatewayRules() {
         Set<GatewayFlowRule> rules = new HashSet<>();
+
+        // 1.  AI 模块限流
         rules.add(new GatewayFlowRule("ai-service-route")
                 .setCount(10) // 每秒允许10个请求
                 .setIntervalSec(1));
+
+
+        // 2. 针对登录/注册/验证码的 IP 级限流
+        rules.add(new GatewayFlowRule("user_login_api")
+                .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_CUSTOM_API_NAME)
+                .setCount(3)             // 阈值次数
+                .setIntervalSec(60)      // 统计窗口：60秒
+                .setParamItem(new GatewayParamFlowItem()
+                        .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_CLIENT_IP)
+                )
+        );
         GatewayRuleManager.loadRules(rules);
     }
 
@@ -66,7 +100,9 @@ public class GatewaySentinelConfig {
                 String msg = "{\"code\": 429, \"msg\": \"访问过于频繁\"}";
 
                 if (t instanceof DegradeException) {
-                    msg = "{\"code\": 429, \"msg\": \"AI服务压力过大，已触发熔断保护，请稍后再试\"}";
+                    msg = "{\"code\": 429, \"msg\": \"服务维护中，请稍后再试\"}";
+                } else if (t.getMessage().contains("flow")) { // 简单的流控判断
+                    msg = "{\"code\": 429, \"msg\": \"操作太快了，请喝杯咖啡休息下\"}";
                 }
 
                 return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)

@@ -154,7 +154,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            return Result.error(CommonStatusEnum.USER_NOT_FOUND.getCode(), CommonStatusEnum.USER_NOT_FOUND.getMessage());
         }
 
 
