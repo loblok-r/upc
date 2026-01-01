@@ -52,7 +52,16 @@ public class GatewaySentinelConfig {
                     add(new ApiPathPredicateItem().setPattern("/api/user/register"));
                     add(new ApiPathPredicateItem().setPattern("/api/user/sendCode"));
                 }});
+
+
+        ApiDefinition chatApi = new ApiDefinition("chat_api")
+                .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                    add(new ApiPathPredicateItem().setPattern("/api/chat/completions"));
+                }});
+
+
         definitions.add(loginApi);
+        definitions.add(chatApi);
         GatewayApiDefinitionManager.loadApiDefinitions(definitions);
     }
 
@@ -64,11 +73,20 @@ public class GatewaySentinelConfig {
                 .setCount(10) // 每秒允许10个请求
                 .setIntervalSec(1));
 
-
         // 2. 针对登录/注册/验证码的 IP 级限流
         rules.add(new GatewayFlowRule("user_login_api")
                 .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_CUSTOM_API_NAME)
                 .setCount(3)             // 阈值次数
+                .setIntervalSec(60)      // 统计窗口：60秒
+                .setParamItem(new GatewayParamFlowItem()
+                        .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_CLIENT_IP)
+                )
+        );
+
+        // 3. 针对客服聊天接口的 IP 级限流
+        rules.add(new GatewayFlowRule("chat_api")
+                .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_CUSTOM_API_NAME)
+                .setCount(8)             // 阈值次数：10次
                 .setIntervalSec(60)      // 统计窗口：60秒
                 .setParamItem(new GatewayParamFlowItem()
                         .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_CLIENT_IP)
