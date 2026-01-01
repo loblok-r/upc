@@ -1,3 +1,4 @@
 cn.loblok.upc.common.config.UserArgumentResolverConfig
 cn.loblok.upc.common.config.StorageProperties
 cn.loblok.upc.common.utils.ImageUtil
+cn.loblok.upc.common.config.CommonCommonConfig

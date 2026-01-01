@@ -48,7 +48,7 @@ public class AiGenerateImpl implements AiService {
         log.info("正在为用户{}生成内容... , mode: {}, prompt:{}, refImage: {}", userId, req.getMode(), req.getPrompt(), req.getReferenceImage());
 
 
-        AppMode mode = AppMode.valueOf(req.getMode());
+        AppMode mode = AppMode.fromMode(req.getMode());
         String prompt = req.getPrompt();
         String refImage = req.getReferenceImage();
         // 计算成本

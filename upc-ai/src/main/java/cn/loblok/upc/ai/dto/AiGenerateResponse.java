@@ -30,7 +30,7 @@ public class AiGenerateResponse {
     /**
      * 响应内容,图片的真实路径
      */
-@Schema(description = "响应内容")
+    @Schema(description = "响应内容")
     private String cosPath;
 
     /*

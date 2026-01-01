@@ -476,6 +476,7 @@ public Result<Void> extendVipDays(Long userId, Integer days) {
     @Override
     public Result<Void> checkAiAccess(Long userId, AppMode mode, int cost) {
 
+        log.info("检查用户{}对{}的访问权限，成本为{}...", userId, mode, cost);
         // 获取用户（实时 DB 查询）
         User user = userMapper.selectById(userId);
         if (user == null) {throw new RuntimeException("User not found");}

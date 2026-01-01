@@ -79,6 +79,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Jasypt 加解密 -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -148,6 +148,7 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
 
     // 验证补签
     private ValidationResult validateRetroCheckin(String tenantId, Long userId, LocalDate retroDate) {
+        log.info("开始处理复签验证请求: tenantId={}, userId={}, retroDate={}", tenantId, userId, retroDate);
         // 不能补签未来日期
         if (retroDate.isAfter(LocalDate.now())) {
             return new ValidationResult(false, "不能补签未来日期");

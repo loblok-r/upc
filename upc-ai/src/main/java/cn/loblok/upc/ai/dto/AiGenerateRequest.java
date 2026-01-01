@@ -1,6 +1,7 @@
 package cn.loblok.upc.ai.dto;
 
 
+import cn.loblok.upc.common.enums.AppMode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -22,17 +23,16 @@ public class AiGenerateRequest {
     @Schema(description = "参考图像")
     private String referenceImage; // Base64 图像（可选，当前先忽略）
 
-    @NotBlank(message = "session不能为空")
     @Schema(description = "session")
     private String sessionId;
 
-    @Schema(description = "图像宽度")
+    @Schema(description = "图像宽度", defaultValue = "512")
     private int width;
 
-    @Schema(description = "图像高度")
+    @Schema(description = "图像高度", defaultValue = "512")
     private int height;
     public String getSize(){
-        if("AI_DRAWING".equals(mode)){
+        if(AppMode.AI_DRAWING.getMode().equals(mode)){
             return width + "x" + height;
         }else{
             return null;

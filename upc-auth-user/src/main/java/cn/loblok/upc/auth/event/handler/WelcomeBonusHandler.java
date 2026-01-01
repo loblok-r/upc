@@ -1,6 +1,7 @@
 package cn.loblok.upc.auth.event.handler;
 
 
+import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.auth.entity.IssueContext;
 
 import cn.loblok.upc.auth.service.UserItemsService;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @AllArgsConstructor
-public class WelcomeCouponHandler {
+public class WelcomeBonusHandler {
 
 //    @Autowired
 //    private CouponIssueLogService couponIssueService;
@@ -31,6 +32,8 @@ public class WelcomeCouponHandler {
 //    private UserCouponService userCouponService;
 
     private final UserItemsService userItemsService;
+
+    private final UserFeignClient userFeignClient;
 
     @EventListener
     @Async
@@ -53,12 +56,14 @@ public class WelcomeCouponHandler {
                     null,
                     3
             );
+            //发放初始算力值
+            userFeignClient.addComputingPower(event.getUserId(), 100);
 //            userCouponService.grantWelcomeCoupons(event.getUserId(), context);
 
         } catch (Exception e) {
-            log.error("发券失败，投递到重试队列 user={}", event.getUserId(), e);
+            log.error("发放奖励失败，投递到重试队列 user={}", event.getUserId(), e);
 
-            // 方案1：发送到延迟队列重试（推荐） todo 集成RocketMQ
+            // 方案1：发送到延迟队列重试（推荐） todo 集成MQ
 //            retryQueueProducer.sendRetryMessage(
 //                    "WELCOME_COUPON_RETRY",
 //                    event.getUserId(),

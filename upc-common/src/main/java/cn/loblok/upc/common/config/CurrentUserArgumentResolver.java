@@ -31,6 +31,6 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         }
 
         // 如果能走到这里，说明是受保护的接口但没拿到 userId，返回 null 或抛异常
-        return new UnauthorizedException("请先登录");
+        throw new UnauthorizedException("请先登录");
     }
 }

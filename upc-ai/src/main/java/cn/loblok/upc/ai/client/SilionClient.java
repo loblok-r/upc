@@ -39,7 +39,7 @@ public class SilionClient {
      */
     public AiResult generateImage(Long userId, String prompt, String size,String refImage) {
         log.info("开始调用 SiliconFlow 图像生成接口, 模型: {}", imageModel);
-
+        System.getenv("jasypt.encryptor.password");
         try {
             // 构造请求体 (兼容 OpenAI 格式)
             Map<String, Object> requestBody = new HashMap<>();

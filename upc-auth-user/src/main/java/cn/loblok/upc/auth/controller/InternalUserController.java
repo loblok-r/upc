@@ -78,7 +78,7 @@ public class InternalUserController {
 
     @PostMapping("/followingsCounts/update")
     @Operation(summary = "更新用户关注数")
-    void updateFollowingsCounts(Long userId, Integer delta) {
+    void updateFollowingsCounts(@RequestParam("userId")Long userId, @RequestParam("delta")Integer delta) {
         userService.updateFollowingsCounts(userId,delta);
 
         log.info("更新用户关注数成功");
