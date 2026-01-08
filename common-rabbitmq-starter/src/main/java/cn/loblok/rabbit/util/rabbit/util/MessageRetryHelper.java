@@ -48,6 +48,7 @@ public class MessageRetryHelper {
                 int newRetryCount = retryCount + 1;
                 log.warn("消息将第 {} 次重试，routingKey: {}", newRetryCount, retryRoutingKey);
 
+                safeWait(1000);
                 // 直接在当前 message 对象中设置新的 Header
                 message.getMessageProperties().setHeader("x-retry-count", newRetryCount);
 
@@ -63,6 +64,16 @@ public class MessageRetryHelper {
             } else {
                 log.error("超过最大重试次数（{}），进入死信队列", maxRetryCount, e);
                 safeNack(channel, deliveryTag, false); // requeue = false → DLQ
+            }
+        }
+    }
+
+    public void safeWait(long ms) {
+        synchronized (this) {
+            try {
+                this.wait(ms); // 释放锁并让出CPU，等待指定时间
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }

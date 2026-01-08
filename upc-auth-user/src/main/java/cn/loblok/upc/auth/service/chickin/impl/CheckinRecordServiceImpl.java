@@ -31,6 +31,8 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,8 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
     private final CheckinManager checkinManager;
     private final CheckinNotifyService checkinNotifyService;
     private static final ZoneId BUSINESS_TIMEZONE = ZoneId.of("Asia/Shanghai");
+
+    private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -184,22 +188,29 @@ public class CheckinRecordServiceImpl extends ServiceImpl<CheckinRecordMapper, C
             return Boolean.parseBoolean(cached);
         }
 
-        // 2. 缓存未命中 → 查 DB（击穿点！）
-        QueryWrapper<CheckinRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("tenant_id", tenantId)
-                .eq("user_id", userId)
-                .eq("checkin_date", checkinDate);
+        // 2. 本地单机加锁，防止该用户在本机上的请求全部击穿
+        String userLockKey = userId.toString().intern(); // 针对用户ID加锁
+        synchronized (userLockKey) {
+            // 二次检查缓存
+            cached = redisTemplate.opsForValue().get(key);
+            if (cached != null) return Boolean.parseBoolean(cached);
+            // 2. 缓存未命中 → 查 DB（击穿点！）
+            QueryWrapper<CheckinRecord> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("tenant_id", tenantId)
+                    .eq("user_id", userId)
+                    .eq("checkin_date", checkinDate);
 
-        // 记录一次 DB 查询
-        dbQueryCount.incrementAndGet();
-        boolean exists = this.exists(queryWrapper);
+            // 记录一次 DB 查询
+            dbQueryCount.incrementAndGet();
+            boolean exists = this.exists(queryWrapper);
 
-        // 计算今天还剩多少秒
-        long expireSecs = CacheUtils.getSecondsUntilEndOfDay();
+            // 计算今天还剩多少秒
+            long expireSecs = CacheUtils.getSecondsUntilEndOfDay();
 
-        // 3. 写回缓存（所有线程都可能走到这里！）
-        RedisUtils.setValue(redisTemplate, key, exists, expireSecs); // 直接传秒数
-        return exists;
+            // 写回缓存（所有线程都可能走到这里！）
+            RedisUtils.setValue(redisTemplate, key, exists, expireSecs); // 直接传秒数
+            return exists;
+        }
     }
 
     @Override
