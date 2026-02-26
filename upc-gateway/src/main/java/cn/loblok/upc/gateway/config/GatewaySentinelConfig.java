@@ -86,7 +86,7 @@ public class GatewaySentinelConfig {
         // 3. 针对客服聊天接口的 IP 级限流
         rules.add(new GatewayFlowRule("chat_api")
                 .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_CUSTOM_API_NAME)
-                .setCount(8)             // 阈值次数：10次
+                .setCount(8)             // 阈值次数：8次
                 .setIntervalSec(60)      // 统计窗口：60秒
                 .setParamItem(new GatewayParamFlowItem()
                         .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_CLIENT_IP)

@@ -7,8 +7,10 @@ import cn.loblok.upc.ai.client.SilionClient;
 import cn.loblok.upc.ai.dto.AiGenerateRequest;
 import cn.loblok.upc.ai.dto.AiGenerateResponse;
 import cn.loblok.upc.ai.dto.AiResult;
+import cn.loblok.upc.ai.service.assist.AiCostCalculator;
 import cn.loblok.upc.api.user.feign.UserFeignClient;
 import cn.loblok.upc.api.worker.dto.AiSettleDTO;
+import cn.loblok.upc.common.annotation.RequireAiQuota;
 import cn.loblok.upc.common.base.Result;
 import cn.loblok.upc.common.enums.AppMode;
 import cn.loblok.upc.ai.service.AiService;
@@ -36,45 +38,31 @@ public class AiGenerateImpl implements AiService {
 
     private final QwenClient qwenClient;
     private final SilionClient silionClient;
-
-    private final UserFeignClient userFeignClient;
-
     private final RabbitTemplate rabbitTemplate;
+    private final AiCostCalculator aiCostCalculator;
 
 
     @Override
+    @RequireAiQuota(mode = "#req.mode")
     public AiGenerateResponse generate(Long userId, AiGenerateRequest req) {
 
         log.info("正在为用户{}生成内容... , mode: {}, prompt:{}, refImage: {}", userId, req.getMode(), req.getPrompt(), req.getReferenceImage());
 
 
         AppMode mode = AppMode.fromMode(req.getMode());
-        String prompt = req.getPrompt();
-        String refImage = req.getReferenceImage();
         // 计算成本
-        int cost = calculateCost(mode, prompt, refImage);
+        int cost = aiCostCalculator.calculate(mode, req.getPrompt(), req.getReferenceImage());
 
         log.info("计算成本: {}", cost);
 
-        // 判断权限
-        Result<Void> checkResult = userFeignClient.checkAiAccess(userId, mode, cost);
 
-        if (checkResult.getCode() != 200) {
-            // AI 模块直接根据 User 模块返回的 code 进行响应
-            // 你也可以根据不同的 code 抛出不同的本地 Exception
-            if(checkResult.getCode() == CommonStatusEnum.INSUFFICIENT_COMPUTING_POWER.getCode()){
-                throw new InsufficientComputingPowerException("算力不足");
-            }else if (checkResult.getCode() == CommonStatusEnum.DAILY_LIMIT_EXCEEDED.getCode()){
-                throw new DailyLimitExceededException("达到日限额");
-            }
-        }
 
         log.info("验权通过，开始调用 AI 模型...");
 //         调用 AI 模型
         AiResult aiResult = null;
         try {
 
-            aiResult = callAiModel(mode, prompt,req.getSize(), refImage,userId);
+            aiResult = callAiModel(mode, req.getPrompt(),req.getSize(), req.getReferenceImage(),userId);
         } catch (NoApiKeyException e) {
             throw new RuntimeException(e);
         } catch (InputRequiredException e) {
@@ -84,6 +72,18 @@ public class AiGenerateImpl implements AiService {
 
         log.info("生成完成，结果: {}", aiResult);
 
+        String sessionId = sendSettleMessage(userId, req, cost, mode,aiResult);
+
+
+        // 构造响应
+        String type = mode == AppMode.TEXT_CHAT ? "text" : "image";
+
+
+
+        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(),aiResult.getCosPath(),sessionId,req.getWidth(),req.getHeight());
+    }
+
+    private String sendSettleMessage(Long userId, AiGenerateRequest req, int cost, AppMode mode, AiResult aiResult) {
         //判断是否开启新会话
         String sessionId = req.getSessionId() == null ? IdUtil.randomUUID() : req.getSessionId();
 
@@ -97,8 +97,8 @@ public class AiGenerateImpl implements AiService {
                 .cost(cost)
                 .mode(mode)
                 .sessionId(sessionId)
-                .prompt(prompt)
-                .refImage(refImage)
+                .prompt(req.getPrompt())
+                .refImage(req.getReferenceImage())
                 .content(aiResult.getContent())
                 .cosPath(aiResult.getCosPath())
                 .build();
@@ -117,26 +117,8 @@ public class AiGenerateImpl implements AiService {
                 },
                 correlationData
         );
-
-
-        // 构造响应
-        String type = mode == AppMode.TEXT_CHAT ? "text" : "image";
-
-
-
-        return new AiGenerateResponse(type, aiResult.getContent(), aiResult.getImageUrl(),aiResult.getCosPath(),sessionId,req.getWidth(),req.getHeight());
+        return sessionId;
     }
-
-    private int calculateCost(AppMode mode, String prompt, String refImage) {
-        return switch (mode) {
-            case TEXT_CHAT -> Math.max(1, (int) Math.ceil(prompt.length() / 100.0));
-            case AI_DRAWING -> 10 + (refImage != null ? 5 : 0);
-            case SMART_PRESENTATION -> 15;
-            case PODCAST -> 20;
-            default -> 5;
-        };
-    }
-
 
     private AiResult callAiModel(AppMode mode, String prompt,String size, String refImage, Long userID) throws NoApiKeyException, InputRequiredException {
         if (mode == AppMode.TEXT_CHAT) {
