@@ -31,7 +31,7 @@ public class CouponIssueLogServiceImpl extends ServiceImpl<CouponIssueLogMapper,
     private UserCouponService userCouponService;
 
     @Autowired
-    private CouponIssueLogMapper issueLogMapper; // 发放记录表
+    private CouponIssueLogMapper issueLogMapper;
 
     @Override
     public void issueCoupon(Long userId, String templateCode, IssueContext context) {
@@ -50,17 +50,16 @@ public class CouponIssueLogServiceImpl extends ServiceImpl<CouponIssueLogMapper,
             recordSuccess(userId, templateCode, context);
 
             // 4.  todo 异步推送通知（可选）
-            //pushCouponNotification(userId, templateCode);
 
         } catch (BizException e) {
             log.warn("Coupon issue failed: user={}, template={}, reason={}",
                     userId, templateCode, e.getMessage());
             recordFailure(userId, templateCode, context, e.getMessage());
-            throw e; // 或根据业务决定是否吞掉
-        }catch (Exception e) { // 👈 捕获所有其他异常（系统异常）
+            throw e;
+        }catch (Exception e) {
             log.error("系统异常，发券失败: user={}, template={}", userId, templateCode, e);
             recordFailure(userId, templateCode, context,"系统异常: " + e.getMessage());
-            throw new BizException("发券服务暂时不可用"); // 转为业务异常，避免暴露内部错误
+            throw new BizException("发券服务暂时不可用");
         }
     }
 
@@ -71,7 +70,7 @@ public class CouponIssueLogServiceImpl extends ServiceImpl<CouponIssueLogMapper,
         log.setBizType(context.getBizType().name());
         log.setBizId(context.getBizId());
         log.setStatus(IssueStatus.FAILED.getCode());
-        log.setErrorMsg(StrUtil.maxLength(errorMsg, 500)); // 防止超长
+        log.setErrorMsg(StrUtil.maxLength(errorMsg, 500));
 
         issueLogMapper.insert(log);
     }

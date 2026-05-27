@@ -18,10 +18,10 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -42,17 +42,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCoupon> implements UserCouponService {
 
-    @Autowired
+    @Resource
     private CouponTemplateService couponTemplateService;
 
-    @Autowired
+    @Resource
     private StringRedisTemplate redisTemplate;
 
-    @Autowired
+    @Resource
     private UserEntitlementService entitlementService;
 
-    // 2. 用 Redisson 做分布式锁（新功能）
-    @Autowired
+    // 用 Redisson 做分布式锁（新功能）
+    @Resource
     private RedissonClient redissonClient;
 
     // Lua 脚本（可提取为常量或 resource 文件）
@@ -72,13 +72,13 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void grantCoupon(Long userId, String templateCode) {
-        // 1. 查模板
+        // 查模板
         CouponTemplate template = couponTemplateService.getByCode(templateCode);
         if (template == null || template.getStatus() != 1) {
             throw new BizException("优惠券不可用");
         }
 
-        // 🔑 构造锁 key：用户 + 模板
+        //构造锁 key：用户 + 模板
         String lockKey = "coupon:lock:" + userId + ":" + template.getId();
 
         // 使用 Redisson 的分布式锁（自动续期、可重入、安全）
@@ -99,7 +99,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             throw new BizException("获取锁被中断");
         } finally {
             if (lock.isHeldByCurrentThread()) {
-                lock.unlock(); // Redisson 会自动处理
+                lock.unlock();
             }
         }
 
@@ -109,19 +109,19 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void grabLimitedCoupon(Long userId, String activityCode) {
-        // 1. 根据活动码获取模板（可配置映射）
+        // 根据活动码获取模板（可配置映射）
         CouponTemplate template = couponTemplateService.getByActivityCode(activityCode);
         if (template == null || template.getStatus() != 1) {
             throw new BizException("活动不存在或已结束");
         }
 
-        // 2. 检查用户今日是否已领取（轻量防重，用 Redis）
+        // 检查用户今日是否已领取（轻量防重，用 Redis）
         String claimKey = "coupon:claimed:" + activityCode + ":" + LocalDate.now() + ":" + userId;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(claimKey))) {
+        if (redisTemplate.hasKey(claimKey)) {
             throw new BizException("您今天已领取过该优惠券");
         }
 
-        // 3. 【关键】获取活动级分布式锁（防超发总量！）
+        // 【关键】获取活动级分布式锁（防超发总量！）
         String lockKey = "coupon:lock:activity:" + activityCode + ":" + LocalDate.now();
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -131,14 +131,14 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             }
 
 
-            // 【关键新增】：在锁内检查库存是否还有
+            // 在锁内检查库存是否还有
             String stockKey = KeyUtils.buildCouponStockKey(template.getId());
             String stockStr = redisTemplate.opsForValue().get(stockKey);
-            Long stock = (stockStr != null) ? Long.parseLong(stockStr) : 0L;
+            long stock = (stockStr != null) ? Long.parseLong(stockStr) : 0L;
             if (stock <= 0) {
                 throw new BizException("手慢啦，优惠券已被抢光！");
             }
-            // 5. 记录用户已领取（防重复）
+            // 记录用户已领取（防重复）
             redisTemplate.opsForValue().set(claimKey, "1", Duration.ofDays(1));
 
 
@@ -146,7 +146,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new BizException("操作被中断，请稍后重试"); // ← 统一为 BizException
+            throw new BizException("操作被中断，请稍后重试");
         } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
@@ -157,7 +157,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void grantWelcomeCoupons(Long userId, IssueContext context) {
-        // 🔒 全局防重（基于 bizId）
+        // 全局防重（基于 bizId）
         if (redisTemplate.hasKey(context.getBizId())) {
             log.warn("重复发放注册礼包，userId={}", userId);
             return; // 幂等处理
@@ -171,7 +171,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
 
         // 逐个发放（复用现有 grantCoupon 逻辑）
         for (String code : templateCodes) {
-            grantCoupon(userId, code); // ← 你已有的方法，带分布式锁 + 库存检查
+            grantCoupon(userId, code);
         }
 
         // 标记已发放（24h 过期足够）
@@ -225,8 +225,6 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
         IPage<CouponResponse> convert = result.convert(item -> {
             CouponResponse couponResponse = new CouponResponse();
 
-            // 转换
-
             return couponResponse;
         });
         convert.setTotal(result.getTotal());
@@ -237,7 +235,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     /**
      * 实际发放逻辑（带事务）
      */
-    // 私有方法，仅在 grantCoupon / grabLimitedCoupon 内部调用（它们已有 @Transactional）
+    // 私有方法，仅在 grantCoupon / grabLimitedCoupon 内部调用
     private void issueCouponInternal(Long userId, CouponTemplate template) {
         // 2. 检查用户是否已达领取上限（现在在锁内，安全！）
         //典型的 应用层计数检查，而且因为在外层有 Redisson 分布式锁，所以这个 count + insert 是逻辑原子的，完全安全。
@@ -300,7 +298,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
 
         // 执行脚本：KEYS=[stockKey], ARGV=[0]
         Long result = redisTemplate.execute(redisScript, Collections.singletonList(stockKey), "0");
-        return result != null && result == 1L;
+        return result == 1L;
     }
 
     // 计算优惠券过期时间
