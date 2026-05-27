@@ -41,8 +41,6 @@ public class PointsLogsService extends ServiceImpl<PointTransactionMapper,  Poin
         Page<PointTransaction> page = new Page<>(pageNum, pageSize);
 
         QueryWrapper<PointTransaction> query = new QueryWrapper<>();
-//        query.eq("tenant_id", tenantId)
-//                .eq("user_id", userId);
         query.eq("user_id", userId);
         if (StringUtils.hasText(bizType)) {
             // 安全校验：防止非法枚举值

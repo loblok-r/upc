@@ -22,7 +22,7 @@ public class DailyUsageServiceImpl extends ServiceImpl<DailyUsageMapper, DailyUs
 
     @Override
     public DailyUsage selectByUserId(Long userId) {
-        String today = LocalDate.now().toString(); // "2025-12-11"
+        String today = LocalDate.now().toString();
 
         LambdaQueryWrapper<DailyUsage> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DailyUsage::getUserId, userId)
